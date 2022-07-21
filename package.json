@@ -1,0 +1,33 @@
+{
+  "name": "kamiya-music",
+  "version": "2.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@discordjs/opus": "^0.8.0",
+    "@discordjs/voice": "^0.11.0",
+    "bufferutil": "^4.0.6",
+    "discord-ytdl-core": "^5.0.4",
+    "discord.js": "^14.0.3",
+    "dotenv": "^16.0.1",
+    "erlpack": "github:discord/erlpack",
+    "ffmpeg-static": "^5.0.2",
+    "https-proxy-agent": "^5.0.1",
+    "last-fm": "^5.3.0",
+    "node-gyp": "^9.1.0",
+    "prism-media": "^1.3.4",
+    "simple-youtube-api": "^5.2.1",
+    "sodium-native": "^3.3.0",
+    "utf-8-validate": "^5.0.9",
+    "ytdl": "^1.4.1",
+    "zlib-sync": "^0.1.7"
+  },
+  "devDependencies": {
+    "eslint": "^8.20.0"
+  }
+}
