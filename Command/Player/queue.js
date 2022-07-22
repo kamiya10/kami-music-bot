@@ -53,9 +53,8 @@ module.exports = {
 
 			let queue = new EmbedBuilder()
 				.setColor(interaction.client.Color.Info)
-				.setAuthor({ name: interaction.guild.name, iconURL: interaction.guild.iconURL() })
+				.setAuthor({ name: `播放佇列 | ${interaction.guild.name}`, iconURL: interaction.guild.iconURL() })
 				.setThumbnail(GuildMusicPlayer.current.thumbnail)
-				.setTitle("🎵 播放佇列")
 				.setDescription(desc.join("\n"))
 				.setTimestamp();
 
@@ -129,7 +128,7 @@ module.exports = {
 					range = getSubsetRange(songlist, songlist[cursor], 9);
 					queue = queue
 						.setThumbnail(GuildMusicPlayer.current.thumbnail)
-						.setTitle("🎵 播放佇列")
+						.setAuthor({ name: `播放佇列 | ${interaction.guild.name}`, iconURL: interaction.guild.iconURL() })
 						.setDescription(desc.join("\n"))
 						.setTimestamp();
 

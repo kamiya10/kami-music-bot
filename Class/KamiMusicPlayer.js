@@ -338,7 +338,7 @@ class KamiMusicPlayer {
 		if (this.playbackTimeObject) {
 			const times = [];
 			times.push(this.playbackTimeObject.day, this.playbackTimeObject.hour, this.playbackTimeObject.minute, this.playbackTimeObject.second);
-			return times.reduce((a, v) => (v == 0) ? a : (v < 10) ? a.push(`0${v}`) && (a) : a.push(String(v)) && (a), []).join(":");
+			return times.reduce((a, v, i) => (v == 0 && i < 2) ? a : (v < 10) ? a.push(`0${v}`) && (a) : a.push(String(v)) && (a), []).join(":");
 		}
 		return null;
 	}
@@ -401,7 +401,7 @@ class KamiMusicPlayer {
 
 			return resource;
 		}
-		return undefined;
+		return null;
 	}
 
 	/**
@@ -426,7 +426,7 @@ class KamiMusicPlayer {
 
 			return index;
 		}
-		return undefined;
+		return null;
 	}
 
 	/**
