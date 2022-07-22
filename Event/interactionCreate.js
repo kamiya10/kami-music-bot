@@ -39,7 +39,6 @@ module.exports = {
 				await interaction.followUp({ content: msg, ephemeral: true });
 			} else
 				await interaction.reply({ content: msg, ephemeral: true });
-
 		}
 	},
 };

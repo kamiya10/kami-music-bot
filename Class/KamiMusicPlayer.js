@@ -612,6 +612,19 @@ class KamiMusicPlayer {
 	}
 
 	/**
+	 * Connects the player.
+	 * @param {import("discord.js").VoiceChannel} channel
+	 */
+	connect(channel) {
+		this.connection = joinVoiceChannel({
+			channelId      : channel.id,
+			guildId        : channel.guild.id,
+			adapterCreator : channel.guild.voiceAdapterCreator,
+		});
+		this.subscription = this.connection.subscribe(this.player);
+	}
+
+	/**
 	 * Reconnects the player.
 	 */
 	reconnect() {

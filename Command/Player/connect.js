@@ -23,10 +23,11 @@ module.exports = {
 			 */
 			const GuildMusicPlayer = interaction.client.players.get(interaction.guild.id);
 
-			if (GuildMusicPlayer)
+			if (GuildMusicPlayer) {
 				if (GuildMusicPlayer.locked && GuildMusicPlayer.owner.id != interaction.member.id) throw { message: "ERR_PLAYER_LOCKED" };
-
-			new KamiMusicPlayer(interaction.member.voice.channel, interaction.member);
+				GuildMusicPlayer.connect(interaction.member.voice.channel);
+			} else
+				new KamiMusicPlayer(interaction.member.voice.channel, interaction.member);
 
 			await interaction.editReply({ content: "✅" });
 		} catch (e) {
