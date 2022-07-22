@@ -9,10 +9,10 @@ export declare enum Platform {
 }
 
 interface Duration {
-        second : number;
-        minute : number;
-        hour   : number;
-        day    : number;
+    second : number;
+    minute : number;
+    hour   : number;
+    day    : number;
 }
 
 export declare class KamiMusicMetadata {
