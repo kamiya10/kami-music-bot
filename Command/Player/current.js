@@ -23,18 +23,18 @@ module.exports = {
 
 			const resource = GuildMusicPlayer._resource;
 			let embed = new EmbedBuilder()
-				.setColor(interaction.client.Colors.Info)
+				.setColor(interaction.client.Color.Info)
 				.setAuthor({ name: "正在播放", iconURL: interaction.guild.iconURL() })
 				.setTimestamp();
 
 			if (resource) {
-				const progress = playbackBar(GuildMusicPlayer.playbackTime, GuildMusicPlayer.current.duration);
+				const progress = playbackBar(~~(GuildMusicPlayer.playbackTime / 1000), GuildMusicPlayer.current.duration);
 
 				embed = embed
 					.setThumbnail(GuildMusicPlayer.current.thumbnail)
 					.setTitle(GuildMusicPlayer.current.title)
 					.setURL(GuildMusicPlayer.current.url)
-					.setDescription(`${GuildMusicPlayer.formattedPlaybackTime}${progress}${GuildMusicPlayer.current.formattedDuration}`);
+					.setDescription(`${GuildMusicPlayer.formattedPlaybackTime} ${progress} ${GuildMusicPlayer.current.formattedDuration}`);
 			} else
 				embed = embed.setDescription("目前沒有在播放任呵東西");
 
