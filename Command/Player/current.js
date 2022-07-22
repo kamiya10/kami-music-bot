@@ -8,7 +8,7 @@ module.exports = {
 		.setDescriptionLocalization("zh-TW", "顯示目前正在播放的項目。")
 		.setDMPermission(false),
 	defer     : true,
-	ephemeral : false,
+	ephemeral : true,
 	/**
 	 * @param {import("discord.js").ChatInputCommandInteraction} interaction
 	 */
@@ -29,13 +29,16 @@ module.exports = {
 
 			if (resource) {
 				const progress = playbackBar(GuildMusicPlayer.playbackTime, GuildMusicPlayer.current.duration);
-				const progress2 = playbackBar(GuildMusicPlayer.playbackTime, GuildMusicPlayer.current.duration);
 
-				embed = embed.setDescription(`${GuildMusicPlayer.formattedPlaybackTime}${progress}${GuildMusicPlayer.current.formattedDuration}\n${GuildMusicPlayer.formattedPlaybackTime}${progress2}${GuildMusicPlayer.current.formattedDuration}`);
+				embed = embed
+					.setThumbnail(GuildMusicPlayer.current.thumbnail)
+					.setTitle(GuildMusicPlayer.current.title)
+					.setURL(GuildMusicPlayer.current.url)
+					.setDescription(`${GuildMusicPlayer.formattedPlaybackTime}${progress}${GuildMusicPlayer.current.formattedDuration}`);
 			} else
 				embed = embed.setDescription("目前沒有在播放任呵東西");
 
-			await interaction.editReply({ embeds: [embed] });
+			await interaction.editReply({ embeds: [embed], ephemeral: true });
 		} catch (e) {
 			const errCase = {
 				"ERR_USER_NOT_IN_VOICE"      : "你必須在語音頻道內才能使用這個指令",
