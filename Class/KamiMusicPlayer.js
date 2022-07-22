@@ -305,6 +305,45 @@ class KamiMusicPlayer {
 	}
 
 	/**
+	 * @return {number}
+	 */
+	get playbackTime() {
+		return this._resource?.playbackDuration ?? null;
+	}
+
+	/**
+	 * @typedef Duration
+	 * @property {number} second
+	 * @property {number} minute
+	 * @property {number} hour
+	 * @property {number} day
+	 */
+
+	/**
+	 * @return {Duration}
+	 */
+	get playbackTimeObject() {
+		return this.playbackTime ? {
+			second : ~~(this.playbackTime / 1000) % 60,
+			minute : ~~(~~(this.playbackTime / 1000) / 60),
+			hour   : ~~(~~(this.playbackTime / 1000) / (60 * 60)),
+			day    : ~~(~~(this.playbackTime / 1000) / (60 * 60 * 24)),
+		} : null;
+	}
+
+	/**
+	 * @return {number}
+	 */
+	get formattedPlaybackTime() {
+		if (this.playbackTimeObject) {
+			const times = [];
+			times.push(this.playbackTimeObject.day, this.playbackTimeObject.hour, this.playbackTimeObject.minute, this.playbackTimeObject.second);
+			return times.reduce((a, v, i) => (v == 0 && i < 2) ? a : (v < 10) ? a.push(`0${v}`) && (a) : a.push(String(v)) && (a), []).join(":");
+		}
+		return null;
+	}
+
+	/**
 	 * Add resources to the queue.
 	 * @param {KamiMusicMetadata | KamiMusicMetadata[]} resource The resources to add.
 	 * @param {?number} index The index resources should append after.
