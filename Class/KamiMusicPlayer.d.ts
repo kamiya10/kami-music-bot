@@ -60,5 +60,6 @@ export declare class KamiMusicPlayer {
     resume(): void;
     stop(force?: boolean): void;
     destroy(): void;
+    connect(channel: VoiceChannel): void;
     reconnect(): void;
 }
