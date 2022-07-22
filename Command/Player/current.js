@@ -24,7 +24,7 @@ module.exports = {
 			const resource = GuildMusicPlayer._resource;
 			let embed = new EmbedBuilder()
 				.setColor(interaction.client.Color.Info)
-				.setAuthor({ name: "正在播放", iconURL: interaction.guild.iconURL() })
+				.setAuthor({ name: `正在播放 | ${interaction.guild.name}`, iconURL: interaction.guild.iconURL() })
 				.setTimestamp();
 
 			if (resource) {
