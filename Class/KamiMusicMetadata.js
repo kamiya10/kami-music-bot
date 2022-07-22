@@ -112,7 +112,7 @@ class KamiMusicMetadata {
 	get formattedDuration() {
 		const times = [];
 		times.push(this.durationObject.day, this.durationObject.hour, this.durationObject.minute, this.durationObject.second);
-		return times.reduce((a, v) => (v == 0) ? a : (v < 10) ? a.push(`0${v}`) && (a) : a.push(String(v)) && (a), []).join(":");
+		return times.reduce((a, v, i) => (v == 0 && i < 2) ? a : (v < 10) ? a.push(`0${v}`) && (a) : a.push(String(v)) && (a), []).join(":");
 	}
 }
 module.exports = { KamiMusicMetadata, Platform };

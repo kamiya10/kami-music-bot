@@ -13,6 +13,13 @@ export declare enum RepeatMode {
     BackwardRepeatQueue = 7,
 }
 
+interface Duration {
+    second : number;
+    minute : number;
+    hour   : number;
+    day    : number;
+}
+
 export declare class KamiMusicPlayer {
     constructor(channel: VoiceChannel, member: GuildMember);
 
@@ -29,6 +36,9 @@ export declare class KamiMusicPlayer {
     set currentIndex(value: number);
     get repeat(): RepeatMode;
     set repeat(value: RepeatMode);
+    get playbackTime(): ?number;
+    get playbackTimeObject(): ?Duration;
+    get formattedPlaybackTime(): ?string;
     stopped: boolean;
     get volume(): number;
     set volume(value: number);
