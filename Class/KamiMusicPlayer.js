@@ -401,7 +401,7 @@ class KamiMusicPlayer {
 
 			return resource;
 		}
-		return undefined;
+		return null;
 	}
 
 	/**
@@ -426,7 +426,7 @@ class KamiMusicPlayer {
 
 			return index;
 		}
-		return undefined;
+		return null;
 	}
 
 	/**
