@@ -66,7 +66,7 @@ module.exports = {
 				switch (type) {
 					case "percentage": {
 						GuildMusicPlayer.volume = value / 100;
-						volumeString = `**${value}%** → ${GuildMusicPlayer.volume}`;
+						volumeString = `**${value}%** → ${GuildMusicPlayer.volume}${GuildMusicPlayer.volume > 10 ? "*爆音啦～～～*" : ""}`;
 						break;
 					}
 					case "decibels": {
