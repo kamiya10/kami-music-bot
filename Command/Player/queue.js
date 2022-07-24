@@ -37,11 +37,13 @@ module.exports = {
 							? "❌ "
 							: "▪️ "
 				)
+			+ (!v.playable ? "~~" : "")
 			+ `\`${i < 9 && a.length >= 10 ? " " : ""}${i + 1}.\``
 			// + ` ${v.member}${v.playlist ? `[${v.playlist.title}]**\n　　**` : ""}`
 			// + `\`[${v.formattedDuration}]\``
 			// + `[${(v.title.length > 21) ? escapeMarkdown(v.title.substring(0, 26).replace(/([[\]()])/g, "\\$1") + "…") : escapeMarkdown(v.title.replace(/([[\]()])/g, "\\$1"))}](${v.shortURL})`
 			+ `[${escapeMarkdown(v.title.replace(/([[\]()])/g, "\\$1"))}](${v.shortURL})`
+			+ (!v.playable ? "~~" : "")
 			+ (((i == GuildMusicPlayer.currentIndex) && (GuildMusicPlayer.player.state.status != "idle")) ? "**" : "")
 			+ (v.error ? `\n　　　⚠️ 錯誤：${v.error.message}` : "");
 

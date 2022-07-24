@@ -1,4 +1,4 @@
-const { EmbedBuilder, SlashCommandBuilder, SlashCommandIntegerOption, SlashCommandStringOption, SlashCommandSubcommandBuilder } = require("discord.js");
+const { EmbedBuilder, SlashCommandBuilder, SlashCommandIntegerOption, SlashCommandStringOption, SlashCommandSubcommandBuilder, escapeMarkdown } = require("discord.js");
 const { KamiMusicMetadata } = require("../../Class/KamiMusicMetadata");
 const { KamiMusicPlayer } = require("../../Class/KamiMusicPlayer");
 const YouTube = require("simple-youtube-api");
@@ -81,15 +81,15 @@ module.exports = {
 										metas.push(meta);
 										// else blocked = "~~";
 
-										songs.push(`${blocked}${i + 1}. [${(video.title.length > 32) ? video.title.substring(0, 31) + "…" : video.title}](${video.shortURL})${blocked} ${blocked ? "地區限制" : ""}`);
+										songs.push(`${blocked}${i + 1}. [${escapeMarkdown(video.title.replace(/([[\]()])/g, "\\$1"))}](${video.shortURL})${blocked} ${blocked ? "地區限制" : ""}`);
 									} catch (err) {
 										return console.error(err);
 									}
 
 							GuildMusicPlayer.addResource(metas);
-							if (songs.length > 10) {
+							if (songs.length > 8) {
 								const total = songs.length;
-								songs = songs.slice(0, 10);
+								songs = songs.slice(0, 8);
 								songs.push(`　...還有 ${total - songs.length} 項`);
 							}
 
