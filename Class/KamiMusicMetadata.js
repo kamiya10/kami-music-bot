@@ -83,7 +83,7 @@ class KamiMusicMetadata {
 	 * @return {boolean}
 	 */
 	get playable() {
-		return this.region.includes("TW");
+		return !this.region.includes("TW");
 	}
 
 	/**

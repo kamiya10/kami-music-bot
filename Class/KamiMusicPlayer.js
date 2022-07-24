@@ -436,14 +436,15 @@ class KamiMusicPlayer {
 	play(index = this.currentIndex) {
 		console.log(this);
 		const resource = this.queue[index];
-		if (resource) {
-			let stream = resource.cache;
+		if (resource)
+			if (resource.playable) {
+				let stream = resource.cache;
 
-			if (!stream)
-				switch (resource.platform) {
-					case Platform.Youtube: {
-						let agent;
-						/* Proxy
+				if (!stream)
+					switch (resource.platform) {
+						case Platform.Youtube: {
+							let agent;
+							/* Proxy
 						if (resource.region.length)
 							if (resource.region.includes("TW")) {
 								console.log("Using proxy: JP");
@@ -454,22 +455,25 @@ class KamiMusicPlayer {
 							}
 						*/
 
-						stream = ytdl(resource.url,
-							{
-								filter        : (format) => format.contentLength,
-								quality       : "highestaudio",
-								highWaterMark : 1 << 25,
-								...(agent && { requestOptions: { agent } }),
-							});
-						break;
+							stream = ytdl(resource.url,
+								{
+									filter         : (format) => format.contentLength,
+									quality        : "highestaudio",
+									highWaterMark  : 1 << 25,
+									requestOptions : {
+										timeout: 5000,
+									},
+									...(agent && { requestOptions: { agent } }),
+								});
+							break;
+						}
+						default:
+							break;
 					}
-					default:
-						break;
-				}
 
-			if (stream) {
-				this.currentIndex = index;
-				/*
+				if (stream) {
+					this.currentIndex = index;
+					/*
 				const transcoderArgs = [
 					"-analyzeduration", "0",
 					"-loglevel", "0",
@@ -480,16 +484,16 @@ class KamiMusicPlayer {
 				];
 				const transcoder = new FFmpeg({ args: transcoderArgs });
 				*/
-				const ar = createAudioResource(stream, {
-					inlineVolume : true,
-					metadata     : resource,
-				});
-				this._resource = ar;
-				this.volume = this._volume;
-				this.player.play(ar);
-				this.buffer(this.nextIndex);
-			}
-		}
+					const ar = createAudioResource(stream, {
+						inlineVolume : true,
+						metadata     : resource,
+					});
+					this._resource = ar;
+					this.volume = this._volume;
+					this.player.play(ar);
+					this.buffer(this.nextIndex);
+				}
+			} else this.next();
 	}
 
 	/**
@@ -500,12 +504,13 @@ class KamiMusicPlayer {
 	buffer(index, force = false) {
 		const resource = this.queue[index];
 		if (resource)
-			if (!resource.cache || force) {
-				let stream;
-				switch (resource.platform) {
-					case Platform.Youtube: {
-						let agent;
-						/* Proxy
+			if (!resource.cache || force)
+				if (resource.playable) {
+					let stream;
+					switch (resource.platform) {
+						case Platform.Youtube: {
+							let agent;
+							/* Proxy
 						if (resource.region.length)
 							if (resource.region.includes("TW")) {
 								console.log("Using proxy: JP");
@@ -516,30 +521,36 @@ class KamiMusicPlayer {
 							}
 						*/
 
-						stream = ytdl(resource.url,
-							{
-								filter        : (format) => format.contentLength,
-								quality       : "highestaudio",
-								highWaterMark : 1 << 25,
-								...(agent && { requestOptions: { agent } }),
-							});
-						break;
+							stream = ytdl(resource.url,
+								{
+									filter         : (format) => format.contentLength,
+									quality        : "highestaudio",
+									highWaterMark  : 1 << 25,
+									requestOptions : {
+										timeout: 5000,
+									},
+									...(agent && { requestOptions: { agent } }),
+								});
+							break;
+						}
+						default:
+							break;
 					}
-					default:
-						break;
-				}
 
-				if (stream) {
-					stream.on("error", (err) => {
-						console.error(err);
-						this.buffer(index);
-					});
-					stream.on("finish", () => {
-						console.log("finished buffer", stream.readableLength);
-						resource.cache = stream;
-					});
+					if (stream) {
+						stream.on("error", (err) => {
+							console.error(err);
+							if (err.message.startsWith("Status code: 4")) {
+								if (err.message.includes("410"))
+									resource.region.push("TW");
+							} else this.buffer(index);
+						});
+						stream.on("finish", () => {
+							console.log("finished buffer", stream.readableLength);
+							resource.cache = stream;
+						});
+					}
 				}
-			}
 	}
 
 	/**
