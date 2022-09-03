@@ -22,7 +22,7 @@
     "simple-youtube-api": "^5.2.1",
     "sodium-native": "^3.3.0",
     "utf-8-validate": "^5.0.9",
-    "ytdl": "^1.4.1",
+    "ytdl-core": "^4.11.1",
     "zlib-sync": "^0.1.7"
   },
   "devDependencies": {
