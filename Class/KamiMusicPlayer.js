@@ -1,5 +1,7 @@
 const { createAudioPlayer, entersState, joinVoiceChannel, NoSubscriberBehavior, VoiceConnectionStatus, AudioPlayerStatus, createAudioResource } = require("@discordjs/voice");
+const { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync, createReadStream } = require("node:fs");
 const { KamiMusicMetadata } = require("./KamiMusicMetadata");
+const { join } = require("node:path");
 const { Platform } = require("./KamiMusicMetadata");
 const ytdl = require("ytdl-core");
 // const { FFmpeg } = require("prism-media");
@@ -360,9 +362,16 @@ class KamiMusicPlayer {
 			else
 				this._randomQueue.splice(index, 0, resource);
 
-		if (![RepeatMode.Random, RepeatMode.RandomNoRepeat, RepeatMode.TrueRandom].includes(this.repeat))
+		if (![RepeatMode.Random, RepeatMode.RandomNoRepeat, RepeatMode.TrueRandom].includes(this.repeat)) {
 			if (this.currentIndex > index)
 				this.currentIndex += 1;
+
+			if (this.queue[this.nextIndex])
+				if (!this.queue[this.nextIndex].cache) {
+					console.log("⏳ buffer:", this.queue[this.nextIndex].title);
+					this.buffer(this.nextIndex);
+				}
+		}
 
 		if (this.player.state.status == AudioPlayerStatus.Idle) {
 			if (![RepeatMode.Random, RepeatMode.RandomNoRepeat, RepeatMode.TrueRandom].includes(this.repeat))
@@ -371,10 +380,7 @@ class KamiMusicPlayer {
 				else
 					this.currentIndex = this.queue.indexOf(resource);
 
-			if (this.queue[this.nextIndex])
-				if (!this.queue[this.nextIndex].cache)
-					this.buffer(this.nextIndex);
-
+			this.buffer(this.currentIndex);
 			this.play();
 		}
 	}
@@ -431,21 +437,25 @@ class KamiMusicPlayer {
 
 	/**
 	 * Play resources.
-	 * @param {?number} index The index of the resource to be played by the player.
+	 * @param {number} [index=this.currentIndex] The index of the resource to be played by the player.
 	 */
 	play(index = this.currentIndex) {
-		console.log(this);
 		const resource = this.queue[index];
 		if (resource)
 			if (resource.playable) {
-				let stream = resource.cache;
+				let stream;
+
+				if (resource.cache) {
+					console.log("▶ using cache");
+					stream = createReadStream(resource.cache);
+				}
 
 				if (!stream)
 					switch (resource.platform) {
 						case Platform.Youtube: {
 							let agent;
 							/* Proxy
-						if (resource.region.length)
+							if (resource.region.length)
 							if (resource.region.includes("TW")) {
 								console.log("Using proxy: JP");
 								const Agent = require("https-proxy-agent");
@@ -453,7 +463,7 @@ class KamiMusicPlayer {
 								// const proxy = "http://140.227.59.167:3180";
 								agent = new Agent(proxy);
 							}
-						*/
+							*/
 
 							stream = ytdl(resource.url,
 								{
@@ -474,24 +484,28 @@ class KamiMusicPlayer {
 				if (stream) {
 					this.currentIndex = index;
 					/*
-				const transcoderArgs = [
-					"-analyzeduration", "0",
-					"-loglevel", "0",
-					"-f", "s16le",
-					"-ar", "48000",
-					"-ac", "2",
-					"-af", `bass=g=${this.audiofilter.bass}`,
-				];
-				const transcoder = new FFmpeg({ args: transcoderArgs });
-				*/
+					const transcoderArgs = [
+						"-analyzeduration", "0",
+						"-loglevel", "0",
+						"-f", "s16le",
+						"-ar", "48000",
+						"-ac", "2",
+						"-af", `bass=g=${this.audiofilter.bass}`,
+					];
+					const transcoder = new FFmpeg({ args: transcoderArgs });
+					*/
 					const ar = createAudioResource(stream, {
 						inlineVolume : true,
 						metadata     : resource,
 					});
 					this._resource = ar;
 					this.volume = this._volume;
+					console.log("▶ playing:", resource.title);
 					this.player.play(ar);
-					this.buffer(this.nextIndex);
+					if (this.queue[this.nextIndex]) {
+						console.log("⏳ buffer:", this.queue[this.nextIndex].title);
+						this.buffer(this.nextIndex);
+					}
 				}
 			} else this.next();
 	}
@@ -502,55 +516,68 @@ class KamiMusicPlayer {
 	 * @param {?boolean} force Whether or not the cache checking should be skipped.
 	 */
 	buffer(index, force = false) {
+		if (!existsSync(join(__dirname, "../.cache")))
+			mkdirSync(join(__dirname, "../.cache"));
+
 		const resource = this.queue[index];
 		if (resource)
-			if (!resource.cache || force)
-				if (resource.playable) {
-					let stream;
-					switch (resource.platform) {
-						case Platform.Youtube: {
-							let agent;
-							/* Proxy
-						if (resource.region.length)
-							if (resource.region.includes("TW")) {
-								console.log("Using proxy: JP");
-								const Agent = require("https-proxy-agent");
-								const proxy = "http://139.162.78.109:3128";
-								// const proxy = "http://140.227.59.167:3180";
-								agent = new Agent(proxy);
+			if (!existsSync(join(__dirname, "../.cache", resource.id)) || force) {
+				if (!resource.cache || force)
+					if (resource.playable) {
+						let stream;
+						switch (resource.platform) {
+							case Platform.Youtube: {
+								let agent;
+								/* Proxy
+								if (resource.region.length)
+								if (resource.region.includes("TW")) {
+									console.log("Using proxy: JP");
+									const Agent = require("https-proxy-agent");
+									const proxy = "http://139.162.78.109:3128";
+									// const proxy = "http://140.227.59.167:3180";
+									agent = new Agent(proxy);
+								}
+								*/
+
+								stream = ytdl(resource.url,
+									{
+										filter         : (format) => format.contentLength,
+										quality        : "highestaudio",
+										highWaterMark  : 1 << 25,
+										requestOptions : {
+											timeout: 5000,
+										},
+										...(agent && { requestOptions: { agent } }),
+									});
+								break;
 							}
-						*/
-
-							stream = ytdl(resource.url,
-								{
-									filter         : (format) => format.contentLength,
-									quality        : "highestaudio",
-									highWaterMark  : 1 << 25,
-									requestOptions : {
-										timeout: 5000,
-									},
-									...(agent && { requestOptions: { agent } }),
-								});
-							break;
+							default:
+								break;
 						}
-						default:
-							break;
-					}
 
-					if (stream) {
-						stream.on("error", (err) => {
-							console.error(err);
-							if (err.message.startsWith("Status code: 4")) {
-								if (err.message.includes("410"))
-									resource.region.push("TW");
-							} else this.buffer(index);
-						});
-						stream.on("finish", () => {
-							console.log("finished buffer", stream.readableLength);
-							resource.cache = stream;
-						});
+						if (stream) {
+							const _buf = [];
+							stream.on("data", (data) => _buf.push(data));
+							stream.on("error", (err) => {
+								console.error(err);
+								if (err.message.startsWith("Status code: 4")) {
+									if (err.message.includes("410"))
+										resource.region.push("TW");
+								} else {
+									console.log("🔄 buffer:", this.queue[this.nextIndex].title);
+									this.buffer(index);
+								}
+							});
+							stream.on("finish", () => {
+								console.log("✅ buffer:", resource.title);
+								const _buffer = Buffer.concat(_buf);
+								writeFileSync(join(__dirname, "../.cache/", resource.id), _buffer, { flag: "w" });
+								resource.cache = join(__dirname, "../.cache/", resource.id);
+							});
+						}
 					}
-				}
+			} else
+				resource.cache = join(__dirname, "../.cache/", resource.id);
 	}
 
 	/**

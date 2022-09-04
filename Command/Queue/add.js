@@ -121,8 +121,6 @@ module.exports = {
 							const meta = new KamiMusicMetadata(video, interaction.member);
 							GuildMusicPlayer.addResource(meta);
 
-							console.log(video);
-
 							embed
 								.setColor(interaction.client.Color.Success)
 								.setAuthor({ name: interaction.guild.name, iconURL: interaction.guild.iconURL() })
