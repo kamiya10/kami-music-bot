@@ -564,7 +564,7 @@ class KamiMusicPlayer {
 									if (err.message.includes("410"))
 										resource.region.push("TW");
 								} else {
-									console.log("🔄 buffer:", this.queue[this.nextIndex].title);
+									console.log("🔄 buffer:", resource.title);
 									this.buffer(index);
 								}
 							});
