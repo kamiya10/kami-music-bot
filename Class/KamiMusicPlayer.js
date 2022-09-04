@@ -1,5 +1,5 @@
 const { createAudioPlayer, entersState, joinVoiceChannel, NoSubscriberBehavior, VoiceConnectionStatus, AudioPlayerStatus, createAudioResource } = require("@discordjs/voice");
-const { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync, createReadStream } = require("node:fs");
+const { existsSync, mkdirSync, writeFileSync, createReadStream } = require("node:fs");
 const { KamiMusicMetadata } = require("./KamiMusicMetadata");
 const { join } = require("node:path");
 const { Platform } = require("./KamiMusicMetadata");
