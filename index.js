@@ -30,7 +30,11 @@ function waitForUserInput() {
 			} else if (input.startsWith("emit")) {
 				const args = input.split(" ").slice(1);
 				eval(`Kami.emit("${args[0]}", ${args[1]});`);
+			} else if (input == "exit") {
+				console.log("Stopping bot.");
+				process.exit(0);
 			}
+
 		} catch (error) {
 			console.error(undefined);
 		}
