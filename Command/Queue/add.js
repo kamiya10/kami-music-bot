@@ -44,9 +44,9 @@ module.exports = {
 			if (GuildMusicPlayer) {
 				if (GuildMusicPlayer.locked && GuildMusicPlayer.owner.id != interaction.member.id) throw { message: "ERR_PLAYER_LOCKED" };
 			} else
-				GuildMusicPlayer = new KamiMusicPlayer(interaction.member.voice.channel, interaction.member);
+				GuildMusicPlayer = new KamiMusicPlayer(interaction.member.voice.channel, interaction.member, interaction.channel);
 
-			if (GuildMusicPlayer.channel.id != interaction.member.voice.channel.id)
+			if (GuildMusicPlayer.voiceChannel.id != interaction.member.voice.channel.id)
 				throw "ERR_USER_NOT_IN_SAME_VOICE";
 
 			const embed = new EmbedBuilder();

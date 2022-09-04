@@ -4,6 +4,7 @@ const { KamiMusicMetadata } = require("./KamiMusicMetadata");
 const { join } = require("node:path");
 const { Platform } = require("./KamiMusicMetadata");
 const ytdl = require("ytdl-core");
+const { EmbedBuilder, Colors } = require("discord.js");
 // const { FFmpeg } = require("prism-media");
 
 /**
@@ -22,24 +23,29 @@ const RepeatMode = Object.freeze({
 
 class KamiMusicPlayer {
 	/**
-	 * @param {import("discord.js").TextChannel} channel
+	 * @param {import("discord.js").TextChannel} voiceChannel
 	 * @param {import("discord.js").GuildMember} member
 	 */
-	constructor(channel, member) {
+	constructor(voiceChannel, member, textChannel) {
 		/**
 		 * @type {import("discord.js").Client}
 		 */
-		this.client = channel.client;
+		this.client = voiceChannel.client;
 
 		/**
 		 * @type {import("discord.js").TextChannel}
 		 */
-		this.channel = channel;
+		this.voiceChannel = voiceChannel;
+
+		/**
+		 * @type {import("discord.js").TextChannel}
+		 */
+		this.textChannel = textChannel;
 
 		/**
 		 * @type {import("discord.js").Guild}
 		 */
-		this.guild = channel.guild;
+		this.guild = voiceChannel.guild;
 
 		/**
 		 * @type {import("discord.js").GuildMember}
@@ -57,9 +63,9 @@ class KamiMusicPlayer {
 		 * @type {import("@discordjs/voice").VoiceConnection}
 		 */
 		this.connection = joinVoiceChannel({
-			channelId      : channel.id,
-			guildId        : channel.guild.id,
-			adapterCreator : channel.guild.voiceAdapterCreator,
+			channelId      : voiceChannel.id,
+			guildId        : voiceChannel.guild.id,
+			adapterCreator : voiceChannel.guild.voiceAdapterCreator,
 		});
 
 		/**
@@ -100,6 +106,11 @@ class KamiMusicPlayer {
 		 * @type {number}
 		 */
 		this.volume = preference?.volume ?? 1;
+
+		/**
+		 * @type {?import("discord.js").Message}
+		 */
+		this.npmsg = null;
 
 		this.connection.on(VoiceConnectionStatus.Disconnected, async () => {
 			try {
@@ -514,6 +525,7 @@ class KamiMusicPlayer {
 					});
 					this._resource = ar;
 					this.volume = this._volume;
+					this.updateNowplayingMessage();
 					console.log("▶ playing:", resource.title);
 					this.player.play(ar);
 					if (this.queue[this.nextIndex])
@@ -699,6 +711,40 @@ class KamiMusicPlayer {
 	reconnect() {
 		this.connection.rejoin();
 	}
+
+	/**
+	 * Updates the nowplaying message
+	 */
+	async updateNowplayingMessage() {
+		try {
+			if (!this.npmsg)
+				this.npmsg = await this.textChannel.send(npTemplate(this));
+			else await this.npmsg.edit(npTemplate(this)).catch(async () => await this.textChannel.send(npTemplate(this)));
+		} catch (err) {
+			console.error(err);
+		}
+	}
 }
 
+/**
+ * @param {KamiMusicPlayer} player
+ * @returns
+ */
+const npTemplate = (player) => {
+	const current = player.current;
+	const embed = new EmbedBuilder()
+		.setColor(Colors.Blue)
+		.setAuthor({ name: `正在播放 | ${player.guild.name}`, iconURL: player.guild.iconURL() })
+		.setThumbnail(current.thumbnail)
+		.setTitle(current.title)
+		.setURL(current.shortURL)
+		.setFields([
+			{ name: "編號", value: `${player.currentIndex + 1}`, inline: true },
+			{ name: "長度", value: current.formattedDuration, inline: true },
+		])
+		.setFooter({ text: current.member.displayName, iconURL: current.member.displayAvatarURL() })
+		.setTimestamp();
+
+	return { embeds: [embed] };
+};
 module.exports = { KamiMusicPlayer, RepeatMode };

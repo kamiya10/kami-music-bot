@@ -31,7 +31,7 @@ module.exports = {
 
 			if (!GuildMusicPlayer) throw { message: "ERR_NO_PLAYER" };
 			if (GuildMusicPlayer.locked && GuildMusicPlayer.owner.id != interaction.member.id) throw { message: "ERR_PLAYER_LOCKED" };
-			if (GuildMusicPlayer.channel.id != interaction.member.voice.channel.id)
+			if (GuildMusicPlayer.voiceChannel.id != interaction.member.voice.channel.id)
 				throw "ERR_USER_NOT_IN_SAME_VOICE";
 
 			const index = interaction.options.getInteger("index") - 1;

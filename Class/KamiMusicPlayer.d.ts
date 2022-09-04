@@ -53,8 +53,8 @@ export declare class KamiMusicPlayer {
     addResource(resource: KamiMusicMetadata, index?: number): void;
     removeIndex(index: number): ?KamiMusicMetadata;
     removeResource(resource: KamiMusicMetadata): ?number;
-    play(index?: number): void;
-    buffer(index: number, force?: boolean): void;
+    play(index?: number): Promise<void>;
+    buffer(index: number, force?: boolean): Promise<void>;
     next(): KamiMusicMetadata;
     prev(): KamiMusicMetadata;
     pause(): void;
@@ -63,4 +63,5 @@ export declare class KamiMusicPlayer {
     destroy(): void;
     connect(channel: VoiceChannel): void;
     reconnect(): void;
+    updateNowplayingMessage(): void;
 }
