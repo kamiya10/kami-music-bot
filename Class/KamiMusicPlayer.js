@@ -545,15 +545,15 @@ class KamiMusicPlayer {
 									case Platform.Youtube: {
 										let agent;
 										/* Proxy
-									if (resource.region.length)
-									if (resource.region.includes("TW")) {
-										console.log("Using proxy: JP");
-										const Agent = require("https-proxy-agent");
-										const proxy = "http://139.162.78.109:3128";
-										// const proxy = "http://140.227.59.167:3180";
-										agent = new Agent(proxy);
-									}
-									*/
+										if (resource.region.length)
+										if (resource.region.includes("TW")) {
+											console.log("Using proxy: JP");
+											const Agent = require("https-proxy-agent");
+											const proxy = "http://139.162.78.109:3128";
+											// const proxy = "http://140.227.59.167:3180";
+											agent = new Agent(proxy);
+										}
+										*/
 
 										stream = ytdl(resource.url,
 											{
@@ -585,7 +585,8 @@ class KamiMusicPlayer {
 
 											retries++;
 											console.log("🔄  buffer:", resource.title);
-											resolve(await this.buffer(index));
+											await this.buffer(index);
+											resolve();
 										}
 									});
 									stream.on("finish", () => {
@@ -593,13 +594,14 @@ class KamiMusicPlayer {
 										const _buffer = Buffer.concat(_buf);
 										writeFileSync(join(__dirname, "../.cache/", resource.id), _buffer, { flag: "w" });
 										resource.cache = join(__dirname, "../.cache/", resource.id);
+										resolve();
 									});
 								}
 							}
-					} else
+					} else {
 						resource.cache = join(__dirname, "../.cache/", resource.id);
-
-			resolve();
+						resolve();
+					}
 		});
 	}
 
