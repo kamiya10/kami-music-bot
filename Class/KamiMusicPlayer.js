@@ -366,7 +366,7 @@ class KamiMusicPlayer {
 	 * @param {KamiMusicMetadata | KamiMusicMetadata[]} resource The resources to add.
 	 * @param {?number} index The index resources should append after.
 	 */
-	addResource(resource, index = this.queue.length) {
+	async addResource(resource, index = this.queue.length) {
 		if (Array.isArray(resource))
 			this.queue.splice(index, 0, ...resource);
 		else
@@ -383,10 +383,8 @@ class KamiMusicPlayer {
 				this.currentIndex += 1;
 
 			if (this.queue[this.nextIndex])
-				if (!this.queue[this.nextIndex].cache) {
-					console.log("⏳ buffer:", this.queue[this.nextIndex].title);
-					this.buffer(this.nextIndex);
-				}
+				if (!this.queue[this.nextIndex].cache)
+					await this.buffer(this.nextIndex);
 		}
 
 		if (this.player.state.status == AudioPlayerStatus.Idle) {
@@ -396,7 +394,6 @@ class KamiMusicPlayer {
 				else
 					this.currentIndex = this.queue.indexOf(resource);
 
-			this.buffer(this.currentIndex);
 			this.play();
 		}
 	}
@@ -455,7 +452,8 @@ class KamiMusicPlayer {
 	 * Play resources.
 	 * @param {number} [index=this.currentIndex] The index of the resource to be played by the player.
 	 */
-	play(index = this.currentIndex) {
+	async play(index = this.currentIndex) {
+		await this.buffer(index);
 		const resource = this.queue[index];
 		if (resource)
 			if (resource.playable) {
@@ -518,10 +516,9 @@ class KamiMusicPlayer {
 					this.volume = this._volume;
 					console.log("▶ playing:", resource.title);
 					this.player.play(ar);
-					if (this.queue[this.nextIndex]) {
-						console.log("⏳ buffer:", this.queue[this.nextIndex].title);
-						this.buffer(this.nextIndex);
-					}
+					if (this.queue[this.nextIndex])
+						if (!this.queue[this.nextIndex].cache)
+							this.buffer(this.nextIndex);
 				}
 			} else this.next();
 	}
@@ -532,68 +529,78 @@ class KamiMusicPlayer {
 	 * @param {?boolean} force Whether or not the cache checking should be skipped.
 	 */
 	buffer(index, force = false) {
-		if (!existsSync(join(__dirname, "../.cache")))
-			mkdirSync(join(__dirname, "../.cache"));
+		let retries = 0;
+		return new Promise((resolve, reject) => {
+			if (!existsSync(join(__dirname, "../.cache")))
+				mkdirSync(join(__dirname, "../.cache"));
 
-		const resource = this.queue[index];
-		if (resource)
-			if (!existsSync(join(__dirname, "../.cache", resource.id)) || force) {
-				if (!resource.cache || force)
-					if (resource.playable) {
-						let stream;
-						switch (resource.platform) {
-							case Platform.Youtube: {
-								let agent;
-								/* Proxy
-								if (resource.region.length)
-								if (resource.region.includes("TW")) {
-									console.log("Using proxy: JP");
-									const Agent = require("https-proxy-agent");
-									const proxy = "http://139.162.78.109:3128";
-									// const proxy = "http://140.227.59.167:3180";
-									agent = new Agent(proxy);
+			const resource = this.queue[index];
+			if (resource)
+				if (resource.durationObject.minute < 6)
+					if (!existsSync(join(__dirname, "../.cache", resource.id)) || force) {
+						if (!resource.cache || force)
+							if (resource.playable) {
+								let stream;
+								switch (resource.platform) {
+									case Platform.Youtube: {
+										let agent;
+										/* Proxy
+									if (resource.region.length)
+									if (resource.region.includes("TW")) {
+										console.log("Using proxy: JP");
+										const Agent = require("https-proxy-agent");
+										const proxy = "http://139.162.78.109:3128";
+										// const proxy = "http://140.227.59.167:3180";
+										agent = new Agent(proxy);
+									}
+									*/
+
+										stream = ytdl(resource.url,
+											{
+												filter         : (format) => format.contentLength,
+												quality        : "highestaudio",
+												highWaterMark  : 1 << 25,
+												requestOptions : {
+													timeout: 3000,
+												},
+												...(agent && { requestOptions: { agent } }),
+											});
+										break;
+									}
+									default:
+										break;
 								}
-								*/
 
-								stream = ytdl(resource.url,
-									{
-										filter         : (format) => format.contentLength,
-										quality        : "highestaudio",
-										highWaterMark  : 1 << 25,
-										requestOptions : {
-											timeout: 5000,
-										},
-										...(agent && { requestOptions: { agent } }),
+								if (stream) {
+									console.log("⏳  buffer:", resource.title);
+									const _buf = [];
+									stream.on("data", (data) => _buf.push(data));
+									stream.on("error", async (err) => {
+										console.error(err);
+										if (err.message.startsWith("Status code: 4")) {
+											if (err.message.includes("410"))
+												resource.region.push("TW");
+										} else {
+											if (retries > 5) reject(new Error("Buffer retry limit exceeded."));
+
+											retries++;
+											console.log("🔄  buffer:", resource.title);
+											resolve(await this.buffer(index));
+										}
 									});
-								break;
-							}
-							default:
-								break;
-						}
-
-						if (stream) {
-							const _buf = [];
-							stream.on("data", (data) => _buf.push(data));
-							stream.on("error", (err) => {
-								console.error(err);
-								if (err.message.startsWith("Status code: 4")) {
-									if (err.message.includes("410"))
-										resource.region.push("TW");
-								} else {
-									console.log("🔄 buffer:", resource.title);
-									this.buffer(index);
+									stream.on("finish", () => {
+										console.log("✅  buffer:", resource.title);
+										const _buffer = Buffer.concat(_buf);
+										writeFileSync(join(__dirname, "../.cache/", resource.id), _buffer, { flag: "w" });
+										resource.cache = join(__dirname, "../.cache/", resource.id);
+									});
 								}
-							});
-							stream.on("finish", () => {
-								console.log("✅ buffer:", resource.title);
-								const _buffer = Buffer.concat(_buf);
-								writeFileSync(join(__dirname, "../.cache/", resource.id), _buffer, { flag: "w" });
-								resource.cache = join(__dirname, "../.cache/", resource.id);
-							});
-						}
-					}
-			} else
-				resource.cache = join(__dirname, "../.cache/", resource.id);
+							}
+					} else
+						resource.cache = join(__dirname, "../.cache/", resource.id);
+
+			resolve();
+		});
 	}
 
 	/**
