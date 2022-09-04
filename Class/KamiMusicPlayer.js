@@ -528,7 +528,7 @@ class KamiMusicPlayer {
 	 * @param {number} index The index of the resource to be buffered.
 	 * @param {?boolean} force Whether or not the cache checking should be skipped.
 	 */
-	buffer(index, force = false, retried = 0) {
+	buffer(index, force = false, _retried = 0) {
 		return new Promise((resolve, reject) => {
 			if (!existsSync(join(__dirname, "../.cache")))
 				mkdirSync(join(__dirname, "../.cache"));
@@ -577,7 +577,6 @@ class KamiMusicPlayer {
 									stream.on("data", (data) => {
 										if (retryTimeout)
 											clearTimeout(retryTimeout);
-
 										_buf.push(data);
 									});
 									stream.on("error", async (err) => {
@@ -587,9 +586,9 @@ class KamiMusicPlayer {
 												resource.region.push("TW");
 										} else {
 											stream.destroy();
-											if (retried > 5) reject(new Error("Buffer retry limit exceeded."));
+											if (_retried > 5) reject(new Error("Buffer retry limit exceeded."));
 											console.log("🔄  buffer:", resource.title);
-											await this.buffer(index, force, retried + 1);
+											await this.buffer(index, force, _retried + 1);
 											resolve();
 										}
 									});
@@ -598,6 +597,7 @@ class KamiMusicPlayer {
 										const _buffer = Buffer.concat(_buf);
 										writeFileSync(join(__dirname, "../.cache/", resource.id), _buffer, { flag: "w" });
 										resource.cache = join(__dirname, "../.cache/", resource.id);
+										stream.destroy();
 										resolve();
 									});
 								}
