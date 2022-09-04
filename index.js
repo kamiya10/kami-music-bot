@@ -9,7 +9,7 @@ new KamiMusicDatabase(join(__dirname, "Database", "user.json"), Kami, "user");
 Kami.version = process.env.BOT_VERSION;
 
 // alter
-Kami.login(process.env.DEV_TOKEN);
+Kami.login(process.env.KAMI_TOKEN);
 
 // interface
 const rl = readline.createInterface({

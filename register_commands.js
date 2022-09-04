@@ -3,8 +3,8 @@ const { Client, Routes, GatewayIntentBits } = require("discord.js");
 const { REST } = require("@discordjs/rest");
 const fs = require("node:fs");
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
-const rest = new REST({ version: "10" }).setToken(process.env.DEV_TOKEN);
-client.login(process.env.DEV_TOKEN);
+const rest = new REST({ version: "10" }).setToken(process.env.KAMI_TOKEN);
+client.login(process.env.KAMI_TOKEN);
 const commands = [];
 
 const commandCategories = fs.readdirSync("./Command");
