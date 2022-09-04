@@ -10,5 +10,9 @@ module.exports = {
 	execute(client) {
 		console.log(generateDependencyReport());
 		console.log("ready", client.user.tag);
+
+		setInterval(() => {
+			client.user.setActivity(`${client.version} | ${client.guilds.cache.size}伺服 - ${client.channels.cache.size}頻道 - ${client.users.cache.size}用戶`);
+		}, 60000);
 	},
 };
