@@ -27,11 +27,12 @@ export declare class KamiMusicPlayer {
     channel: VoiceChannel;
     guild: Guild;
     owner: GuildMember;
-    lock: boolean;
     connection: VoiceConnection;
     player: AudioPlayer;
     subscription: PlayerSubscription;
     queue: KamiMusicMetadata[];
+    get locked(): boolean;
+    set locked(value: boolean);
     get currentIndex(): number;
     set currentIndex(value: number);
     get repeat(): RepeatMode;

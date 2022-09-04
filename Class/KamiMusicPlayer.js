@@ -41,7 +41,6 @@ class KamiMusicPlayer {
 		 */
 		this.guild = channel.guild;
 
-
 		/**
 		 * @type {import("discord.js").GuildMember}
 		 */
@@ -52,7 +51,7 @@ class KamiMusicPlayer {
 		/**
 		 * @type {boolean}
 		 */
-		this.lock = preference?.lock ?? false;
+		this.locked = preference?.locked ?? false;
 
 		/**
 		 * @type {import("@discordjs/voice").VoiceConnection}
@@ -202,6 +201,23 @@ class KamiMusicPlayer {
 			}
 		});
 		this.client.players.set(this.guild.id, this);
+	}
+
+	/**
+     * @param {boolean} value
+     */
+	set locked(value) {
+		this.guild.members.me.setNickname(value
+			? `🔒 ${this.guild.members.me.nickname ?? this.guild.members.me.displayName}`
+			: (this.guild.members.me.nickname ?? this.guild.members.me.displayName).replace("🔒 ", ""));
+		this._locked = value;
+	}
+
+	/**
+     * @return {boolean}
+     */
+	get locked() {
+		return this._locked;
 	}
 
 	/**
