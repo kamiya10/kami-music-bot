@@ -717,9 +717,13 @@ class KamiMusicPlayer {
 	 */
 	async updateNowplayingMessage() {
 		try {
-			if (!this.npmsg)
+			if (this.npmsg)
+				this.npmsg = await this.npmsg.edit(npTemplate(this)).catch(async (err) => {
+					console.error(err);
+					this.npmsg = await this.textChannel.send(npTemplate(this));
+				});
+			else
 				this.npmsg = await this.textChannel.send(npTemplate(this));
-			else await this.npmsg.edit(npTemplate(this)).catch(async () => await this.textChannel.send(npTemplate(this)));
 		} catch (err) {
 			console.error(err);
 		}
