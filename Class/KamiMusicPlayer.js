@@ -127,7 +127,6 @@ class KamiMusicPlayer {
 		});
 		this.player.on(AudioPlayerStatus.Idle, (oldState) => {
 			this._resource = null;
-			this.current.cache = null;
 			if (oldState.status == AudioPlayerStatus.Playing) {
 				if (!this.paused && !this.stopped)
 					switch (this.repeat) {
