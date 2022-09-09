@@ -1,5 +1,15 @@
 const { EmbedBuilder, SlashCommandBuilder, SlashCommandSubcommandBuilder, SlashCommandIntegerOption, SlashCommandSubcommandGroupBuilder, SlashCommandBooleanOption } = require("discord.js");
 const { RepeatMode } = require("../../Class/KamiMusicPlayer");
+const modeString = [
+	"不重複",
+	"循環",
+	"單曲重複",
+	"隨機",
+	"隨機（不重複）",
+	"平均隨機",
+	"倒序",
+	"倒序循環",
+];
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -63,6 +73,11 @@ module.exports = {
 					.setNameLocalization("zh-TW", "全域")
 					.setDescription("Make this preference global scoped.")
 					.setDescriptionLocalization("zh-TW", "將這個設定設為全域設定"))))
+		.addSubcommand(new SlashCommandSubcommandBuilder()
+			.setName("list")
+			.setNameLocalization("zh-TW", "目前")
+			.setDescription("List all preference settings.")
+			.setDescriptionLocalization("zh-TW", "顯示所有偏好設定。"))
 		.addSubcommand(new SlashCommandSubcommandBuilder()
 			.setName("lock")
 			.setNameLocalization("zh-TW", "鎖定")
@@ -160,6 +175,20 @@ module.exports = {
 				userPreference[interaction.guild.id] ??= {};
 
 			switch (settingKey) {
+				case "list": {
+					embed = embed
+						.setAuthor({
+							name    : `偏好設定 | ${interaction.member.displayName}`,
+							iconURL : interaction.member.displayAvatarURL(),
+						})
+						.setFields([
+							{ name: "🔊 音量", value: `全域 *${userPreference?.global?.volumeString ? `*${userPreference?.global?.volumeString} (${userPreference?.global?.volume})*` : "`未設定`"}*\n${interaction.guild.name} *${userPreference?.[interaction.guild.id]?.volumeString ? `*${modeString[userPreference?.[interaction.guild.id]?.volumeString]} (${modeString[userPreference?.[interaction.guild.id]?.volume]})*` : "`未設定`"}*\n預設值 **100% (1)**`, inline: true },
+							{ name: "🔒 鎖定", value: `全域 *${userPreference?.global?.locked ? `*${modeString[userPreference?.global?.locked] ? "鎖定" : "未鎖定"}*` : "`未設定`"}*\n${interaction.guild.name} *${userPreference?.[interaction.guild.id]?.locked ? `*${modeString[userPreference?.[interaction.guild.id]?.locked] ? "鎖定" : "未鎖定"}*` : "`未設定`"}*\n預設值 **未鎖定**`, inline: true },
+							{ name: "🔁 循環模式", value: `全域 *${userPreference?.global?.repeat ? `*${modeString[userPreference?.global?.repeat]}*` : "`未設定`"}*\n${interaction.guild.name} *${userPreference?.[interaction.guild.id]?.repeat ? `*${modeString[userPreference?.[interaction.guild.id]?.repeat]}*` : "`未設定`"}*\n預設值 **${modeString[0]}**`, inline: true },
+						]);
+					break;
+				}
+
 				case "volume": {
 					const inputValue = interaction.options.getInteger("value");
 					let settingValue;
@@ -199,18 +228,8 @@ module.exports = {
 
 				case "repeat": {
 					const settingValue = interaction.options.getBoolean("mode");
-					const modeString = [
-						"不重複",
-						"循環",
-						"單曲重複",
-						"隨機",
-						"隨機（不重複）",
-						"平均隨機",
-						"倒序",
-						"倒序循環",
-					][settingValue];
 					userPreference[is_global ? "global" : interaction.guild.id].repeat = settingValue;
-					embed = embed.setDescription(`已將初始循環模式設為 **${modeString}**`);
+					embed = embed.setDescription(`已將初始循環模式設為 **${modeString[settingValue]}**`);
 					break;
 				}
 
