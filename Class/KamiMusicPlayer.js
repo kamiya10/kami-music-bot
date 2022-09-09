@@ -122,6 +122,10 @@ class KamiMusicPlayer {
 				this.destroy();
 			}
 		});
+		this.connection.on("error", (error) => {
+			console.error(`Connection Error: ${error.message}`);
+			console.error(error);
+		});
 		this.player.on(AudioPlayerStatus.Playing, () => {
 			this.current.error = undefined;
 		});
@@ -133,7 +137,6 @@ class KamiMusicPlayer {
 						case RepeatMode.NoRepeat: {
 							if (this.currentIndex < (this.queue.length - 1))
 								this.next();
-
 							break;
 						}
 
