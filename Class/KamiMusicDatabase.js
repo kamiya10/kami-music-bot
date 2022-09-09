@@ -1,4 +1,4 @@
-const { existsSync, writeFileSync, readFileSync } = require("node:fs");
+const { existsSync, writeFileSync, readFileSync, writeFile } = require("node:fs");
 
 class KamiMusicDatabase {
 	/**
@@ -16,7 +16,7 @@ class KamiMusicDatabase {
 
 		this.data = JSON.parse(readFileSync(this.PATH, { encoding: "utf-8" }));
 		client.setting ??= {};
-		client.setting[name] = this.data;
+		client.setting[name] = this;
 	}
 
 	init(key, data) {
@@ -28,7 +28,11 @@ class KamiMusicDatabase {
 	 * Saves the database.
 	 */
 	save() {
-		writeFileSync(this.PATH, JSON.stringify(this.data), { encoding: "utf-8" });
+		return new Promise((resolve) => {
+			writeFile(this.PATH, JSON.stringify(this.data), { encoding: "utf-8" }, () => {
+				resolve();
+			});
+		});
 	}
 }
 module.exports = KamiMusicDatabase;

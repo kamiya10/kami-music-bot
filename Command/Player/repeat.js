@@ -6,12 +6,12 @@ module.exports = {
 		.setName("repeat")
 		.setNameLocalization("zh-TW", "重複")
 		.setDescription("Set playback repeat mode.")
-		.setDescriptionLocalization("zh-TW", "設定重複模式。")
+		.setDescriptionLocalization("zh-TW", "設定循環模式。")
 		.addIntegerOption(new SlashCommandIntegerOption()
 			.setName("mode")
 			.setNameLocalization("zh-TW", "模式")
 			.setDescription("Repeat Mode")
-			.setDescriptionLocalization("zh-TW", "重複模式")
+			.setDescriptionLocalization("zh-TW", "循環模式")
 			.setChoices(...[
 				{
 					name               : "No Repeat",

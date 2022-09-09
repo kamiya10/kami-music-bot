@@ -54,12 +54,12 @@ class KamiMusicPlayer {
 		 */
 		this.owner = member;
 
-		const preference = this.client.setting.user[this.owner.id];
+		const preference = this.client.setting.user.data[this.owner.id];
 
 		/**
 		 * @type {boolean}
 		 */
-		this.locked = preference?.locked ?? false;
+		this.locked = preference?.global?.locked ?? preference?.[this.guild.id]?.locked ?? false;
 
 		/**
 		 * @type {import("@discordjs/voice").VoiceConnection}
@@ -97,7 +97,7 @@ class KamiMusicPlayer {
 		/**
 		 * @type {RepeatMode}
 		 */
-		this.repeat = preference?.repeat ?? RepeatMode.NoRepeat;
+		this.repeat = preference?.global?.repeat ?? preference?.[this.guild.id]?.repeat ?? RepeatMode.NoRepeat;
 
 		/**
 		 * @type {boolean}
@@ -107,7 +107,7 @@ class KamiMusicPlayer {
 		/**
 		 * @type {number}
 		 */
-		this.volume = preference?.volume ?? 1;
+		this.volume = preference?.global?.volume ?? preference?.[this.guild.id]?.volume ?? 1;
 
 		/**
 		 * @type {?import("discord.js").Message}
@@ -221,9 +221,10 @@ class KamiMusicPlayer {
      * @param {boolean} value
      */
 	set locked(value) {
-		this.guild.members.me.setNickname(value
-			? `🔒 ${this.guild.members.me.nickname ?? this.guild.members.me.displayName}`
-			: (this.guild.members.me.nickname ?? this.guild.members.me.displayName).replace("🔒 ", ""));
+		if ((value && !this.guild.members.me.nickname.startsWith("🔒")) || (!value && this.guild.members.me.nickname.startsWith("🔒")))
+			this.guild.members.me.setNickname(value
+				? `🔒 ${this.guild.members.me.nickname ?? this.guild.members.me.displayName}`
+				: (this.guild.members.me.nickname ?? this.guild.members.me.displayName).replace("🔒 ", ""));
 		this._locked = value;
 	}
 
