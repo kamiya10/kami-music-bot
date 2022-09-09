@@ -1,11 +1,12 @@
-const { createAudioPlayer, entersState, joinVoiceChannel, NoSubscriberBehavior, VoiceConnectionStatus, AudioPlayerStatus, createAudioResource } = require("@discordjs/voice");
+const { createAudioPlayer, createAudioResource, entersState, joinVoiceChannel, AudioPlayerStatus, NoSubscriberBehavior, VoiceConnectionStatus } = require("@discordjs/voice");
 const { existsSync, mkdirSync, writeFileSync, createReadStream } = require("node:fs");
+const { EmbedBuilder } = require("discord.js");
 const { KamiMusicMetadata } = require("./KamiMusicMetadata");
-const { join } = require("node:path");
 const { Platform } = require("./KamiMusicMetadata");
-const ytdl = require("ytdl-core");
-const { EmbedBuilder, Colors } = require("discord.js");
+const { join } = require("node:path");
 const chalk = require("chalk");
+const ytdl = require("ytdl-core");
+
 const playerLogger = require("../Core/logger").child({ scope: "Player" });
 const connectionLogger = require("../Core/logger").child({ scope: "Connection" });
 // const { FFmpeg } = require("prism-media");
