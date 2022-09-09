@@ -748,8 +748,8 @@ const npTemplate = (player) => {
 		.setTitle(current.title)
 		.setURL(current.shortURL)
 		.setFields([
-			{ name: "編號", value: `${player.currentIndex + 1}`, inline: true },
-			{ name: "長度", value: current.formattedDuration, inline: true },
+			{ name: "#️⃣ 編號", value: `${player.currentIndex + 1}`, inline: true },
+			{ name: "⏲ 長度", value: current.formattedDuration, inline: true },
 		])
 		.setFooter({ text: current.member.displayName, iconURL: current.member.displayAvatarURL() })
 		.setTimestamp();
