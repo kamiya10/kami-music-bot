@@ -1,4 +1,5 @@
-const { InteractionType, ApplicationCommandType } = require("discord.js");
+const { ApplicationCommandType, InteractionType } = require("discord.js");
+const logger = require("../Core/logger").child({ scope: "CommandHandler" });
 
 module.exports = {
 	name  : "interactionCreate",
@@ -32,7 +33,7 @@ module.exports = {
 			});
 			await command.execute(interaction);
 		} catch (error) {
-			console.error(error);
+			logger.error(error);
 			const msg = `There was an error while executing this command!\n${error}`;
 			if (command.defer) {
 				await interaction.deleteReply().catch(() => void 0);

@@ -1,6 +1,7 @@
 require("dotenv").config();
 const { REST } = require("@discordjs/rest");
 const { Routes } = require("discord-api-types/v10");
+const logger = require("../Core/logger").child({ scope: "Main" });
 const rest = new REST({ version: "10" }).setToken(process.env.KAMI_TOKEN);
 
 module.exports = {
@@ -13,7 +14,7 @@ module.exports = {
 	 */
 	execute(client, guild) {
 		rest.put(Routes.applicationGuildCommands(client.application.id, guild.id), { body: client.commands.map((v) => v.data.toJSON()) })
-			.then(() => console.log("Successfully registered application commands for " + guild.name))
-			.catch(console.error);
+			.then(() => logger.info(`Registered application commands for ${guild.name}`))
+			.catch(logger.error);
 	},
 };

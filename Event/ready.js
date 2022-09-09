@@ -1,4 +1,4 @@
-const { generateDependencyReport } = require("@discordjs/voice");
+const logger = require("../Core/logger").child({ scope: "Main" });
 
 module.exports = {
 	name  : "ready",
@@ -8,8 +8,7 @@ module.exports = {
      * @param {import("discord.js").Client} client
      */
 	execute(client) {
-		console.log(generateDependencyReport());
-		console.log("ready", client.user.tag);
+		logger.info(`Bot is ready: ${client.user.tag}`);
 
 		setInterval(() => {
 			client.user.setActivity(`${client.version} | ${client.guilds.cache.size}伺服 - ${client.channels.cache.size}頻道 - ${client.users.cache.size}用戶`);
