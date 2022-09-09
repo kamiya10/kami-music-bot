@@ -5,6 +5,8 @@ const { join } = require("node:path");
 const { Platform } = require("./KamiMusicMetadata");
 const ytdl = require("ytdl-core");
 const { EmbedBuilder, Colors } = require("discord.js");
+const playerLogger = require("../Core/logger").child({ scope: "Player" });
+const connectionLogger = require("../Core/logger").child({ scope: "Connection" });
 // const { FFmpeg } = require("prism-media");
 
 /**
@@ -123,8 +125,7 @@ class KamiMusicPlayer {
 			}
 		});
 		this.connection.on("error", (error) => {
-			console.error(`Connection Error: ${error.message}`);
-			console.error(error);
+			connectionLogger.error(error);
 		});
 		this.player.on(AudioPlayerStatus.Playing, () => {
 			this.current.error = undefined;
@@ -188,8 +189,8 @@ class KamiMusicPlayer {
 			}
 		});
 		this.player.on("error", (error) => {
-			console.error(`Error: ${error.message} with resource ${error.resource.metadata.title}`);
-			console.error(error);
+			playerLogger.error(`Error: ${error.message} with resource ${error.resource.metadata.title}`);
+			playerLogger.error(error);
 			this._resource = null;
 			if (this.current?.error?.message != error.message) {
 				this.current.error = error;
@@ -473,7 +474,7 @@ class KamiMusicPlayer {
 				let stream;
 
 				if (resource.cache) {
-					console.log("▶ using cache");
+					playerLogger.info("▶ using cache");
 					stream = createReadStream(resource.cache);
 				}
 
@@ -528,7 +529,7 @@ class KamiMusicPlayer {
 					this._resource = ar;
 					this.volume = this._volume;
 					this.updateNowplayingMessage();
-					console.log("▶ playing:", resource.title);
+					playerLogger.info(`▶ playing: ${resource.title}`);
 					this.player.play(ar);
 					if (this.queue[this.nextIndex])
 						if (!this.queue[this.nextIndex].cache)
@@ -586,7 +587,7 @@ class KamiMusicPlayer {
 
 								if (stream) {
 									const retryTimeout = setTimeout(() => stream.emit("error", new Error("Timeouut")), 3000);
-									console.log("⏳  buffer:", resource.title);
+									playerLogger.info(`⏳ buffer: ${resource.title}`);
 									const _buf = [];
 									stream.on("data", (data) => {
 										if (retryTimeout)
@@ -601,13 +602,13 @@ class KamiMusicPlayer {
 										} else {
 											stream.destroy();
 											if (_retried > 5) reject(new Error("Buffer retry limit exceeded."));
-											console.log("🔄  buffer:", resource.title);
+											playerLogger.info(`🔄 buffer: ${resource.title}`);
 											await this.buffer(index, force, _retried + 1);
 											resolve();
 										}
 									});
 									stream.on("finish", () => {
-										console.log("✅  buffer:", resource.title);
+										playerLogger.info(`✅ buffer: ${resource.title}`);
 										const _buffer = Buffer.concat(_buf);
 										writeFileSync(join(__dirname, "../.cache/", resource.id), _buffer, { flag: "w" });
 										resource.cache = join(__dirname, "../.cache/", resource.id);
