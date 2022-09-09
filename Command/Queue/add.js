@@ -100,7 +100,7 @@ module.exports = {
 								.setThumbnail(playlist?.thumbnails?.high?.url)
 								.setDescription(`:musical_note: [${playlist.title}](${playlist.url}) 已加到播放佇列`)
 								.addFields({ name: "已新增", value: songs.join("\n") })
-								.setFooter({ text: `位置：#${position}`, iconURL: interaction.member.displayAvatarURL() })
+								.setFooter({ text: `位置：#${position + 1}`, iconURL: interaction.member.displayAvatarURL() })
 								.setTimestamp();
 							// #endregion
 						} else if (url.match(/^(http(s)?:\/\/)?((w){3}.)?youtu(be|.be)?(\.com)?\/.+/)) {
@@ -124,7 +124,7 @@ module.exports = {
 							embed = embed
 								.setThumbnail(meta.thumbnail)
 								.setDescription(`:musical_note: [${meta.title}](${meta.url}) 已加到播放佇列`)
-								.setFooter({ text: `位置：#${position}`, iconURL: interaction.member.displayAvatarURL() })
+								.setFooter({ text: `位置：#${position + 1}`, iconURL: interaction.member.displayAvatarURL() })
 								.setTimestamp();
 							// #endregion
 						} else throw { message: "ERR_INVALID_PARAMETER@URL" };
