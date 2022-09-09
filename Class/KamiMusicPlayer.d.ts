@@ -50,7 +50,7 @@ export declare class KamiMusicPlayer {
     _resource: AudioResource<KamiMusicMetadata>;
     _randomQueue: KamiMusicMetadata[];
 
-    addResource(resource: KamiMusicMetadata, index?: number): void;
+    addResource(resource: KamiMusicMetadata, index?: number): Promise<number>;
     removeIndex(index: number): ?KamiMusicMetadata;
     removeResource(resource: KamiMusicMetadata): ?number;
     play(index?: number): Promise<void>;

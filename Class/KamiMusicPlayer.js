@@ -380,6 +380,7 @@ class KamiMusicPlayer {
 	 * Add resources to the queue.
 	 * @param {KamiMusicMetadata | KamiMusicMetadata[]} resource The resources to add.
 	 * @param {?number} index The index resources should append after.
+	 * @return {Promise<number>} The index the resource is at in the queue.
 	 */
 	async addResource(resource, index = this.queue.length) {
 		if (Array.isArray(resource))
@@ -411,6 +412,8 @@ class KamiMusicPlayer {
 
 			this.play();
 		}
+
+		return this.queue.indexOf(Array.isArray(resource) ? resource[0] : resource);
 	}
 
 	/**

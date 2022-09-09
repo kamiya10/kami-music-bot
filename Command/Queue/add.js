@@ -9,11 +9,11 @@ module.exports = {
 		.setName("add")
 		.setNameLocalization("zh-TW", "新增")
 		.setDescription("Add songs into the queue.")
-		.setDescriptionLocalization("zh-TW", "將歌曲加入播放清單")
+		.setDescriptionLocalization("zh-TW", "將歌曲加入播放佇列")
 		.addSubcommand(new SlashCommandSubcommandBuilder()
 			.setName("url")
 			.setNameLocalization("zh-TW", "連結")
-			.setDescription("將連結加入播放清單")
+			.setDescription("將連結加入播放佇列")
 			.addStringOption(new SlashCommandStringOption()
 				.setName("url")
 				.setNameLocalization("zh-TW", "連結")
@@ -23,7 +23,7 @@ module.exports = {
 			.addIntegerOption(new SlashCommandIntegerOption()
 				.setName("placement")
 				.setNameLocalization("zh-TW", "位置")
-				.setDescription("指定要在播放清單哪裡插入歌曲")
+				.setDescription("指定要在播放佇列哪裡插入歌曲")
 				.setMinValue(1)))
 		.setDMPermission(false),
 	defer     : true,
@@ -34,6 +34,7 @@ module.exports = {
 	async execute(interaction) {
 		try {
 			const subcommand = interaction.options.getSubcommand(true);
+			const placement = interaction.options.getInteger("placement") ?? undefined;
 
 			if (!interaction.member.voice.channel) throw { message: "ERR_USER_NOT_IN_VOICE" };
 			/**
@@ -49,7 +50,9 @@ module.exports = {
 			if (GuildMusicPlayer.voiceChannel.id != interaction.member.voice.channel.id)
 				throw "ERR_USER_NOT_IN_SAME_VOICE";
 
-			const embed = new EmbedBuilder();
+			let embed = new EmbedBuilder()
+				.setColor(interaction.client.Color.Success)
+				.setAuthor({ name: `新增 | ${interaction.guild.name}`, iconURL: interaction.guild.iconURL() });
 
 			switch (subcommand) {
 				case "url": {
@@ -58,7 +61,7 @@ module.exports = {
 					// #region Youtube
 					if (url.match(/youtu(be|.be)/))
 						if (url.match(/^(?!.*\?.*\bv=)https:\/\/www\.youtube\.com\/.*\?.*\blist=.*$/)) {
-							// #region 播放清單
+							// #region 播放佇列
 							const playlist = await Youtube.getPlaylist(url).catch(() => {
 								throw "ERR_PLAYLIST_NOT_EXIST";
 							});
@@ -86,21 +89,18 @@ module.exports = {
 										return console.error(err);
 									}
 
-							GuildMusicPlayer.addResource(metas);
+							const position = await GuildMusicPlayer.addResource(metas, placement - 1 ?? placement);
 							if (songs.length > 8) {
 								const total = songs.length;
 								songs = songs.slice(0, 8);
 								songs.push(`　...還有 ${total - songs.length} 項`);
 							}
 
-							embed
-								.setColor(interaction.client.Color.Success)
-								.setAuthor({ name: interaction.guild.name, iconURL: interaction.guild.iconURL() })
+							embed = embed
 								.setThumbnail(playlist?.thumbnails?.high?.url)
-								.setTitle(`${interaction.client.EmbedIcon.Success} 成功`)
-								.setDescription(`:musical_note: [${playlist.title}](${playlist.url}) 已加到播放清單`)
+								.setDescription(`:musical_note: [${playlist.title}](${playlist.url}) 已加到播放佇列`)
 								.addFields({ name: "已新增", value: songs.join("\n") })
-								.setFooter({ text: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() })
+								.setFooter({ text: `位置：#${position}`, iconURL: interaction.member.displayAvatarURL() })
 								.setTimestamp();
 							// #endregion
 						} else if (url.match(/^(http(s)?:\/\/)?((w){3}.)?youtu(be|.be)?(\.com)?\/.+/)) {
@@ -119,15 +119,12 @@ module.exports = {
 								throw "ERR_NOT_SUPPORTED@LIVESTREAM";
 
 							const meta = new KamiMusicMetadata(video, interaction.member);
-							GuildMusicPlayer.addResource(meta);
+							const position = await GuildMusicPlayer.addResource(meta, placement);
 
-							embed
-								.setColor(interaction.client.Color.Success)
-								.setAuthor({ name: interaction.guild.name, iconURL: interaction.guild.iconURL() })
+							embed = embed
 								.setThumbnail(meta.thumbnail)
-								.setTitle(`${interaction.client.EmbedIcon.Success} 成功`)
-								.setDescription(`:musical_note: [${meta.title}](${meta.url}) 已加到播放清單`)
-								.setFooter({ text: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() })
+								.setDescription(`:musical_note: [${meta.title}](${meta.url}) 已加到播放佇列`)
+								.setFooter({ text: `位置：#${position}`, iconURL: interaction.member.displayAvatarURL() })
 								.setTimestamp();
 							// #endregion
 						} else throw { message: "ERR_INVALID_PARAMETER@URL" };
