@@ -223,10 +223,7 @@ class KamiMusicPlayer {
      * @param {boolean} value
      */
 	set locked(value) {
-		if ((value && !this.guild.members.me.nickname.startsWith("🔒")) || (!value && this.guild.members.me.nickname.startsWith("🔒")))
-			this.guild.members.me.setNickname(value
-				? `🔒 ${this.guild.members.me.nickname ?? this.guild.members.me.displayName}`
-				: (this.guild.members.me.nickname ?? this.guild.members.me.displayName).replace("🔒 ", ""));
+		this.guild.members.me.setNickname((value ? "🔒 " : "") + this.guild.members.me.displayName.replace(/🔒\s?/g, ""));
 		this._locked = value;
 	}
 
