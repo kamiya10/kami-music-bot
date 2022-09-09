@@ -7,8 +7,8 @@ const readline = require("node:readline");
 
 new KamiMusicDatabase(join(__dirname, "Database", "guild.json"), Kami, "guild");
 new KamiMusicDatabase(join(__dirname, "Database", "user.json"), Kami, "user");
+new KamiMusicDatabase(join(__dirname, "Database", "user.json"), Kami, "playlist");
 Kami.version = process.env.BOT_VERSION;
-
 // alter
 Kami.login(process.env.KAMI_TOKEN);
 

@@ -5,6 +5,7 @@ const { join } = require("node:path");
 const { Platform } = require("./KamiMusicMetadata");
 const ytdl = require("ytdl-core");
 const { EmbedBuilder, Colors } = require("discord.js");
+const chalk = require("chalk");
 const playerLogger = require("../Core/logger").child({ scope: "Player" });
 const connectionLogger = require("../Core/logger").child({ scope: "Connection" });
 // const { FFmpeg } = require("prism-media");
@@ -533,7 +534,7 @@ class KamiMusicPlayer {
 					this._resource = ar;
 					this.volume = this._volume;
 					this.updateNowplayingMessage();
-					playerLogger.info(`▶ playing: ${resource.title}`);
+					playerLogger.info(`▶ playing: ${resource.title} ${chalk.gray(this.guild.name)}`);
 					this.player.play(ar);
 					if (this.queue[this.nextIndex])
 						if (!this.queue[this.nextIndex].cache)
@@ -591,7 +592,7 @@ class KamiMusicPlayer {
 
 								if (stream) {
 									const retryTimeout = setTimeout(() => stream.emit("error", new Error("Timeouut")), 3000);
-									playerLogger.info(`⏳ buffer: ${resource.title}`);
+									playerLogger.info(`⏳ buffer: ${resource.title} ${chalk.gray(this.guild.name)}`);
 									const _buf = [];
 									stream.on("data", (data) => {
 										if (retryTimeout)
@@ -599,20 +600,19 @@ class KamiMusicPlayer {
 										_buf.push(data);
 									});
 									stream.on("error", async (err) => {
-										console.error(err);
 										if (err.message.startsWith("Status code: 4")) {
 											if (err.message.includes("410"))
 												resource.region.push("TW");
 										} else {
 											stream.destroy();
 											if (_retried > 5) reject(new Error("Buffer retry limit exceeded."));
-											playerLogger.info(`🔄 buffer: ${resource.title}`);
+											playerLogger.info(`🔄 buffer: ${resource.title} ${chalk.gray(this.guild.name)}`);
 											await this.buffer(index, force, _retried + 1);
 											resolve();
 										}
 									});
 									stream.on("finish", () => {
-										playerLogger.info(`✅ buffer: ${resource.title}`);
+										playerLogger.info(`✅ buffer: ${resource.title} ${chalk.gray(this.guild.name)}`);
 										const _buffer = Buffer.concat(_buf);
 										writeFileSync(join(__dirname, "../.cache/", resource.id), _buffer, { flag: "w" });
 										resource.cache = join(__dirname, "../.cache/", resource.id);
@@ -744,7 +744,7 @@ class KamiMusicPlayer {
 const npTemplate = (player) => {
 	const current = player.current;
 	const embed = new EmbedBuilder()
-		.setColor(Colors.Blue)
+		.setColor(player.client.Color.Info)
 		.setAuthor({ name: `正在播放 | ${player.guild.name}`, iconURL: player.guild.iconURL() })
 		.setThumbnail(current.thumbnail)
 		.setTitle(current.title)
