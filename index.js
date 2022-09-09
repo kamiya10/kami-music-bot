@@ -1,8 +1,9 @@
 require("dotenv").config();
 const { Kami } = require("./Core/client");
-const readline = require("node:readline");
 const { join } = require("node:path");
+const chalk = require("chalk");
 const KamiMusicDatabase = require("./Class/KamiMusicDatabase");
+const readline = require("node:readline");
 
 new KamiMusicDatabase(join(__dirname, "Database", "guild.json"), Kami, "guild");
 new KamiMusicDatabase(join(__dirname, "Database", "user.json"), Kami, "user");
@@ -10,6 +11,8 @@ Kami.version = process.env.BOT_VERSION;
 
 // alter
 Kami.login(process.env.KAMI_TOKEN);
+
+process.stdout.write(`${String.fromCharCode(27)}]0;Kami Music ${Kami.version}${String.fromCharCode(7)}`);
 
 // interface
 const rl = readline.createInterface({
@@ -31,7 +34,7 @@ function waitForUserInput() {
 				const args = input.split(" ").slice(1);
 				eval(`Kami.emit("${args[0]}", ${args[1]});`);
 			} else if (input == "exit") {
-				console.log("Stopping bot.");
+				console.log("Stopping bot...");
 				process.exit(0);
 			}
 
@@ -48,6 +51,33 @@ process.stdin.on("keypress", () => {
 	}, 0);
 });
 
-rl._writeToOutput = (stringToWrite) => {
-	rl.output.write(stringToWrite.replace(/\s(log|emit)\s/g, "\u001b[33m$1\x1b[0m"));
+
+/**
+ * @param {string} stringToWrite
+ */
+rl._writeToOutput = function _writeToOutput(stringToWrite) {
+	let args = stringToWrite.match(/(?:[^\s"]+|"[^"]*")+/g);
+	if (args) {
+		args = args.slice(1);
+		switch (args[0]) {
+			case "log": {
+				args[0] = chalk.blueBright(args[0]);
+				if (args[1]) args[1] = args[1].startsWith("\"") ? chalk.greenBright(args[1]) : chalk.yellow(args[1]);
+				break;
+			}
+
+			case "emit": {
+				args[0] = chalk.blueBright(args[0]);
+				if (args[1]) args[1] = chalk.greenBright(args[1]);
+				break;
+			}
+
+			case "exit": {
+				args[0] = chalk.blueBright(args[0]);
+				break;
+			}
+		}
+		rl.output.write("\u001b[90m>>>\x1b[0m " + chalk.blackBright(args.join(" ")));
+	} else
+		rl.output.write("\u001b[90m>>>\x1b[0m " + stringToWrite);
 };
