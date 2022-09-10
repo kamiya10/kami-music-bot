@@ -4,6 +4,7 @@ const { join } = require("node:path");
 const chalk = require("chalk");
 const KamiMusicDatabase = require("./Class/KamiMusicDatabase");
 const readline = require("node:readline");
+const logger = require("./Core/logger");
 
 new KamiMusicDatabase(join(__dirname, "Database", "guild.json"), Kami, "guild");
 new KamiMusicDatabase(join(__dirname, "Database", "user.json"), Kami, "user");
@@ -81,3 +82,8 @@ rl._writeToOutput = function _writeToOutput(stringToWrite) {
 	} else
 		rl.output.write("\u001b[90m>>>\x1b[0m " + stringToWrite);
 };
+
+process.on("uncaughtException", (exception) => {
+	logger.fatal(exception);
+	logger.fatal("The bot will try to continue, but things might not work as expected.");
+});
