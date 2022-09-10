@@ -45,6 +45,7 @@ for (const file of commandFiles) {
 
 // #endregion
 
+Kami.apiCache = new Collection();
 Kami.cooldowns = new Collection();
 Kami.players = new Collection();
 Kami.Color = Object.freeze({

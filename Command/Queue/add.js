@@ -25,6 +25,22 @@ module.exports = {
 				.setNameLocalization("zh-TW", "位置")
 				.setDescription("指定要在播放佇列哪裡插入歌曲")
 				.setMinValue(1)))
+		.addSubcommand(new SlashCommandSubcommandBuilder()
+			.setName("search")
+			.setNameLocalization("zh-TW", "搜尋")
+			.setDescription("搜尋並將影片加入播放佇列")
+			.addStringOption(new SlashCommandStringOption()
+				.setName("query")
+				.setNameLocalization("zh-TW", "關鍵字")
+				.setDescription("The keyword to search.")
+				.setDescriptionLocalization("zh-TW", "要搜尋的關鍵字")
+				.setAutocomplete(true)
+				.setRequired(true))
+			.addIntegerOption(new SlashCommandIntegerOption()
+				.setName("placement")
+				.setNameLocalization("zh-TW", "位置")
+				.setDescription("指定要在播放佇列哪裡插入影片")
+				.setMinValue(1)))
 		.setDMPermission(false),
 	defer     : true,
 	ephemeral : true,
@@ -75,7 +91,7 @@ module.exports = {
 									continue;
 								else
 									try {
-										const video = await videosArr[i].fetch();
+										const video = interaction.client.apiCache.get(videosArr[i].id) ?? interaction.client.apiCache.set(videosArr[i].idㄝ, await videosArr[i].fetch()).get(videosArr[i].id);
 										video.playlist = playlist;
 										const meta = new KamiMusicMetadata(video, interaction.member);
 										const blocked = "";
@@ -109,10 +125,10 @@ module.exports = {
 								.replace(/(>|<)/gi, "")
 								.split(/(vi\/|v=|\/v\/|youtu\.be\/|\/embed\/)/);
 							const id = query[2].split(/[^0-9a-z_-]/i)[0];
-							const video = await Youtube.getVideoByID(id).catch((e) => {
+							const video = interaction.client.apiCache.get(id) ?? interaction.client.apiCache.set(id, await Youtube.getVideoByID(id).catch((e) => {
 								console.error(e);
 								throw "ERR_FETCH_VIDEO";
-							});
+							})).get(id);
 
 							// 不支援直播
 							if (video.raw.snippet.liveBroadcastContent === "live")
@@ -129,6 +145,29 @@ module.exports = {
 							// #endregion
 						} else throw { message: "ERR_INVALID_PARAMETER@URL" };
 					// #endregion
+					break;
+				}
+
+				case "search": {
+					const videoId = interaction.options.getString("query");
+
+					const video = interaction.client.apiCache.get(videoId) ?? interaction.client.apiCache.set(videoId, await Youtube.getVideoByID(videoId).catch((e) => {
+						console.error(e);
+						throw "ERR_FETCH_VIDEO";
+					})).get(videoId);
+
+					// 不支援直播
+					if (video.raw.snippet.liveBroadcastContent === "live")
+						throw "ERR_NOT_SUPPORTED@LIVESTREAM";
+
+					const meta = new KamiMusicMetadata(video, interaction.member);
+					const position = await GuildMusicPlayer.addResource(meta, placement);
+
+					embed = embed
+						.setThumbnail(meta.thumbnail)
+						.setDescription(`:musical_note: [${meta.title}](${meta.url}) 已加到播放佇列`)
+						.setFooter({ text: `位置：#${position + 1}`, iconURL: interaction.member.displayAvatarURL() })
+						.setTimestamp();
 					break;
 				}
 
