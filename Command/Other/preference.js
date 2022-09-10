@@ -32,8 +32,7 @@ module.exports = {
 					.setNameLocalization("zh-TW", "值")
 					.setDescription("The percentage to set to.")
 					.setDescriptionLocalization("zh-TW", "要設定的百分比。")
-					.setMinValue(0)
-					.setRequired(true))
+					.setMinValue(0))
 				.addBooleanOption(new SlashCommandBooleanOption()
 					.setName("global")
 					.setNameLocalization("zh-TW", "全域")
@@ -49,8 +48,7 @@ module.exports = {
 					.setNameLocalization("zh-TW", "值")
 					.setDescription("The decibels to set to.")
 					.setDescriptionLocalization("zh-TW", "要設定的分貝數。")
-					.setMinValue(0)
-					.setRequired(true))
+					.setMinValue(0))
 				.addBooleanOption(new SlashCommandBooleanOption()
 					.setName("global")
 					.setNameLocalization("zh-TW", "全域")
@@ -66,8 +64,7 @@ module.exports = {
 					.setNameLocalization("zh-TW", "值")
 					.setDescription("The percentage to set to.")
 					.setDescriptionLocalization("zh-TW", "要設定的百分比。")
-					.setMinValue(0)
-					.setRequired(true))
+					.setMinValue(0))
 				.addBooleanOption(new SlashCommandBooleanOption()
 					.setName("global")
 					.setNameLocalization("zh-TW", "全域")
@@ -87,8 +84,7 @@ module.exports = {
 				.setName("state")
 				.setNameLocalization("zh-TW", "狀態")
 				.setDescription("The lock state to set to.")
-				.setDescriptionLocalization("zh-TW", "設定鎖定狀態")
-				.setRequired(true))
+				.setDescriptionLocalization("zh-TW", "設定鎖定狀態"))
 			.addBooleanOption(new SlashCommandBooleanOption()
 				.setName("global")
 				.setNameLocalization("zh-TW", "全域")
@@ -140,8 +136,7 @@ module.exports = {
 						name_localizations : { "zh-TW": "倒序循環" },
 						value              : RepeatMode.BackwardRepeatQueue,
 					},
-				])
-				.setRequired(true))
+				]))
 			.addBooleanOption(new SlashCommandBooleanOption()
 				.setName("global")
 				.setNameLocalization("zh-TW", "全域")
@@ -181,18 +176,26 @@ module.exports = {
 							name    : `偏好設定 | ${interaction.member.displayName}`,
 							iconURL : interaction.member.displayAvatarURL(),
 						})
+						.setDescription("有 ✅ 者為播放器初始將使用的值")
 						.setFields([
-							{ name: "🔊 音量", value: `全域 *${userPreference?.global?.volumeString ? `*${userPreference?.global?.volumeString} (${userPreference?.global?.volume})*` : "`未設定`"}*\n${interaction.guild.name} *${userPreference?.[interaction.guild.id]?.volumeString ? `*${modeString[userPreference?.[interaction.guild.id]?.volumeString]} (${modeString[userPreference?.[interaction.guild.id]?.volume]})*` : "`未設定`"}*\n預設值 **100% (1)**`, inline: true },
-							{ name: "🔒 鎖定", value: `全域 *${userPreference?.global?.locked ? `*${modeString[userPreference?.global?.locked] ? "鎖定" : "未鎖定"}*` : "`未設定`"}*\n${interaction.guild.name} *${userPreference?.[interaction.guild.id]?.locked ? `*${modeString[userPreference?.[interaction.guild.id]?.locked] ? "鎖定" : "未鎖定"}*` : "`未設定`"}*\n預設值 **未鎖定**`, inline: true },
-							{ name: "🔁 循環模式", value: `全域 *${userPreference?.global?.repeat ? `*${modeString[userPreference?.global?.repeat]}*` : "`未設定`"}*\n${interaction.guild.name} *${userPreference?.[interaction.guild.id]?.repeat ? `*${modeString[userPreference?.[interaction.guild.id]?.repeat]}*` : "`未設定`"}*\n預設值 **${modeString[0]}**`, inline: true },
+							{ name: "🔊 音量", value: `${interaction.guild.name} *${userPreference?.[interaction.guild.id]?.volumeString != undefined ? `*${userPreference?.[interaction.guild.id]?.volumeString} (${userPreference?.[interaction.guild.id]?.volume})*` : "`未設定`"}*${userPreference?.[interaction.guild.id]?.volumeString != undefined ? " ✅" : ""}\n全域 *${userPreference?.global?.volumeString != undefined ? `*${userPreference?.global?.volumeString} (${userPreference?.global?.volume})*` : "`未設定`"}*${userPreference?.[interaction.guild.id]?.volumeString == undefined && userPreference?.global?.volumeString != undefined ? " ✅" : ""}\n預設值 **100% (1)**${userPreference?.[interaction.guild.id]?.volumeString == undefined && userPreference?.global?.volumeString == undefined ? " ✅" : ""}`, inline: true },
+							{ name: "🔒 鎖定", value: `${interaction.guild.name} *${userPreference?.[interaction.guild.id]?.locked != undefined ? `*${userPreference?.[interaction.guild.id]?.locked ? "鎖定" : "未鎖定"}*` : "`未設定`"}*${userPreference?.[interaction.guild.id]?.locked != undefined ? " ✅" : ""}\n全域 *${userPreference?.global?.locked != undefined ? `*${userPreference?.global?.locked ? "鎖定" : "未鎖定"}*` : "`未設定`"}*${userPreference?.[interaction.guild.id]?.locked == undefined && userPreference?.global?.locked != undefined ? " ✅" : ""}\n預設值 **未鎖定**${userPreference?.[interaction.guild.id]?.locked == undefined && userPreference?.global?.locked == undefined ? " ✅" : ""}`, inline: true },
+							{ name: "🔁 循環模式", value: `${interaction.guild.name} *${userPreference?.[interaction.guild.id]?.repeat != undefined ? `*${modeString[userPreference?.[interaction.guild.id]?.repeat]}*` : "`未設定`"}*${userPreference?.[interaction.guild.id]?.repeat != undefined ? " ✅" : ""}\n全域 *${userPreference?.global?.repeat != undefined ? `*${modeString[userPreference?.global?.repeat]}*` : "`未設定`"}*${userPreference?.[interaction.guild.id]?.repeat == undefined && userPreference?.global?.repeat != undefined ? " ✅" : ""}\n預設值 **${modeString[0]}**${userPreference?.[interaction.guild.id]?.repeat == undefined && userPreference?.global?.repeat == undefined ? " ✅" : ""}`, inline: true },
 						]);
 					break;
 				}
 
 				case "volume": {
 					const inputValue = interaction.options.getInteger("value");
-					let settingValue;
 
+					if (inputValue == null) {
+						userPreference[is_global ? "global" : interaction.guild.id].volume = undefined;
+						userPreference[is_global ? "global" : interaction.guild.id].volumeString = undefined;
+						embed = embed.setDescription("已將初始音量設為 *`未設定`*");
+						break;
+					}
+
+					let settingValue;
 					let volumeString = "";
 					switch (subcmd) {
 						case "percentage": {
@@ -222,14 +225,14 @@ module.exports = {
 				case "lock": {
 					const settingValue = interaction.options.getBoolean("state");
 					userPreference[is_global ? "global" : interaction.guild.id].locked = settingValue;
-					embed = embed.setDescription(`已將初始鎖定狀態設為 **${settingValue ? "鎖定" : "未鎖定"}**`);
+					embed = embed.setDescription(`已將初始鎖定狀態設為 *${settingValue == true ? "*鎖定*" : settingValue == false ? "*未鎖定*" : "`未設定`"}*`);
 					break;
 				}
 
 				case "repeat": {
 					const settingValue = interaction.options.getBoolean("mode");
 					userPreference[is_global ? "global" : interaction.guild.id].repeat = settingValue;
-					embed = embed.setDescription(`已將初始循環模式設為 **${modeString[settingValue]}**`);
+					embed = embed.setDescription(`已將初始循環模式設為 *${settingValue != null ? `${modeString[settingValue]}` : "`未設定`"}*`);
 					break;
 				}
 
