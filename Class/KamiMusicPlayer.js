@@ -570,7 +570,6 @@ class KamiMusicPlayer {
 											agent = new Agent(proxy);
 										}
 										*/
-
 										stream = ytdl(resource.url,
 											{
 												filter         : (format) => format.contentLength,
@@ -607,7 +606,13 @@ class KamiMusicPlayer {
 											resolve();
 										}
 									});
-									stream.on("finish", () => {
+									stream.on("finish", async () => {
+										// check duration
+										if (this.current.duration < 0) {
+											const duration = (await ytdl.getBasicInfo(resource.url)).videoDetails.lengthSeconds;
+											console.log(duration);
+											resource.duration = +duration;
+										}
 										playerLogger.info(`✅ buffer: ${resource.title} ${chalk.gray(this.guild.name)}`);
 										const _buffer = Buffer.concat(_buf);
 										writeFileSync(join(__dirname, "../.cache/", resource.id), _buffer, { flag: "w" });

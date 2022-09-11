@@ -83,10 +83,6 @@ class KamiMusicMetadata {
 			 * @type {any}
 			 */
 			this.raw = data.raw;
-
-			if (!existsSync(join(__dirname, "../.cache")))
-				mkdirSync(join(__dirname, "../.cache"));
-			writeFileSync(join(__dirname, "../.cache", `${this.id}.metadata`), JSON.stringify(this.toJSON()), { encoding: "utf-8", flag: "w" });
 		} else if (data instanceof Object) {
 			/**
 			 * @type {string}
@@ -155,6 +151,10 @@ class KamiMusicMetadata {
 		}
 
 		member.client.apiCache.set(this.id, this.toJSON());
+		if (!existsSync(join(__dirname, "../.cache")))
+			mkdirSync(join(__dirname, "../.cache"));
+		writeFileSync(join(__dirname, "../.cache", `${this.id}.metadata`), JSON.stringify(this.toJSON()), { encoding: "utf-8", flag: "w" });
+
 	}
 
 	/**
