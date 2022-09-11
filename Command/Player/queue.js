@@ -58,6 +58,7 @@ module.exports = {
 				.setAuthor({ name: `播放佇列 | ${interaction.guild.name}`, iconURL: interaction.guild.iconURL() })
 				.setThumbnail(GuildMusicPlayer.current.thumbnail)
 				.setDescription(desc.join("\n"))
+				.setFooter(`共 ${GuildMusicPlayer.queue.length} 項`)
 				.setTimestamp();
 
 			let paginator = new ActionRowBuilder()
@@ -131,6 +132,7 @@ module.exports = {
 						.setThumbnail(GuildMusicPlayer.current.thumbnail)
 						.setAuthor({ name: `播放佇列 | ${interaction.guild.name}`, iconURL: interaction.guild.iconURL() })
 						.setDescription(desc.join("\n"))
+						.setFooter(`共 ${GuildMusicPlayer.queue.length} 項`)
 						.setTimestamp();
 
 					paginator = paginator
