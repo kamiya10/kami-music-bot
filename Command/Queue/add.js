@@ -117,7 +117,7 @@ module.exports = {
 										return console.error(err);
 									}
 
-							const position = await GuildMusicPlayer.addResource(metas, placement - 1 ?? placement);
+							const position = await GuildMusicPlayer.addResource(metas, placement - 2 ?? placement);
 							if (songs.length > 8) {
 								const total = songs.length;
 								songs = songs.slice(0, 8);
