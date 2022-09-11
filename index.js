@@ -4,7 +4,7 @@ const { join } = require("node:path");
 const chalk = require("chalk");
 const KamiMusicDatabase = require("./Class/KamiMusicDatabase");
 const readline = require("node:readline");
-const logger = require("./Core/logger");
+const logger = require("./Core/logger").child("Process");
 
 new KamiMusicDatabase(join(__dirname, "Database", "guild.json"), Kami, "guild");
 new KamiMusicDatabase(join(__dirname, "Database", "user.json"), Kami, "user");
@@ -84,6 +84,8 @@ rl._writeToOutput = function _writeToOutput(stringToWrite) {
 };
 
 process.on("uncaughtException", (exception) => {
-	logger.fatal(exception);
-	logger.fatal("The bot will try to continue, but things might not work as expected.");
+	if (exception.code != 10062) {
+		logger.fatal(exception);
+		logger.fatal("The bot will try to continue, but things might not work as expected.");
+	}
 });
