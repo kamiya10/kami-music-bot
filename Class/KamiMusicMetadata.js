@@ -27,12 +27,12 @@ class KamiMusicMetadata {
 			/**
 			 * @type {string}
 			 */
-			this.title = data.title;
+			this.title = data.title.replace(/&amp;/g, "&");
 
 			/**
 			 * @type {string}
 			 */
-			this.artist = data.channel.title;
+			this.artist = data.channel.title.replace(/&amp;/g, "&");
 
 			/**
 			 * @type {number}
@@ -92,12 +92,12 @@ class KamiMusicMetadata {
 			/**
 			 * @type {string}
 			 */
-			this.title = data.title;
+			this.title = data.title.replace(/&amp;/g, "&");
 
 			/**
 			 * @type {string}
 			 */
-			this.artist = data.artist;
+			this.artist = data.artist.replace(/&amp;/g, "&");
 
 			/**
 			 * @type {number}

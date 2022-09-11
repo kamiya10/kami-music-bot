@@ -28,7 +28,7 @@ function waitForUserInput() {
 			if (input.startsWith("log")) {
 				const args = input.split(" ").slice(1);
 				args.forEach((v) => {
-					eval(`console.log("${v}", ${v});`);
+					eval(`console.log("${v.replace(/"/g, "'")}", ${v.replace(/"/g, "'")});`);
 				});
 				console.log("");
 			} else if (input.startsWith("emit")) {

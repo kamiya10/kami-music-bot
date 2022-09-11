@@ -57,12 +57,12 @@ module.exports = {
 						else {
 							const focused = autocompletedata[interaction.user.id].interaction.options.getFocused(true);
 							let choices = [];
-							if (focused.value.length > 4)
+							if (focused.value.length > 1)
 								switch (focused.name) {
 									case "query": {
 										choices = (await Youtube.searchVideos(focused.value, 25)).slice(0, 25).map((result) => {
 											client.apiCache.set(result.id, result);
-											return { name: result.title.length > 100 ? (result.title.slice(0, 99) + "…") : result.title, value: result.id };
+											return { name: (result.title.length > 100 ? (result.title.slice(0, 99) + "…") : result.title).replace(/&amp;/g, "&"), value: result.id };
 										});
 										break;
 									}
