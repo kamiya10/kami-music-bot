@@ -79,69 +79,79 @@ class KamiMusicMetadata {
 			 */
 			this.region = data.raw?.contentDetails?.regionRestriction?.blocked ?? [];
 
+			/**
+			 * @type {any}
+			 */
+			this.raw = data.raw;
+
 			if (!existsSync(join(__dirname, "../.cache")))
 				mkdirSync(join(__dirname, "../.cache"));
 			writeFileSync(join(__dirname, "../.cache", `${this.id}.metadata`), JSON.stringify(this.toJSON()), { encoding: "utf-8", flag: "w" });
 		} else if (data instanceof Object) {
 			/**
-				 * @type {string}
-				 */
+			 * @type {string}
+			 */
 			this.id = data.id;
 
 			/**
-				 * @type {string}
-				 */
+			 * @type {string}
+			 */
 			this.title = data.title;
 
 			/**
-				 * @type {string}
-				 */
+			 * @type {string}
+			 */
 			this.artist = data.artist;
 
 			/**
-				 * @type {number}
-				 */
+			 * @type {number}
+			 */
 			this.duration = data.duration;
 
 			/**
-				 * @type {string}
-				 */
+			 * @type {string}
+			 */
 			this.thumbnail = data.thumbnail;
 
 			/**
-				 * @type {string}
-				 */
+			 * @type {string}
+			 */
 			this.url = data.url;
 
 			/**
-				 * @type {string}
-				 */
+			 * @type {string}
+			 */
 			this.shortURL = data.shortURL;
 
 			/**
-				 * @type {string}
-				 */
+			 * @type {string}
+			 */
 			this.origin = data.origin;
 
 			/**
-				 * @type {Platform}
-				 */
+			 * @type {Platform}
+			 */
 			this.platform = data.platform;
 
 			/**
-				 * @type {import("discord.js").GuildMember}
-				 */
+			 * @type {import("discord.js").GuildMember}
+			 */
 			this.member = member;
 
 			/**
-				 * @type {import("@discordjs/voice").AudioPlayerError}
-				 */
+			 * @type {import("@discordjs/voice").AudioPlayerError}
+			 */
 			this.error = null;
 
 			/**
-				 * @type {String[]}
-				 */
+			 * @type {String[]}
+			 */
 			this.region = data.region;
+
+			/**
+			 * @type {any}
+			 */
+			this.raw = data.raw;
 		}
 
 		member.client.apiCache.set(this.id, this.toJSON());
@@ -191,9 +201,9 @@ class KamiMusicMetadata {
 			thumbnail : this.thumbnail,
 			url       : this.url,
 			shortURL  : this.shortURL,
-			origin    : this.origin,
 			platform  : this.platform,
 			region    : this.region,
+			raw       : this.raw,
 		};
 	}
 }

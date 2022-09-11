@@ -140,6 +140,7 @@ class KamiMusicPlayer {
 						case RepeatMode.NoRepeat: {
 							if (this.currentIndex < (this.queue.length - 1))
 								this.next();
+							else this.updateNowplayingMessage(true);
 							break;
 						}
 
@@ -174,6 +175,7 @@ class KamiMusicPlayer {
 						case RepeatMode.Backward: {
 							if (this.currentIndex > 0)
 								this.next();
+							else this.updateNowplayingMessage(true);
 
 							break;
 						}
@@ -715,18 +717,20 @@ class KamiMusicPlayer {
 
 	/**
 	 * Updates the nowplaying message
+	 * @param {boolean} [finished=false] Whether to sent a finished message
 	 */
-	async updateNowplayingMessage() {
+	async updateNowplayingMessage(finished = false) {
 		try {
 			if (this.npmsg)
-				this.npmsg = await this.npmsg.edit(npTemplate(this)).catch(async (err) => {
+				this.npmsg = await this.npmsg.edit(npTemplate(this, finished)).catch(async (err) => {
 					console.error(err);
-					this.npmsg = await this.textChannel.send(npTemplate(this));
+					this.npmsg = await this.textChannel.send(npTemplate(this, finished));
 				});
 			else
-				this.npmsg = await this.textChannel.send(npTemplate(this));
+				this.npmsg = await this.textChannel.send(npTemplate(this, finished));
 		} catch (err) {
-			console.error(err);
+			playerLogger.error(`Unable to update nowplaying message in #${this.textChannel.name}`);
+			playerLogger.error(err);
 		}
 	}
 }
@@ -735,9 +739,9 @@ class KamiMusicPlayer {
  * @param {KamiMusicPlayer} player
  * @returns
  */
-const npTemplate = (player) => {
+const npTemplate = (player, finished) => {
 	const current = player.current;
-	const embed = new EmbedBuilder()
+	const embed = !finished ? new EmbedBuilder()
 		.setColor(player.client.Color.Info)
 		.setAuthor({ name: `正在播放 | ${player.guild.name}`, iconURL: player.guild.iconURL() })
 		.setThumbnail(current.thumbnail)
@@ -748,8 +752,13 @@ const npTemplate = (player) => {
 			{ name: "⏲ 長度", value: current.formattedDuration, inline: true },
 		])
 		.setFooter({ text: current.member.displayName, iconURL: current.member.displayAvatarURL() })
-		.setTimestamp();
+		.setTimestamp()
+		: new EmbedBuilder()
+			.setColor(player.client.Color.Info)
+			.setAuthor({ name: `正在播放 | ${player.guild.name}`, iconURL: player.guild.iconURL() })
+			.setDescription("目前沒有在播放任何東西，使用 `/add` 來添加項目")
+			.setTimestamp();
 
-	return { embeds: [embed] };
+	return { content: `🎶 正在 ${player.voiceChannel} 播放`, embeds: [embed] };
 };
 module.exports = { KamiMusicPlayer, RepeatMode };

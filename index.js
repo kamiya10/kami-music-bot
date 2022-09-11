@@ -40,7 +40,7 @@ function waitForUserInput() {
 			}
 
 		} catch (error) {
-			console.error(undefined);
+			logger.error(error);
 		}
 		waitForUserInput();
 	});
