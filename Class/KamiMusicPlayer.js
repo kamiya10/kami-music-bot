@@ -183,8 +183,7 @@ class KamiMusicPlayer {
 							break;
 						}
 
-						default:
-							break;
+						default: break;
 					}
 
 				this.stopped = false;
@@ -289,8 +288,7 @@ class KamiMusicPlayer {
 				else
 					return this.queue.length - 1;
 
-			default:
-				break;
+			default: break;
 		}
 		return -1;
 	}
@@ -508,8 +506,7 @@ class KamiMusicPlayer {
 								});
 							break;
 						}
-						default:
-							break;
+						default: break;
 					}
 
 				if (stream) {
@@ -584,8 +581,7 @@ class KamiMusicPlayer {
 											});
 										break;
 									}
-									default:
-										break;
+									default: break;
 								}
 
 								if (stream) {

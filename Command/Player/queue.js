@@ -123,8 +123,7 @@ module.exports = {
 							break;
 						}
 
-						default:
-							break;
+						default: break;
 					}
 					desc = getSubset(songlist, songlist[cursor], 9);
 					range = getSubsetRange(songlist, songlist[cursor], 9);

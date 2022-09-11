@@ -1,4 +1,6 @@
+const { existsSync, mkdirSync, writeFileSync } = require("node:fs");
 const { Video } = require("simple-youtube-api");
+const { join } = require("node:path");
 
 /**
  * @enum {string}
@@ -76,7 +78,73 @@ class KamiMusicMetadata {
 			 * @type {String[]}
 			 */
 			this.region = data.raw?.contentDetails?.regionRestriction?.blocked ?? [];
+
+			if (!existsSync(join(__dirname, "../.cache")))
+				mkdirSync(join(__dirname, "../.cache"));
+			writeFileSync(join(__dirname, "../.cache", `${this.id}.metadata`), JSON.stringify(this.toJSON()), { encoding: "utf-8", flag: "w" });
+		} else if (data instanceof Object) {
+			/**
+				 * @type {string}
+				 */
+			this.id = data.id;
+
+			/**
+				 * @type {string}
+				 */
+			this.title = data.title;
+
+			/**
+				 * @type {string}
+				 */
+			this.artist = data.artist;
+
+			/**
+				 * @type {number}
+				 */
+			this.duration = data.duration;
+
+			/**
+				 * @type {string}
+				 */
+			this.thumbnail = data.thumbnail;
+
+			/**
+				 * @type {string}
+				 */
+			this.url = data.url;
+
+			/**
+				 * @type {string}
+				 */
+			this.shortURL = data.shortURL;
+
+			/**
+				 * @type {string}
+				 */
+			this.origin = data.origin;
+
+			/**
+				 * @type {Platform}
+				 */
+			this.platform = data.platform;
+
+			/**
+				 * @type {import("discord.js").GuildMember}
+				 */
+			this.member = member;
+
+			/**
+				 * @type {import("@discordjs/voice").AudioPlayerError}
+				 */
+			this.error = null;
+
+			/**
+				 * @type {String[]}
+				 */
+			this.region = data.region;
 		}
+
+		member.client.apiCache.set(this.id, this.toJSON());
 	}
 
 	/**
@@ -110,9 +178,23 @@ class KamiMusicMetadata {
 	 * @return {string}
 	 */
 	get formattedDuration() {
-		const times = [];
-		times.push(this.durationObject.day, this.durationObject.hour, this.durationObject.minute, this.durationObject.second);
-		return times.reduce((a, v, i) => (v == 0 && i < 2) ? a : (v < 10) ? a.push(`0${v}`) && (a) : a.push(String(v)) && (a), []).join(":");
+		const times = [this.durationObject.day, this.durationObject.hour, this.durationObject.minute, this.durationObject.second];
+		return times.reduce((a, v, i) => (v == 0 && i < 2 && a.length == 0) ? a : (v < 10) ? a.push(`0${v}`) && (a) : a.push(String(v)) && (a), []).join(":");
+	}
+
+	toJSON() {
+		return {
+			id        : this.id,
+			title     : this.title,
+			artist    : this.artist,
+			duration  : this.duration,
+			thumbnail : this.thumbnail,
+			url       : this.url,
+			shortURL  : this.shortURL,
+			origin    : this.origin,
+			platform  : this.platform,
+			region    : this.region,
+		};
 	}
 }
 module.exports = { KamiMusicMetadata, Platform };

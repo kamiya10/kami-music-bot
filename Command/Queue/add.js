@@ -91,7 +91,19 @@ module.exports = {
 									continue;
 								else
 									try {
-										const video = interaction.client.apiCache.get(videosArr[i].id) ?? interaction.client.apiCache.set(videosArr[i].idㄝ, await videosArr[i].fetch()).get(videosArr[i].id);
+										let video = interaction.client.apiCache.get(videosArr[i].id);
+
+										if (!video) {
+											video = await Youtube.getVideoByID(videosArr[i].id).catch((e) => {
+												console.error(e);
+												throw "ERR_FETCH_VIDEO";
+											});
+
+											// 不支援直播
+											if (video.raw.snippet.liveBroadcastContent === "live")
+												throw "ERR_NOT_SUPPORTED@LIVESTREAM";
+										}
+
 										video.playlist = playlist;
 										const meta = new KamiMusicMetadata(video, interaction.member);
 										const blocked = "";
@@ -124,15 +136,19 @@ module.exports = {
 							const query = url
 								.replace(/(>|<)/gi, "")
 								.split(/(vi\/|v=|\/v\/|youtu\.be\/|\/embed\/)/);
-							const id = query[2].split(/[^0-9a-z_-]/i)[0];
-							const video = interaction.client.apiCache.get(id) ?? interaction.client.apiCache.set(id, await Youtube.getVideoByID(id).catch((e) => {
-								console.error(e);
-								throw "ERR_FETCH_VIDEO";
-							})).get(id);
+							const videoId = query[2].split(/[^0-9a-z_-]/i)[0];
+							let video = interaction.client.apiCache.get(videoId);
 
-							// 不支援直播
-							if (video.raw.snippet.liveBroadcastContent === "live")
-								throw "ERR_NOT_SUPPORTED@LIVESTREAM";
+							if (!video) {
+								video = await Youtube.getVideoByID(videoId).catch((e) => {
+									console.error(e);
+									throw "ERR_FETCH_VIDEO";
+								});
+
+								// 不支援直播
+								if (video.raw.snippet.liveBroadcastContent === "live")
+									throw "ERR_NOT_SUPPORTED@LIVESTREAM";
+							}
 
 							const meta = new KamiMusicMetadata(video, interaction.member);
 							const position = await GuildMusicPlayer.addResource(meta, placement);
@@ -151,14 +167,18 @@ module.exports = {
 				case "search": {
 					const videoId = interaction.options.getString("query");
 
-					const video = interaction.client.apiCache.get(videoId) ?? interaction.client.apiCache.set(videoId, await Youtube.getVideoByID(videoId).catch((e) => {
-						console.error(e);
-						throw "ERR_FETCH_VIDEO";
-					})).get(videoId);
+					let video = interaction.client.apiCache.get(videoId);
 
-					// 不支援直播
-					if (video.raw.snippet.liveBroadcastContent === "live")
-						throw "ERR_NOT_SUPPORTED@LIVESTREAM";
+					if (!video) {
+						video = await Youtube.getVideoByID(videoId).catch((e) => {
+							console.error(e);
+							throw "ERR_FETCH_VIDEO";
+						});
+
+						// 不支援直播
+						if (video.raw.snippet.liveBroadcastContent === "live")
+							throw "ERR_NOT_SUPPORTED@LIVESTREAM";
+					}
 
 					const meta = new KamiMusicMetadata(video, interaction.member);
 					const position = await GuildMusicPlayer.addResource(meta, placement);
@@ -171,10 +191,8 @@ module.exports = {
 					break;
 				}
 
-				default:
-					break;
+				default: break;
 			}
-
 
 			await interaction.editReply({ embeds: [embed], ephemeral: true });
 		} catch (e) {

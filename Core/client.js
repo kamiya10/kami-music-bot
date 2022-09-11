@@ -1,5 +1,6 @@
 const { Client, Collection, Colors, GatewayIntentBits } = require("discord.js");
-const fs = require("fs");
+const { existsSync, readdirSync, readFile } = require("node:fs");
+const logger = require("./logger").child("Loader");
 const path = require("path");
 
 const KamiIntents = [
@@ -12,7 +13,7 @@ const Kami = new Client({ intents: KamiIntents, allowedMentions: { parse: ["role
 
 // #region Event Registion
 
-const eventFiles = fs.readdirSync("./Event").filter((file) => file.endsWith(".js"));
+const eventFiles = readdirSync("./Event").filter((file) => file.endsWith(".js"));
 for (const file of eventFiles) {
 	const event = require(path.resolve(`./Event/${file}`));
 	if (event.once)
@@ -26,9 +27,9 @@ for (const file of eventFiles) {
 // #region Command Registion
 
 Kami.commands = new Collection();
-const commandCategories = fs.readdirSync("./Command");
+const commandCategories = readdirSync("./Command");
 for (const category of commandCategories) {
-	const commandFiles = fs.readdirSync(`./Command/${category}`).filter((file) => file.endsWith(".js"));
+	const commandFiles = readdirSync(`./Command/${category}`).filter((file) => file.endsWith(".js"));
 
 	for (const file of commandFiles) {
 		const command = require(path.resolve(`./Command/${category}/${file}`));
@@ -36,7 +37,7 @@ for (const category of commandCategories) {
 	}
 }
 Kami.contexts = new Collection();
-const commandFiles = fs.readdirSync("./Context").filter((file) => file.endsWith(".js"));
+const commandFiles = readdirSync("./Context").filter((file) => file.endsWith(".js"));
 
 for (const file of commandFiles) {
 	const command = require(path.resolve(`./Context/${file}`));
@@ -60,5 +61,19 @@ Kami.EmbedIcon = Object.freeze({
 	Warn    : "⚠",
 	Error   : "❌",
 });
+
+if (existsSync(path.join(__dirname, "../.cache"))) {
+	const metafiles = readdirSync(path.join(__dirname, "../.cache")).filter((file) => file.endsWith(".metadata"));
+
+	for (const file of metafiles)
+		readFile(path.join(__dirname, "../.cache", file), { encoding: "utf-8" }, (err, data) => {
+			if (!err) {
+				const meta = JSON.parse(data);
+				Kami.apiCache.set(meta.id, meta);
+			} else logger.error(err);
+		});
+
+}
+
 
 module.exports = { Kami };

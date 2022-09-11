@@ -66,8 +66,7 @@ module.exports = {
 										});
 										break;
 									}
-									default:
-										break;
+									default: break;
 								}
 							await interaction.respond(choices);
 						}
@@ -85,8 +84,7 @@ module.exports = {
 				break;
 			}
 
-			default:
-				break;
+			default: break;
 		}
 	},
 };
