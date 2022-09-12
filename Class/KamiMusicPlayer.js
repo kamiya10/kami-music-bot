@@ -610,8 +610,9 @@ class KamiMusicPlayer {
 										// check duration
 										if (this.current.duration < 0) {
 											const duration = (await ytdl.getBasicInfo(resource.url)).videoDetails.lengthSeconds;
-											console.log(duration);
 											resource.duration = +duration;
+											this.client.apiCache.set(resource.id, resource.toJSON());
+											writeFileSync(join(__dirname, "../.cache", `${this.id}.metadata`), JSON.stringify(resource.toJSON()), { encoding: "utf-8", flag: "w" });
 										}
 										playerLogger.info(`✅ buffer: ${resource.title} ${chalk.gray(this.guild.name)}`);
 										const _buffer = Buffer.concat(_buf);
@@ -665,7 +666,6 @@ class KamiMusicPlayer {
 		this.play();
 		return this.current;
 	}
-
 
 	/**
 	 * Pause the player.
