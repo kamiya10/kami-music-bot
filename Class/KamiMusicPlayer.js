@@ -695,7 +695,9 @@ class KamiMusicPlayer {
 	/**
 	 * Destroys the player.
 	 */
-	destroy() {
+	async destroy() {
+		if (this.npmsg.deletable)
+			await this.npmsg.delete().catch(() => void 0);
 		this.connection.destroy();
 		this.client.players.delete(this.guild.id);
 	}
