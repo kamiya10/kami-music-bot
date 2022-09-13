@@ -172,7 +172,7 @@ module.exports = {
 				}
 			});
 			collector.on("end", async (c, reason) => {
-				if (reason == "time")
+				if (reason == "idle")
 					await sent.edit({ embeds: [queue.setFooter({ text: "互動已逾時" })] });
 			});
 		} catch (e) {
