@@ -7,8 +7,8 @@ const { join } = require("node:path");
 const chalk = require("chalk");
 const ytdl = require("ytdl-core");
 
-const playerLogger = require("../Core/logger").child({ scope: "Player" });
 const connectionLogger = require("../Core/logger").child({ scope: "Connection" });
+const playerLogger = require("../Core/logger").child({ scope: "Player" });
 // const { FFmpeg } = require("prism-media");
 
 /**
@@ -136,57 +136,58 @@ class KamiMusicPlayer {
 			this._resource = null;
 			if (oldState.status == AudioPlayerStatus.Playing) {
 				if (!this.paused && !this.stopped)
-					switch (this.repeat) {
-						case RepeatMode.NoRepeat: {
-							if (this.currentIndex < (this.queue.length - 1))
+					if (this.queue.length > 0)
+						switch (this.repeat) {
+							case RepeatMode.NoRepeat: {
+								if (this.currentIndex < (this.queue.length - 1))
+									this.next();
+								else this.updateNowplayingMessage(true);
+								break;
+							}
+
+							case RepeatMode.RepeatQueue: {
 								this.next();
-							else this.updateNowplayingMessage(true);
-							break;
-						}
+								break;
+							}
 
-						case RepeatMode.RepeatQueue: {
-							this.next();
-							break;
-						}
+							case RepeatMode.RepeatCurrent: {
+								this.play();
+								break;
+							}
 
-						case RepeatMode.RepeatCurrent: {
-							this.play();
-							break;
-						}
+							case RepeatMode.Random: {
+								this.currentIndex = Math.floor(Math.random() * this.queue.length);
+								this.play();
+								break;
+							}
 
-						case RepeatMode.Random: {
-							this.currentIndex = Math.floor(Math.random() * this.queue.length);
-							this.play();
-							break;
-						}
+							case RepeatMode.RandomNoRepeat: {
+								if (this._randomQueue.length == 0)
+									this._randomQueue = [...this.queue];
 
-						case RepeatMode.RandomNoRepeat: {
-							if (this._randomQueue.length == 0)
-								this._randomQueue = [...this.queue];
+								this._randomQueue = this._randomQueue.sort(() => 0.5 - Math.random());
+								const resource = this._randomQueue.shift();
+								this.currentIndex = this.queue.indexOf(resource);
 
-							this._randomQueue = this._randomQueue.sort(() => 0.5 - Math.random());
-							const resource = this._randomQueue.shift();
-							this.currentIndex = this.queue.indexOf(resource);
+								this.play();
+								break;
+							}
 
-							this.play();
-							break;
-						}
+							case RepeatMode.Backward: {
+								if (this.currentIndex > 0)
+									this.next();
+								else this.updateNowplayingMessage(true);
 
-						case RepeatMode.Backward: {
-							if (this.currentIndex > 0)
+								break;
+							}
+
+							case RepeatMode.BackwardRepeatQueue: {
 								this.next();
-							else this.updateNowplayingMessage(true);
+								break;
+							}
 
-							break;
+							default: break;
 						}
-
-						case RepeatMode.BackwardRepeatQueue: {
-							this.next();
-							break;
-						}
-
-						default: break;
-					}
 
 				this.stopped = false;
 			}
@@ -322,9 +323,20 @@ class KamiMusicPlayer {
      * @param {number} value
      */
 	set repeat(value) {
-		if (value == RepeatMode.RandomNoRepeat)
-			if (value != this.repeat)
-				this._randomQueue = [...this.queue];
+		switch (value) {
+			case RepeatMode.RepeatQueue:
+			case RepeatMode.BackwardRepeatQueue: {
+				if (this.player.state.status == AudioPlayerStatus.Idle) this.next();
+				break;
+			}
+
+			case RepeatMode.RandomNoRepeat: {
+				if (value != this.repeat) this._randomQueue = [...this.queue];
+				break;
+			}
+
+			default: break;
+		}
 
 		this._repeat = value;
 	}
@@ -463,6 +475,17 @@ class KamiMusicPlayer {
 			return index;
 		}
 		return null;
+	}
+
+	/**
+	 * Clears the queue.
+	 * @returns {KamiMusicMetadata[]} Deleted entries.
+	 */
+	clear() {
+		const deleted = [...this.queue];
+		this.queue = [];
+		this.player.stop();
+		return deleted;
 	}
 
 	/**
