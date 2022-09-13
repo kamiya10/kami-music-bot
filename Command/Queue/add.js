@@ -2,7 +2,10 @@ const { EmbedBuilder, SlashCommandBuilder, SlashCommandIntegerOption, SlashComma
 const { KamiMusicMetadata } = require("../../Class/KamiMusicMetadata");
 const { KamiMusicPlayer } = require("../../Class/KamiMusicPlayer");
 const YouTube = require("simple-youtube-api");
+const chalk = require("chalk");
 const Youtube = new YouTube(process.env.YOUTUBE_TOKEN);
+
+const ytLogger = require("../../Core/logger").child({ scope: "Youtube" });
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -78,9 +81,11 @@ module.exports = {
 					if (url.match(/youtu(be|.be)/))
 						if (url.match(/^(?!.*\?.*\bv=)https:\/\/www\.youtube\.com\/.*\?.*\blist=.*$/)) {
 							// #region 播放佇列
+							ytLogger.debug(`Fetching Playlist from: ${url}`);
 							const playlist = await Youtube.getPlaylist(url).catch(() => {
 								throw "ERR_PLAYLIST_NOT_EXIST";
 							});
+							ytLogger.debug(`Fetching Videos from Playlist: ${playlist.title} ${chalk.gray(`(${playlist.id})`)}`);
 							const videosArr = await playlist.getVideos().catch(() => {
 								throw "ERR_FETCH_PLAYLIST_VIDEO";
 							});
@@ -94,6 +99,7 @@ module.exports = {
 										let video = interaction.client.apiCache.get(videosArr[i].id);
 
 										if (!video || (video && !video?.full)) {
+											ytLogger.debug(`Fetching ID: ${videosArr[i].id}`);
 											video = await Youtube.getVideoByID(videosArr[i].id).catch((e) => {
 												console.error(e);
 												throw "ERR_FETCH_VIDEO";
@@ -139,6 +145,7 @@ module.exports = {
 							let video = interaction.client.apiCache.get(videoId);
 
 							if (!video || (video && !video?.full)) {
+								ytLogger.debug(`Fetching ID: ${videoId}`);
 								video = await Youtube.getVideoByID(videoId).catch((e) => {
 									console.error(e);
 									throw "ERR_FETCH_VIDEO";
@@ -169,6 +176,7 @@ module.exports = {
 					let video = interaction.client.apiCache.get(videoId);
 
 					if (!video || (video && !video?.full)) {
+						ytLogger.debug(`Fetching ID: ${videoId}`);
 						video = await Youtube.getVideoByID(videoId).catch((e) => {
 							console.error(e);
 							throw "ERR_FETCH_VIDEO";

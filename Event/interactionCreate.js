@@ -3,6 +3,8 @@ const logger = require("../Core/logger").child({ scope: "CommandHandler" });
 const YouTube = require("simple-youtube-api");
 const Youtube = new YouTube(process.env.YOUTUBE_TOKEN);
 
+const ytLogger = require("../Core/logger").child({ scope: "Youtube" });
+
 const autocompletedata = {};
 module.exports = {
 	name  : "interactionCreate",
@@ -60,6 +62,7 @@ module.exports = {
 							if (focused.value.length > 1)
 								switch (focused.name) {
 									case "query": {
+										ytLogger.debug(`Searching term: ${focused.value}`);
 										choices = (await Youtube.searchVideos(focused.value, 25)).slice(0, 25).map((result) => {
 											client.apiCache.set(result.id, result);
 											return { name: (result.title.length > 100 ? (result.title.slice(0, 99) + "…") : result.title).replace(/&amp;/g, "&"), value: result.id };
