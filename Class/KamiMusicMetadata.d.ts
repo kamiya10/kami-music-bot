@@ -15,6 +15,20 @@ interface Duration {
     day    : number;
 }
 
+interface KamiMusicMetadataJSON {
+    id: string;
+    title: string;
+    artist: string;
+    duration: number;
+    thumbnail: string;
+    url: string;
+    shortURL: string;
+    platform: Platform;
+    region: string[];
+    full: boolean;
+    raw: object;
+}
+
 export declare class KamiMusicMetadata {
     constructor(data: any, member: GuildMember);
 
@@ -30,8 +44,11 @@ export declare class KamiMusicMetadata {
     member: GuildMember;
     error?: AudioPlayerError;
     region: string[];
+    full: boolean;
+    raw: object;
 
     get playable(): boolean;
     get durationObject(): Duration;
     get formattedDuration(): string;
+    toJSON(): KamiMusicMetadataJSON;
 }

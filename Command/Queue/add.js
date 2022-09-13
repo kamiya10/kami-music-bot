@@ -93,7 +93,7 @@ module.exports = {
 									try {
 										let video = interaction.client.apiCache.get(videosArr[i].id);
 
-										if (!video) {
+										if (!video || (video && !video?.full)) {
 											video = await Youtube.getVideoByID(videosArr[i].id).catch((e) => {
 												console.error(e);
 												throw "ERR_FETCH_VIDEO";
@@ -116,7 +116,6 @@ module.exports = {
 									} catch (err) {
 										return console.error(err);
 									}
-
 							const position = await GuildMusicPlayer.addResource(metas, placement - 1 ?? undefined);
 							if (songs.length > 8) {
 								const total = songs.length;
@@ -139,7 +138,7 @@ module.exports = {
 							const videoId = query[2].split(/[^0-9a-z_-]/i)[0];
 							let video = interaction.client.apiCache.get(videoId);
 
-							if (!video) {
+							if (!video || (video && !video?.full)) {
 								video = await Youtube.getVideoByID(videoId).catch((e) => {
 									console.error(e);
 									throw "ERR_FETCH_VIDEO";
@@ -169,7 +168,7 @@ module.exports = {
 
 					let video = interaction.client.apiCache.get(videoId);
 
-					if (!video) {
+					if (!video || (video && !video?.full)) {
 						video = await Youtube.getVideoByID(videoId).catch((e) => {
 							console.error(e);
 							throw "ERR_FETCH_VIDEO";

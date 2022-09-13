@@ -80,6 +80,11 @@ class KamiMusicMetadata {
 			this.region = data.raw?.contentDetails?.regionRestriction?.blocked ?? [];
 
 			/**
+			 * @type {boolean}
+			 */
+			this.full = data.full;
+
+			/**
 			 * @type {any}
 			 */
 			this.raw = data.raw;
@@ -145,6 +150,11 @@ class KamiMusicMetadata {
 			this.region = data.region;
 
 			/**
+			 * @type {boolean}
+			 */
+			this.full = data.full;
+
+			/**
 			 * @type {any}
 			 */
 			this.raw = data.raw;
@@ -203,6 +213,7 @@ class KamiMusicMetadata {
 			shortURL  : this.shortURL,
 			platform  : this.platform,
 			region    : this.region,
+			full      : this.full,
 			raw       : this.raw,
 		};
 	}
