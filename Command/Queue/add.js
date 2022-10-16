@@ -122,7 +122,7 @@ module.exports = {
 									} catch (err) {
 										return console.error(err);
 									}
-							const position = await GuildMusicPlayer.addResource(metas, placement - 1 ?? undefined);
+							const position = await GuildMusicPlayer.addResource(metas, placement != undefined ? placement - 1 : placement);
 							if (songs.length > 8) {
 								const total = songs.length;
 								songs = songs.slice(0, 8);
@@ -157,7 +157,7 @@ module.exports = {
 							}
 
 							const meta = new KamiMusicMetadata(video, interaction.member);
-							const position = await GuildMusicPlayer.addResource(meta, placement - 1 ?? undefined);
+							const position = await GuildMusicPlayer.addResource(meta, placement != undefined ? placement - 1 : placement);
 
 							embed = embed
 								.setThumbnail(meta.thumbnail)

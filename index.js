@@ -10,7 +10,7 @@ new KamiMusicDatabase(join(__dirname, "Database", "guild.json"), Kami, "guild");
 new KamiMusicDatabase(join(__dirname, "Database", "user.json"), Kami, "user");
 new KamiMusicDatabase(join(__dirname, "Database", "user.json"), Kami, "playlist");
 Kami.version = process.env.BOT_VERSION;
-// alter
+
 Kami.login(process.env.KAMI_TOKEN);
 
 process.stdout.write(`${String.fromCharCode(27)}]0;Kami Music ${Kami.version}${String.fromCharCode(7)}`);
@@ -34,11 +34,11 @@ function waitForUserInput() {
 			} else if (input.startsWith("emit")) {
 				const args = input.split(" ").slice(1);
 				eval(`Kami.emit("${args[0]}", ${args[1]});`);
+				console.log("");
 			} else if (input == "exit") {
 				console.log("Stopping bot...");
 				process.exit(0);
 			}
-
 		} catch (error) {
 			logger.error(error);
 		}
