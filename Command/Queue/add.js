@@ -82,7 +82,7 @@ module.exports = {
 
           // #region Youtube
           if (url.match(/youtu(be|.be)/))
-            if (url.match(/^(?!.*\?.*\bv=)https:\/\/www\.youtube\.com\/.*\?.*\blist=.*$/)) {
+            if (url.match(/^(?!.*\?.*\bv=)(http(s)?:\/\/)?((w){3}.)?youtube\.com\/.*\?.*\blist=.*$/)) {
               // #region 播放佇列
               ytLogger.debug(`Fetching Playlist from: ${url}`);
               const playlist = await Youtube.getPlaylist(url).catch(() => {
