@@ -17,39 +17,41 @@ process.stdout.write(`${String.fromCharCode(27)}]0;Kami Music ${Kami.version}${S
 
 // interface
 const rl = readline.createInterface({
-	input  : process.stdin,
-	output : process.stdout,
+  input  : process.stdin,
+  output : process.stdout,
 });
 
 waitForUserInput();
+
 function waitForUserInput() {
-	rl.question("\u001b[90m>>>\x1b[0m ", (input) => {
-		try {
-			if (input.startsWith("log")) {
-				const args = input.split(" ").slice(1);
-				args.forEach((v) => {
-					eval(`console.log("${v.replace(/"/g, "'")}", ${v.replace(/"/g, "'")});`);
-				});
-				console.log("");
-			} else if (input.startsWith("emit")) {
-				const args = input.split(" ").slice(1);
-				eval(`Kami.emit("${args[0]}", ${args[1]});`);
-				console.log("");
-			} else if (input == "exit") {
-				console.log("Stopping bot...");
-				process.exit(0);
-			}
-		} catch (error) {
-			logger.error(error);
-		}
-		waitForUserInput();
-	});
+  rl.question("\u001b[90m>>>\x1b[0m ", (input) => {
+    try {
+      if (input.startsWith("log")) {
+        const args = input.split(" ").slice(1);
+        args.forEach((v) => {
+          eval(`console.log("${v.replace(/"/g, "'")}", ${v.replace(/"/g, "'")});`);
+        });
+        console.log("");
+      } else if (input.startsWith("emit")) {
+        const args = input.split(" ").slice(1);
+        eval(`Kami.emit("${args[0]}", ${args[1]});`);
+        console.log("");
+      } else if (input == "exit") {
+        console.log("Stopping bot...");
+        process.exit(0);
+      }
+    } catch (error) {
+      logger.error(error);
+    }
+
+    waitForUserInput();
+  });
 }
 
 process.stdin.on("keypress", () => {
-	setTimeout(() => {
-		rl._refreshLine();
-	}, 0);
+  setTimeout(() => {
+    rl._refreshLine();
+  }, 0);
 });
 
 
@@ -57,35 +59,41 @@ process.stdin.on("keypress", () => {
  * @param {string} stringToWrite
  */
 rl._writeToOutput = function _writeToOutput(stringToWrite) {
-	let args = stringToWrite.match(/(?:[^\s"]+|"[^"]*")+/g);
-	if (args) {
-		args = args.slice(1);
-		switch (args[0]) {
-			case "log": {
-				args[0] = chalk.blueBright(args[0]);
-				if (args[1]) args[1] = args[1].startsWith("\"") ? chalk.greenBright(args[1]) : chalk.yellow(args[1]);
-				break;
-			}
+  let args = stringToWrite.match(/(?:[^\s"]+|"[^"]*")+/g);
 
-			case "emit": {
-				args[0] = chalk.blueBright(args[0]);
-				if (args[1]) args[1] = chalk.greenBright(args[1]);
-				break;
-			}
+  if (args) {
+    args = args.slice(1);
 
-			case "exit": {
-				args[0] = chalk.blueBright(args[0]);
-				break;
-			}
-		}
-		rl.output.write("\u001b[90m>>>\x1b[0m " + chalk.blackBright(args.join(" ")));
-	} else
-		rl.output.write("\u001b[90m>>>\x1b[0m " + stringToWrite);
+    switch (args[0]) {
+      case "log": {
+        args[0] = chalk.blueBright(args[0]);
+
+        if (args[1]) args[1] = args[1].startsWith("\"") ? chalk.greenBright(args[1]) : chalk.yellow(args[1]);
+        break;
+      }
+
+      case "emit": {
+        args[0] = chalk.blueBright(args[0]);
+
+        if (args[1]) args[1] = chalk.greenBright(args[1]);
+        break;
+      }
+
+      case "exit": {
+        args[0] = chalk.blueBright(args[0]);
+        break;
+      }
+    }
+
+    rl.output.write("\u001b[90m>>>\x1b[0m " + chalk.blackBright(args.join(" ")));
+  } else {
+    rl.output.write("\u001b[90m>>>\x1b[0m " + stringToWrite);
+  }
 };
 
 process.on("uncaughtException", (exception) => {
-	if (exception.code != 10062) {
-		logger.fatal(exception);
-		logger.fatal("The bot will try to continue, but things might not work as expected.");
-	}
+  if (exception.code != 10062) {
+    logger.fatal(exception);
+    logger.fatal("The bot will try to continue, but things might not work as expected.");
+  }
 });
