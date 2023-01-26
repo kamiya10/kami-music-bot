@@ -82,7 +82,7 @@ module.exports = {
 
           // #region Youtube
           if (url.match(/youtu(be|.be)/))
-            if (url.match(/^(?!.*\?.*\bv=)(http(s)?:\/\/)?((w){3}.)?youtube\.com\/.*\?.*\blist=.*$/)) {
+            if (url.match(/^(?!.*\?.*\bv=)(http(s)?:\/\/)?(((w){3}|music)\.)?youtube\.com\/.*\?.*\blist=.*$/)) {
               // #region 播放佇列
               ytLogger.debug(`Fetching Playlist from: ${url}`);
               const playlist = await Youtube.getPlaylist(url).catch(() => {
@@ -142,7 +142,7 @@ module.exports = {
                 .setFooter({ text: `位置：#${position + 1}`, iconURL: interaction.member.displayAvatarURL() })
                 .setTimestamp();
               // #endregion
-            } else if (url.match(/^(http(s)?:\/\/)?((w){3}.)?youtu(be|.be)?(\.com)?\/.+/)) {
+            } else if (url.match(/^(http(s)?:\/\/)?(((w){3}|music)\.)?youtu(be|.be)?(\.com)?\/.+/)) {
               // #region 影片
               const query = url
                 .replace(/(>|<)/gi, "")
