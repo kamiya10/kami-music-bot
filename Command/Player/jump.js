@@ -37,7 +37,8 @@ module.exports = {
       if (index > (GuildMusicPlayer.queue.length - 1)) throw { message: "ERR_OUT_OF_BOUNDS" };
       GuildMusicPlayer.play(index);
 
-      await interaction.editReply({ content: `▶ \`#${GuildMusicPlayer.currentIndex + 1}\` ${GuildMusicPlayer.current.title}` });
+      const sent = await interaction.editReply({ content: `▶ \`#${GuildMusicPlayer.currentIndex + 1}\` ${GuildMusicPlayer.current.title}` });
+      setTimeout(async () => await sent.delete(), 10_000);
     } catch (e) {
       const errCase = {
         ERR_USER_NOT_IN_VOICE      : "你必須在語音頻道內才能使用這個指令",
