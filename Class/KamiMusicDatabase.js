@@ -3,15 +3,15 @@ const { existsSync, writeFileSync, readFileSync, writeFile } = require("node:fs"
 class KamiMusicDatabase {
 
   /**
-	 * @param {string} path The path to the database file.
-	 * @param {import("discord.js").Client} client
-	 * @param {string} name The name of the database.
-	 */
+   * @param {string} path The path to the database file.
+   * @param {import("discord.js").Client} client
+   * @param {string} name The name of the database.
+   */
   constructor(path, client, name) {
 
     /**
-		 * @type {string}
-		 */
+     * @type {string}
+     */
     this.PATH = path;
 
     if (!existsSync(this.PATH))
@@ -28,8 +28,8 @@ class KamiMusicDatabase {
   }
 
   /**
-	 * Saves the database.
-	 */
+   * Saves the database.
+   */
   save() {
     return new Promise((resolve) => {
       writeFile(this.PATH, JSON.stringify(this.data), { encoding: "utf-8" }, () => {

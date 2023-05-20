@@ -10,7 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "@discordjs/opus": "^0.9.0",
-    "@discordjs/voice": "^0.14.0",
+    "@discordjs/voice": "^0.16.0",
     "bufferutil": "^4.0.7",
     "chalk": "^4.1.2",
     "discord.js": "^14.7.1",
@@ -24,9 +24,9 @@
     "pino-pretty": "^9.1.0",
     "simple-youtube-api": "^5.2.1",
     "sodium-native": "^4.0.1",
-    "utf-8-validate": "^6.0.1",
-    "ytdl-core": "^4.11.3",
-    "zlib-sync": "^0.1.7"
+    "utf-8-validate": "^6.0.3",
+    "ytdl-core": "^4.11.4",
+    "zlib-sync": "^0.1.8"
   },
   "devDependencies": {
     "eslint": "^8.32.0"

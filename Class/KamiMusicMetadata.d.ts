@@ -15,6 +15,14 @@ interface Duration {
     day    : number;
 }
 
+interface LyricMetadata {
+    name          : string;
+    url           : string;
+    titlePredict  : string;
+    artistPredict : string;
+    id            : string;
+}
+
 interface KamiMusicMetadataJSON {
     id: string;
     title: string;
@@ -26,6 +34,8 @@ interface KamiMusicMetadataJSON {
     platform: Platform;
     region: string[];
     full: boolean;
+    lyric?: string;
+    lyricMetadata?: LyricMetadata;
     raw: object;
 }
 
@@ -45,6 +55,8 @@ export declare class KamiMusicMetadata {
     error?: AudioPlayerError;
     region: string[];
     full: boolean;
+    lyric?: string;
+    lyricMetadata?: LyricMetadata;
     raw: object;
 
     get playable(): boolean;

@@ -14,152 +14,162 @@ const Platform = Object.freeze({
 class KamiMusicMetadata {
 
   /**
-	 *
-	 * @param {any} data
-	 * @param {import("discord.js").GuildMember} member
-	 */
+   *
+   * @param {any} data
+   * @param {import("discord.js").GuildMember} member
+   */
   constructor(data, member) {
     if (data instanceof Video) {
 
       /**
-			 * @type {string}
-			 */
+       * @type {string}
+       */
       this.id = data.id;
 
       /**
-			 * @type {string}
-			 */
+       * @type {string}
+       */
       this.title = data.title.replace(/&amp;/g, "&");
 
       /**
-			 * @type {string}
-			 */
+       * @type {string}
+       */
       this.artist = data.channel.title.replace(/&amp;/g, "&");
 
       /**
-			 * @type {number}
-			 */
+       * @type {number}
+       */
       this.duration = data.durationSeconds;
 
       /**
-			 * @type {string}
-			 */
+       * @type {string}
+       */
       this.thumbnail = data.thumbnails.high.url;
 
       /**
-			 * @type {string}
-			 */
+       * @type {string}
+       */
       this.url = data.url;
 
       /**
-			 * @type {string}
-			 */
+       * @type {string}
+       */
       this.shortURL = data.shortURL;
 
       /**
-			 * @type {string}
-			 */
+       * @type {string}
+       */
       this.origin = data.playlist?.title;
 
       /**
-			 * @type {Platform}
-			 */
+       * @type {Platform}
+       */
       this.platform = Platform.Youtube;
 
       /**
-			 * @type {import("discord.js").GuildMember}
-			 */
+       * @type {import("discord.js").GuildMember}
+       */
       this.member = member;
 
       /**
-			 * @type {import("@discordjs/voice").AudioPlayerError}
-			 */
+       * @type {import("@discordjs/voice").AudioPlayerError}
+       */
       this.error = null;
 
       /**
-			 * @type {String[]}
-			 */
+       * @type {String[]}
+       */
       this.region = data.raw?.contentDetails?.regionRestriction?.blocked ?? [];
 
       /**
-			 * @type {boolean}
-			 */
+       * @type {boolean}
+       */
       this.full = data.full;
 
       /**
-			 * @type {any}
-			 */
+       * @type {any}
+       */
       this.raw = data.raw;
     } else if (data instanceof Object) {
 
       /**
-			 * @type {string}
-			 */
+       * @type {string}
+       */
       this.id = data.id;
 
       /**
-			 * @type {string}
-			 */
+       * @type {string}
+       */
       this.title = data.title.replace(/&amp;/g, "&");
 
       /**
-			 * @type {string}
-			 */
+       * @type {string}
+       */
       this.artist = data.artist.replace(/&amp;/g, "&");
 
       /**
-			 * @type {number}
-			 */
+       * @type {number}
+       */
       this.duration = data.duration;
 
       /**
-			 * @type {string}
-			 */
+       * @type {string}
+       */
       this.thumbnail = data.thumbnail;
 
       /**
-			 * @type {string}
-			 */
+       * @type {string}
+       */
       this.url = data.url;
 
       /**
-			 * @type {string}
-			 */
+       * @type {string}
+       */
       this.shortURL = data.shortURL;
 
       /**
-			 * @type {string}
-			 */
+       * @type {string}
+       */
       this.origin = data.origin;
 
       /**
-			 * @type {Platform}
-			 */
+       * @type {Platform}
+       */
       this.platform = data.platform;
 
       /**
-			 * @type {import("discord.js").GuildMember}
-			 */
+       * @type {import("discord.js").GuildMember}
+       */
       this.member = member;
 
       /**
-			 * @type {import("@discordjs/voice").AudioPlayerError}
-			 */
+       * @type {import("@discordjs/voice").AudioPlayerError}
+       */
       this.error = null;
 
       /**
-			 * @type {String[]}
-			 */
+       * @type {String[]}
+       */
       this.region = data.region;
 
       /**
-			 * @type {boolean}
-			 */
+       * @type {boolean}
+       */
       this.full = data.full;
 
       /**
-			 * @type {any}
-			 */
+       * @type {?string}
+       */
+      this.lyric = data.lyric ?? null;
+
+      /**
+       * @type {?{ name: string, url: string, titlePredict: string, artistPredict: string, id: string }}
+       */
+      this.lyricMetadata = data.lyricMetadata ?? null;
+
+      /**
+       * @type {any}
+       */
       this.raw = data.raw;
     }
 
@@ -168,27 +178,26 @@ class KamiMusicMetadata {
     if (!existsSync(join(__dirname, "../.cache")))
       mkdirSync(join(__dirname, "../.cache"));
     writeFileSync(join(__dirname, "../.cache", `${this.id}.metadata`), JSON.stringify(this.toJSON()), { encoding: "utf-8", flag: "w" });
-
   }
 
   /**
-	 * @return {boolean}
-	 */
+   * @return {boolean}
+   */
   get playable() {
     return !this.region.includes("TW");
   }
 
   /**
-	 * @typedef Duration
-	 * @property {number} second
-	 * @property {number} minute
-	 * @property {number} hour
-	 * @property {number} day
-	 */
+   * @typedef Duration
+   * @property {number} second
+   * @property {number} minute
+   * @property {number} hour
+   * @property {number} day
+   */
 
   /**
-	 * @return {Duration}
-	 */
+   * @return {Duration}
+   */
   get durationObject() {
     return {
       second : this.duration % 60,
@@ -199,8 +208,8 @@ class KamiMusicMetadata {
   }
 
   /**
-	 * @return {string}
-	 */
+   * @return {string}
+   */
   get formattedDuration() {
     const times = [this.durationObject.day, this.durationObject.hour, this.durationObject.minute, this.durationObject.second];
     return times.reduce((a, v, i) => (v == 0 && i < 2 && a.length == 0) ? a : (v < 10) ? a.push(`0${v}`) && (a) : a.push(String(v)) && (a), []).join(":");
@@ -208,18 +217,21 @@ class KamiMusicMetadata {
 
   toJSON() {
     return {
-      id        : this.id,
-      title     : this.title,
-      artist    : this.artist,
-      duration  : this.duration,
-      thumbnail : this.thumbnail,
-      url       : this.url,
-      shortURL  : this.shortURL,
-      platform  : this.platform,
-      region    : this.region,
-      full      : this.full,
-      raw       : this.raw,
+      id            : this.id,
+      title         : this.title,
+      artist        : this.artist,
+      duration      : this.duration,
+      thumbnail     : this.thumbnail,
+      url           : this.url,
+      shortURL      : this.shortURL,
+      platform      : this.platform,
+      region        : this.region,
+      full          : this.full,
+      raw           : this.raw,
+      lyric         : this.lyric,
+      lyricMetadata : this.lyricMetadata,
     };
   }
 }
+
 module.exports = { KamiMusicMetadata, Platform };

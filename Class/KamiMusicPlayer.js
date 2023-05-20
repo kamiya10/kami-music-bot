@@ -1,11 +1,12 @@
 const { createAudioPlayer, createAudioResource, entersState, joinVoiceChannel, AudioPlayerStatus, NoSubscriberBehavior, VoiceConnectionStatus } = require("@discordjs/voice");
-const { existsSync, mkdirSync, writeFileSync, createReadStream } = require("node:fs");
-const { EmbedBuilder } = require("discord.js");
+const { existsSync, mkdirSync, writeFileSync, createReadStream, readFileSync } = require("node:fs");
+const { EmbedBuilder, codeBlock, Colors } = require("discord.js");
 const { KamiMusicMetadata } = require("./KamiMusicMetadata");
 const { Platform } = require("./KamiMusicMetadata");
 const { join } = require("node:path");
 const chalk = require("chalk");
 const ytdl = require("ytdl-core");
+const KamiMusicLyric = require("./KamiMusicLyric");
 
 const connectionLogger = require("../Core/logger").child({ scope: "Connection" });
 const playerLogger = require("../Core/logger").child({ scope: "Player" });
@@ -28,46 +29,46 @@ const RepeatMode = Object.freeze({
 class KamiMusicPlayer {
 
   /**
-	 * @param {import("discord.js").TextChannel} voiceChannel
-	 * @param {import("discord.js").GuildMember} member
-	 */
+   * @param {import("discord.js").TextChannel} voiceChannel
+   * @param {import("discord.js").GuildMember} member
+   */
   constructor(voiceChannel, member, textChannel) {
 
     /**
-		 * @type {import("discord.js").Client}
-		 */
+     * @type {import("discord.js").Client}
+     */
     this.client = voiceChannel.client;
 
     /**
-		 * @type {import("discord.js").TextChannel}
-		 */
+     * @type {import("discord.js").TextChannel}
+     */
     this.voiceChannel = voiceChannel;
 
     /**
-		 * @type {import("discord.js").TextChannel}
-		 */
+     * @type {import("discord.js").TextChannel}
+     */
     this.textChannel = textChannel;
 
     /**
-		 * @type {import("discord.js").Guild}
-		 */
+     * @type {import("discord.js").Guild}
+     */
     this.guild = voiceChannel.guild;
 
     /**
-		 * @type {import("discord.js").GuildMember}
-		 */
+     * @type {import("discord.js").GuildMember}
+     */
     this.owner = member;
 
     const preference = this.client.setting.user.data[this.owner.id];
 
     /**
-		 * @type {boolean}
-		 */
+     * @type {boolean}
+     */
     this.locked = preference?.global?.locked ?? preference?.[this.guild.id]?.locked ?? false;
 
     /**
-		 * @type {import("@discordjs/voice").VoiceConnection}
-		 */
+     * @type {import("@discordjs/voice").VoiceConnection}
+     */
     this.connection = joinVoiceChannel({
       channelId      : voiceChannel.id,
       guildId        : voiceChannel.guild.id,
@@ -75,8 +76,8 @@ class KamiMusicPlayer {
     });
 
     /**
-		 * @type {import("@discordjs/voice").AudioPlayer}
-		 */
+     * @type {import("@discordjs/voice").AudioPlayer}
+     */
     this.player = createAudioPlayer({
       behaviors: {
         noSubscriber: NoSubscriberBehavior.Pause,
@@ -84,39 +85,46 @@ class KamiMusicPlayer {
     });
 
     /**
-		 * @type {import("@discordjs/voice").PlayerSubscription}
-		 */
+     * @type {import("@discordjs/voice").PlayerSubscription}
+     */
     this.subscription = this.connection.subscribe(this.player);
 
     /**
-		 * @type {KamiMusicMetadata[]}
-		 */
+     * @type {KamiMusicMetadata[]}
+     */
     this.queue = [];
 
     /**
-		 * @type {number}
-		 */
+     * @type {number}
+     */
     this.currentIndex = 0;
 
     /**
-		 * @type {RepeatMode}
-		 */
+     * @type {RepeatMode}
+     */
     this.repeat = preference?.global?.repeat ?? preference?.[this.guild.id]?.repeat ?? RepeatMode.NoRepeat;
 
     /**
-		 * @type {boolean}
-		 */
+     * @type {boolean}
+     */
     this.stopped = false;
 
     /**
-		 * @type {number}
-		 */
+     * @type {number}
+     */
     this.volume = preference?.global?.volume ?? preference?.[this.guild.id]?.volume ?? 1;
 
     /**
-		 * @type {?import("discord.js").Message}
-		 */
+     * @type {?import("discord.js").Message}
+     */
     this.npmsg = null;
+
+    this.lyricstimer = null;
+
+    /**
+     * @type {?import("discord.js").Message}
+     */
+    this.lyricsmsg = null;
 
     this.connection.on(VoiceConnectionStatus.Disconnected, async () => {
       try {
@@ -133,9 +141,32 @@ class KamiMusicPlayer {
     });
     this.player.on(AudioPlayerStatus.Playing, () => {
       this.current.error = undefined;
+
+      connectionLogger.info("playing");
+
+      if (this._resource.metadata.lyric)
+        if (!this.lyricstimer)
+          this.lyricstimer = setInterval(() => {
+            if (this.playbackTime)
+              try {
+                const index = this._resource.metadata.lyrics.getIndex(this.playbackTime);
+
+                if (this._currentLyricIndex != index) {
+                  this._currentLyricIndex = index;
+
+                  if (this._currentLyricIndex >= 0)
+                    this.updateNowplayingMessage();
+                }
+              } catch (error) {
+                // ignoring all errors here because it will be spammy in the console
+              }
+          }, 10);
     });
     this.player.on(AudioPlayerStatus.Idle, (oldState) => {
       this._resource = null;
+
+      connectionLogger.info("idle");
+      this.stopLyrics();
 
       if (oldState.status == AudioPlayerStatus.Playing) {
         if (!this.paused && !this.stopped)
@@ -204,9 +235,9 @@ class KamiMusicPlayer {
         this.current.error = error;
         this.play();
       } else if (this.repeat == RepeatMode.NoRepeat && this.currentIndex < (this.queue.length - 1)
-				|| this.repeat == RepeatMode.RepeatQueue
-				|| this.repeat == RepeatMode.Backward && this.currentIndex > 0
-				|| this.repeat == RepeatMode.BackwardRepeatQueue) {
+        || this.repeat == RepeatMode.RepeatQueue
+        || this.repeat == RepeatMode.Backward && this.currentIndex > 0
+        || this.repeat == RepeatMode.BackwardRepeatQueue) {
         this.next();
       } else if (this.repeat == RepeatMode.Random) {
         this.currentIndex = Math.floor(Math.random() * this.queue.length);
@@ -234,22 +265,22 @@ class KamiMusicPlayer {
   }
 
   /**
-     * @return {boolean}
-     */
+   * @return {boolean}
+   */
   get locked() {
     return this._locked;
   }
 
   /**
-     * @return {KamiMusicMetadata}
-     */
+   * @return {KamiMusicMetadata}
+   */
   get current() {
     return this.queue[this.currentIndex];
   }
 
   /**
-     * @param {number} value
-     */
+   * @param {number} value
+   */
   set currentIndex(value) {
     if (value < 0)
       value = this.queue.length - 1;
@@ -260,29 +291,33 @@ class KamiMusicPlayer {
   }
 
   /**
-     * @return {number}
-     */
+   * @return {number}
+   */
   get currentIndex() {
     return this._currentIndex;
   }
 
   /**
-     * @return {number}
-     */
+   * @return {number}
+   */
   get nextIndex() {
     switch (this.repeat) {
       case RepeatMode.NoRepeat:
         if (this.currentIndex < (this.queue.length - 1))
           return this.currentIndex + 1;
-        break;      case RepeatMode.RepeatQueue:
+        break;
+      case RepeatMode.RepeatQueue:
         if (this.currentIndex < (this.queue.length - 1))
           return this.currentIndex + 1;
         else
-          return 0;      case RepeatMode.RepeatCurrent:
-        return this.currentIndex;      case RepeatMode.Backward:
+          return 0;
+      case RepeatMode.RepeatCurrent:
+        return this.currentIndex;
+      case RepeatMode.Backward:
         if (this.currentIndex > 0)
           return this.currentIndex - 1;
-        break;      case RepeatMode.BackwardRepeatQueue:
+        break;
+      case RepeatMode.BackwardRepeatQueue:
         if (this.currentIndex > 0)
           return this.currentIndex - 1;
         else
@@ -295,15 +330,15 @@ class KamiMusicPlayer {
   }
 
   /**
-     * @return {boolean}
-     */
+   * @return {boolean}
+   */
   get paused() {
     return this.player.state.status == AudioPlayerStatus.AutoPaused || this.player.state.status == AudioPlayerStatus.Paused;
   }
 
   /**
-     * @param {number} value
-     */
+   * @param {number} value
+   */
   set volume(value) {
     this._volume = value;
 
@@ -312,15 +347,15 @@ class KamiMusicPlayer {
   }
 
   /**
-     * @return {number}
-     */
+   * @return {number}
+   */
   get volume() {
     return this._volume;
   }
 
   /**
-     * @param {number} value
-     */
+   * @param {number} value
+   */
   set repeat(value) {
     switch (value) {
       case RepeatMode.RepeatQueue:
@@ -341,30 +376,30 @@ class KamiMusicPlayer {
   }
 
   /**
-     * @return {number}
-     */
+   * @return {number}
+   */
   get repeat() {
     return this._repeat;
   }
 
   /**
-	 * @return {number}
-	 */
+   * @return {number}
+   */
   get playbackTime() {
     return this._resource?.playbackDuration ?? null;
   }
 
   /**
-	 * @typedef Duration
-	 * @property {number} second
-	 * @property {number} minute
-	 * @property {number} hour
-	 * @property {number} day
-	 */
+   * @typedef Duration
+   * @property {number} second
+   * @property {number} minute
+   * @property {number} hour
+   * @property {number} day
+   */
 
   /**
-	 * @return {Duration}
-	 */
+   * @return {Duration}
+   */
   get playbackTimeObject() {
     return this.playbackTime ? {
       second : ~~(this.playbackTime / 1000) % 60,
@@ -375,8 +410,8 @@ class KamiMusicPlayer {
   }
 
   /**
-	 * @return {number}
-	 */
+   * @return {number}
+   */
   get formattedPlaybackTime() {
     if (this.playbackTimeObject) {
       const times = [];
@@ -388,11 +423,11 @@ class KamiMusicPlayer {
   }
 
   /**
-	 * Add resources to the queue.
-	 * @param {KamiMusicMetadata | KamiMusicMetadata[]} resource The resources to add.
-	 * @param {?number} index The index resources should append after.
-	 * @return {Promise<number>} The index the resource is at in the queue.
-	 */
+   * Add resources to the queue.
+   * @param {KamiMusicMetadata | KamiMusicMetadata[]} resource The resources to add.
+   * @param {?number} index The index resources should append after.
+   * @return {Promise<number>} The index the resource is at in the queue.
+   */
   async addResource(resource, index = this.queue.length) {
     if (Array.isArray(resource))
       this.queue.splice(index, 0, ...resource);
@@ -428,10 +463,10 @@ class KamiMusicPlayer {
   }
 
   /**
-	 * Remove a resource from the queue by index.
-	 * @param {number} index The index of the resource to be removed.
-	 * @return {?KamiMusicMetadata} The removed resource.
-	 */
+   * Remove a resource from the queue by index.
+   * @param {number} index The index of the resource to be removed.
+   * @return {?KamiMusicMetadata} The removed resource.
+   */
   removeIndex(index) {
     const resource = this.queue[index];
 
@@ -456,10 +491,10 @@ class KamiMusicPlayer {
   }
 
   /**
-	 * Remove a resource from the queue.
-	 * @param {KamiMusicMetadata} resource The resource to be removed.
-	 * @return {?number} The removed resource index.
-	 */
+   * Remove a resource from the queue.
+   * @param {KamiMusicMetadata} resource The resource to be removed.
+   * @return {?number} The removed resource index.
+   */
   removeResource(resource) {
     const index = this.queue.indexOf(resource);
 
@@ -484,9 +519,9 @@ class KamiMusicPlayer {
   }
 
   /**
-	 * Clears the queue.
-	 * @returns {KamiMusicMetadata[]} Deleted entries.
-	 */
+   * Clears the queue.
+   * @returns {KamiMusicMetadata[]} Deleted entries.
+   */
   clear() {
     const deleted = [...this.queue];
     this.queue = [];
@@ -495,10 +530,12 @@ class KamiMusicPlayer {
   }
 
   /**
-	 * Play resources.
-	 * @param {number} [index=this.currentIndex] The index of the resource to be played by the player.
-	 */
+   * Play resources.
+   * @param {number} [index=this.currentIndex] The index of the resource to be played by the player.
+   */
   async play(index = this.currentIndex) {
+    this.currentIndex = index;
+
     await this.buffer(index);
     const resource = this.queue[index];
 
@@ -517,15 +554,15 @@ class KamiMusicPlayer {
               let agent;
 
               /* Proxy
-							if (resource.region.length)
-							if (resource.region.includes("TW")) {
-								console.log("Using proxy: JP");
-								const Agent = require("https-proxy-agent");
-								const proxy = "http://139.162.78.109:3128";
-								// const proxy = "http://140.227.59.167:3180";
-								agent = new Agent(proxy);
-							}
-							*/
+              if (resource.region.length)
+              if (resource.region.includes("TW")) {
+                console.log("Using proxy: JP");
+                const Agent = require("https-proxy-agent");
+                const proxy = "http://139.162.78.109:3128";
+                // const proxy = "http://140.227.59.167:3180";
+                agent = new Agent(proxy);
+              }
+              */
 
               stream = ytdl(resource.url,
                 {
@@ -544,26 +581,24 @@ class KamiMusicPlayer {
           }
 
         if (stream) {
-          this.currentIndex = index;
 
           /*
-					const transcoderArgs = [
-						"-analyzeduration", "0",
-						"-loglevel", "0",
-						"-f", "s16le",
-						"-ar", "48000",
-						"-ac", "2",
-						"-af", `bass=g=${this.audiofilter.bass}`,
-					];
-					const transcoder = new FFmpeg({ args: transcoderArgs });
-					*/
+          const transcoderArgs = [
+            "-analyzeduration", "0",
+            "-loglevel", "0",
+            "-f", "s16le",
+            "-ar", "48000",
+            "-ac", "2",
+            "-af", `bass=g=${this.audiofilter.bass}`,
+          ];
+          const transcoder = new FFmpeg({ args: transcoderArgs });
+          */
           const ar = createAudioResource(stream, {
             inlineVolume : true,
             metadata     : resource,
           });
           this._resource = ar;
           this.volume = this._volume;
-          this.updateNowplayingMessage();
           playerLogger.info(`▶ playing: ${resource.title} ${chalk.gray(this.guild.name)}`);
           this.player.play(ar);
 
@@ -577,10 +612,10 @@ class KamiMusicPlayer {
   }
 
   /**
-	 * Pre-buffer a resource.
-	 * @param {number} index The index of the resource to be buffered.
-	 * @param {?boolean} force Whether or not the cache checking should be skipped.
-	 */
+   * Pre-buffer a resource.
+   * @param {number} index The index of the resource to be buffered.
+   * @param {?boolean} force Whether or not the cache checking should be skipped.
+   */
   buffer(index, force = false, _retried = 0) {
     return new Promise((resolve, reject) => {
       if (!existsSync(join(__dirname, "../.cache")))
@@ -589,7 +624,7 @@ class KamiMusicPlayer {
       const resource = this.queue[index];
 
       if (resource)
-        if (resource.durationObject.minute < 6)
+        if (resource.durationObject.minute < 6) {
           if (!existsSync(join(__dirname, "../.cache", resource.id)) || force) {
             if (!resource.cache || force)
               if (resource.playable) {
@@ -600,15 +635,16 @@ class KamiMusicPlayer {
                     let agent;
 
                     /* Proxy
-										if (resource.region.length)
-										if (resource.region.includes("TW")) {
-											console.log("Using proxy: JP");
-											const Agent = require("https-proxy-agent");
-											const proxy = "http://139.162.78.109:3128";
-											// const proxy = "http://140.227.59.167:3180";
-											agent = new Agent(proxy);
-										}
-										*/
+                    if (resource.region.length)
+                    if (resource.region.includes("TW")) {
+                      console.log("Using proxy: JP");
+                      const Agent = require("https-proxy-agent");
+                      const proxy = "http://139.162.78.109:3128";
+                      // const proxy = "http://140.227.59.167:3180";
+                      agent = new Agent(proxy);
+                    }
+                    */
+
                     stream = ytdl(resource.url,
                       {
                         filter         : (format) => format.contentLength,
@@ -653,7 +689,7 @@ class KamiMusicPlayer {
                       const duration = (await ytdl.getBasicInfo(resource.url)).videoDetails.lengthSeconds;
                       resource.duration = +duration;
                       this.client.apiCache.set(resource.id, resource.toJSON());
-                      writeFileSync(join(__dirname, "../.cache", `${this.id}.metadata`), JSON.stringify(resource.toJSON()), { encoding: "utf-8", flag: "w" });
+                      writeFileSync(join(__dirname, "../.cache", `${resource.id}.metadata`), JSON.stringify(resource.toJSON()), { encoding: "utf-8", flag: "w" });
                     }
 
                     playerLogger.info(`✅ buffer: ${resource.title} ${chalk.gray(this.guild.name)}`);
@@ -667,17 +703,48 @@ class KamiMusicPlayer {
               }
           } else {
             resource.cache = join(__dirname, "../.cache/", resource.id);
+          }
+
+          // lyrics
+
+          if (resource.lyrics instanceof KamiMusicLyric) resolve();
+
+          if (resource.lyric == null) {
+            KamiMusicLyric.searchLyrics(resource.title).then(results => {
+              if (results.length) {
+                resource.lyric = results[0].id;
+                resource.lyricMetadata = results[0];
+                KamiMusicLyric.fetchLyric(resource.lyric).then(data => {
+                  resource.lyrics = new KamiMusicLyric(data);
+                  writeFileSync(join(__dirname, "../.cache/", `${resource.id}.lyric`), JSON.stringify(data), { flag: "w" });
+                  writeFileSync(join(__dirname, "../.cache", `${resource.id}.metadata`), JSON.stringify(resource.toJSON()), { encoding: "utf-8", flag: "w" });
+                  resolve();
+                });
+              } else {
+                resolve();
+              }
+            });
+          } else if (!existsSync(join(__dirname, "../.cache/", `${resource.id}.lyric`))) {
+            KamiMusicLyric.fetchLyric(resource.lyric).then(data => {
+              console.log("🚀 ~ file: KamiMusicPlayer.js:731 ~ KamiMusicPlayer ~ KamiMusicLyric.fetchLyric ~ data:");
+              resource.lyrics = new KamiMusicLyric(data);
+              writeFileSync(join(__dirname, "../.cache/", `${resource.id}.lyric`), JSON.stringify(data), { flag: "w" });
+              resolve();
+            });
+          } else {
+            resource.lyrics = new KamiMusicLyric(JSON.parse(readFileSync(join(__dirname, "../.cache/", `${resource.id}.lyric`), { encoding: "utf-8" })));
             resolve();
           }
-        else
+        } else {
           resolve();
+        }
     });
   }
 
   /**
-	 * Play the next resource.
-	 * @returns {KamiMusicMetadata} The resource to be played.
-	 */
+   * Play the next resource.
+   * @returns {KamiMusicMetadata} The resource to be played.
+   */
   next() {
     if (this.repeat == RepeatMode.RandomNoRepeat) {
       if (this._randomQueue.length == 0)
@@ -697,9 +764,9 @@ class KamiMusicPlayer {
   }
 
   /**
-	 * Play the previous resource.
-	 * @returns {KamiMusicMetadata} The resource to be played.
-	 */
+   * Play the previous resource.
+   * @returns {KamiMusicMetadata} The resource to be played.
+   */
   prev() {
     if (this.repeat == RepeatMode.Backward || this.repeat == RepeatMode.BackwardRepeatQueue)
       this.currentIndex += 1;
@@ -711,23 +778,23 @@ class KamiMusicPlayer {
   }
 
   /**
-	 * Pause the player.
-	 */
+   * Pause the player.
+   */
   pause() {
     this.player.pause();
   }
 
   /**
-	 * Resume the player.
-	 */
+   * Resume the player.
+   */
   resume() {
     this.player.unpause();
   }
 
   /**
-	 * Stops the player and transitions to the next resource, if any.
-	 * @param {boolean} force If `true`, the player won't transition into the next resource.
-	 */
+   * Stops the player and transitions to the next resource, if any.
+   * @param {boolean} force If `true`, the player won't transition into the next resource.
+   */
   stop(force = false) {
     if (force)
       this.stopped = true;
@@ -736,8 +803,8 @@ class KamiMusicPlayer {
   }
 
   /**
-	 * Destroys the player.
-	 */
+   * Destroys the player.
+   */
   async destroy() {
     if (this.npmsg.deletable)
       await this.npmsg.delete().catch(() => void 0);
@@ -746,9 +813,9 @@ class KamiMusicPlayer {
   }
 
   /**
-	 * Connects the player.
-	 * @param {import("discord.js").VoiceChannel} channel
-	 */
+   * Connects the player.
+   * @param {import("discord.js").VoiceChannel} channel
+   */
   connect(channel) {
     this.connection = joinVoiceChannel({
       channelId      : channel.id,
@@ -759,28 +826,36 @@ class KamiMusicPlayer {
   }
 
   /**
-	 * Reconnects the player.
-	 */
+   * Reconnects the player.
+   */
   reconnect() {
     this.connection.rejoin();
   }
 
   /**
-	 * Updates the nowplaying message
-	 * @param {boolean} [finished=false] Whether to sent a finished message
-	 */
+   * Updates the nowplaying message
+   * @param {boolean} [finished=false] Whether to sent a finished message
+   */
   async updateNowplayingMessage(finished = false) {
     try {
       if (this.npmsg)
-        this.npmsg = await this.npmsg.edit(npTemplate(this, finished)).catch(async (err) => {
-          console.error(err);
-          this.npmsg = await this.textChannel.send(npTemplate(this, finished));
+        this.npmsg = await this.npmsg.edit(npTemplate(this, finished, !finished ? this._resource.metadata?.lyrics?.getLine(this.playbackTime) ?? null : null)).catch(async (err) => {
+          if (err.code != 10008) console.error(err);
+          this.npmsg = await this.textChannel.send(npTemplate(this, finished, !finished ? this._resource.metadata?.lyrics?.getLine(this.playbackTime) ?? null : null));
         });
       else
-        this.npmsg = await this.textChannel.send(npTemplate(this, finished));
+        this.npmsg = await this.textChannel.send(npTemplate(this, finished, !finished ? this._resource.metadata?.lyrics?.getLine(this.playbackTime) ?? null : null));
     } catch (err) {
       playerLogger.error(`Unable to update nowplaying message in #${this.textChannel.name}`);
       playerLogger.error(err);
+    }
+  }
+
+  stopLyrics() {
+    if (this.lyricstimer) {
+      clearInterval(this.lyricstimer);
+      delete this.lyricstimer;
+      delete this._currentLyricIndex;
     }
   }
 }
@@ -789,9 +864,9 @@ class KamiMusicPlayer {
  * @param {KamiMusicPlayer} player
  * @returns
  */
-const npTemplate = (player, finished) => {
+const npTemplate = (player, finished, lyrics) => {
   const current = player.current;
-  const embed = !finished ? new EmbedBuilder()
+  const embeds = [!finished ? new EmbedBuilder()
     .setColor(player.client.Color.Info)
     .setAuthor({ name: `正在播放 | ${player.guild.name}`, iconURL: player.guild.iconURL() })
     .setThumbnail(current.thumbnail)
@@ -799,7 +874,7 @@ const npTemplate = (player, finished) => {
     .setURL(current.shortURL)
     .setFields([
       { name: "#️⃣ 編號", value: `${player.currentIndex + 1}`, inline: true },
-      { name: "⏲ 長度", value: current.formattedDuration, inline: true },
+      { name: "⏲️ 長度", value: current.formattedDuration, inline: true },
     ])
     .setFooter({ text: current.member.displayName, iconURL: current.member.displayAvatarURL() })
     .setTimestamp()
@@ -807,9 +882,21 @@ const npTemplate = (player, finished) => {
       .setColor(player.client.Color.Info)
       .setAuthor({ name: `正在播放 | ${player.guild.name}`, iconURL: player.guild.iconURL() })
       .setDescription("目前沒有在播放任何東西，使用 `/add` 來添加項目")
-      .setTimestamp();
+      .setTimestamp()];
 
-  return { content: `🎶 正在 ${player.voiceChannel} 播放`, embeds: [embed] };
+  if (lyrics) {
+    const ly_prev = codeBlock("md", `${lyrics.prev?.ruby ? `| ${lyrics.prev.ruby}\n` : ""}| ${lyrics.prev?.value ?? ""}${lyrics.prev?.tw ? `\n> ${lyrics.prev.tw}` : ""}`);
+    const ly_current = codeBlock("md", `${lyrics.current?.ruby ? `# ${lyrics.current.ruby}\n` : ""}# ${lyrics.current?.value ?? " *start*"}${lyrics.current?.tw ? `\n> ${lyrics.current.tw}` : ""}`);
+    const ly_next = codeBlock("md", `${lyrics.next?.ruby ? `| ${lyrics.next?.ruby}\n` : ""}| ${lyrics.next?.value ?? " *end*"}${lyrics.next?.tw ? `\n> ${lyrics.next.tw}` : ""}`);
+    embeds.push(new EmbedBuilder()
+      .setColor(Colors.DarkGrey)
+      .setAuthor({ name: `歌詞${current?.lyricMetadata ? `：${current.lyricMetadata.artistPredict} - ${current.lyricMetadata.titlePredict}` : ""}` })
+      .setDescription(
+        `${ly_prev}${ly_current}${ly_next}`,
+      ));
+  }
+
+  return { content: `🎶 正在 ${player.voiceChannel} 播放`, embeds };
 };
 
 module.exports = { KamiMusicPlayer, RepeatMode };
