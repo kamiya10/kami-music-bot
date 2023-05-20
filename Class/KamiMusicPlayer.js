@@ -670,6 +670,7 @@ class KamiMusicPlayer {
                       clearTimeout(retryTimeout);
                     _buf.push(data);
                   });
+
                   stream.on("error", async (err) => {
                     if (err.message.startsWith("Status code: 4")) {
                       if (err.message.includes("410"))
@@ -683,6 +684,7 @@ class KamiMusicPlayer {
                       resolve();
                     }
                   });
+
                   stream.on("finish", async () => {
                     // check duration
                     if (this.current.duration < 0) {
@@ -726,7 +728,6 @@ class KamiMusicPlayer {
             });
           } else if (!existsSync(join(__dirname, "../.cache/", `${resource.id}.lyric`))) {
             KamiMusicLyric.fetchLyric(resource.lyric).then(data => {
-              console.log("🚀 ~ file: KamiMusicPlayer.js:731 ~ KamiMusicPlayer ~ KamiMusicLyric.fetchLyric ~ data:");
               resource.lyrics = new KamiMusicLyric(data);
               writeFileSync(join(__dirname, "../.cache/", `${resource.id}.lyric`), JSON.stringify(data), { flag: "w" });
               resolve();
