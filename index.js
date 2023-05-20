@@ -4,7 +4,7 @@ const { join } = require("node:path");
 const chalk = require("chalk");
 const KamiMusicDatabase = require("./Class/KamiMusicDatabase");
 const readline = require("node:readline");
-const logger = require("./Core/logger").child("Process");
+const logger = require("./Core/logger").child({ scope: "Process" });
 
 new KamiMusicDatabase(join(__dirname, "Database", "guild.json"), Kami, "guild");
 new KamiMusicDatabase(join(__dirname, "Database", "user.json"), Kami, "user");
