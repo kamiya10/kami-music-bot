@@ -184,7 +184,7 @@ module.exports = {
       collector.on("end", async (c, reason) => {
         if (reason == "idle") {
           await sent.edit({ embeds: [queue.setFooter({ text: "互動已逾時" })] });
-          setTimeout(async () => await sent.delete(), 10_000);
+          setTimeout(() => sent.delete().catch(() => void 0), 10_000);
         }
       });
     } catch (e) {

@@ -28,7 +28,7 @@ module.exports = {
       const resource = GuildMusicPlayer.prev();
 
       const sent = await interaction.editReply({ content: `⏮ \`#${GuildMusicPlayer.currentIndex + 1}\` ${resource.title}` });
-      setTimeout(async () => await sent.delete(), 10_000);
+      setTimeout(() => sent.delete().catch(() => void 0), 10_000);
     } catch (e) {
       const errCase = {
         ERR_USER_NOT_IN_VOICE      : "你必須在語音頻道內才能使用這個指令",
