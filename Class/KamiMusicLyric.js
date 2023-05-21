@@ -22,6 +22,26 @@ class KamiMusicLyric {
         current : this.lyrics[index],
         next    : this.lyrics[index + 1],
       };
+    else if ((i - 0.5) == (this.lyrics.length - 1))
+      return {
+        prev    : this.lyrics[index],
+        current : {
+          ruby  : "",
+          value : "*end*",
+          tw    : "",
+        },
+        next: null,
+      };
+    else if (index == (this.lyrics.length - 1))
+      return {
+        prev    : this.lyrics[index - 1],
+        current : this.lyrics[index],
+        next    : {
+          ruby  : "",
+          value : "*end*",
+          tw    : "",
+        },
+      };
 
     return {
       prev    : time >= this.lyrics[index].end ? this.lyrics[index] : this.lyrics[index - 1],
@@ -98,7 +118,7 @@ class KamiMusicLyric {
         ruby[i] = ruby[i].split("#");
         for (const rubyI in ruby[i])
           if (!rubyReplaceStr.includes(ruby[i][rubyI]))
-            ruby[i][rubyI] = ruby[i][rubyI].replace(/[ぁ-んァ-ン，。、？！：；【】「」『』（）〈〉《》]/g, "　").replace(/[a-zA-Z0-9<>,."':;!?~()[\]-]/g, " ");
+            ruby[i][rubyI] = ruby[i][rubyI].replace(/[ぁ-んァ-ン，。、？！：；【】「」『』（）〈〉《》～・]/g, "　").replace(/(?<=\s)ー/g, "　").replace(/[a-zA-Z0-9<>,."':;!?~()[\]…-]/g, " ");
       } else {
         ruby[i] = [""];
       }
@@ -125,7 +145,7 @@ class KamiMusicLyric {
         return predef_results;
       }
 
-      const term = kw.replace(/(cover(?:ed)?(?:\sby)?.+)|((?:official)?(?:\s?music)?(?:\s?video)?)|([「『【｛（［({<].*[」』】｝）］)}>])/gi, "");
+      const term = kw.replace(/(cover(?:ed)?(?:\sby)?.+)|(official(?:\s?music)?(?:\s?video)?)|(music(?:\s?video)?)|([「『【｛（［({<].*[」』】｝）］)}>])|(-)/gi, "");
 
       const res = await fetch(`https://cse.google.com/cse/element/v1?num=10&hl=zh-TW&cselibv=8e77c7877b8339e2&cx=006433377945535362806:1gjgvl5smaa&q=${encodeURIComponent(term)}%22%E5%94%B1%E6%AD%8C%E5%AD%B8%E6%97%A5%E8%AA%9E-%E6%97%A5%E8%AA%9E%E6%95%99%E5%AE%A4-MARUMARU%22&safe=off&cse_tok=AFW0emyyYPxeptWyXEcsGKP0L8iu:1684549357942&callback=handle`, {
         headers: {

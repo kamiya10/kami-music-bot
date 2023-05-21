@@ -1,6 +1,6 @@
 const { createAudioPlayer, createAudioResource, entersState, joinVoiceChannel, AudioPlayerStatus, NoSubscriberBehavior, VoiceConnectionStatus } = require("@discordjs/voice");
 const { existsSync, mkdirSync, writeFileSync, createReadStream, readFileSync } = require("node:fs");
-const { EmbedBuilder, codeBlock, Colors } = require("discord.js");
+const { EmbedBuilder, codeBlock, Colors, ActionRow, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType } = require("discord.js");
 const { KamiMusicMetadata } = require("./KamiMusicMetadata");
 const { Platform } = require("./KamiMusicMetadata");
 const { join } = require("node:path");
@@ -110,7 +110,7 @@ class KamiMusicPlayer {
     this.stopped = false;
 
     /**
-     * @type {number}
+     * @type {number} Volume in percentage
      */
     this.volume = preference?.global?.volume ?? preference?.[this.guild.id]?.volume ?? 1;
 
@@ -119,12 +119,15 @@ class KamiMusicPlayer {
      */
     this.npmsg = null;
 
-    this.lyricstimer = null;
+    /**
+     * @type {number} Lyrics offset in ms
+     */
+    this.lyricsOffset = 0;
 
     /**
-     * @type {?import("discord.js").Message}
+     * @type {?NodeJS.Timer}
      */
-    this.lyricsmsg = null;
+    this._lyricstimer = null;
 
     this.connection.on(VoiceConnectionStatus.Disconnected, async () => {
       try {
@@ -145,11 +148,13 @@ class KamiMusicPlayer {
       connectionLogger.info("playing");
 
       if (this._resource.metadata.lyric)
-        if (!this.lyricstimer)
-          this.lyricstimer = setInterval(() => {
+        if (!this._lyricstimer)
+          this._lyricstimer = setInterval(() => {
             if (this.playbackTime)
               try {
-                const index = this._resource.metadata.lyrics.getIndex(this.playbackTime);
+                const offsetTime = this.playbackTime - this.lyricsOffset;
+
+                const index = this._resource.metadata.lyrics.getIndex(offsetTime);
 
                 if (this._currentLyricIndex != index) {
                   this._currentLyricIndex = index;
@@ -173,9 +178,13 @@ class KamiMusicPlayer {
           if (this.queue.length > 0)
             switch (this.repeat) {
               case RepeatMode.NoRepeat: {
-                if (this.currentIndex < (this.queue.length - 1))
+                if (this.currentIndex < (this.queue.length - 1)) {
                   this.next();
-                else this.updateNowplayingMessage(true);
+                } else {
+                  this._isFinished = true;
+                  this.updateNowplayingMessage(true);
+                }
+
                 break;
               }
 
@@ -208,9 +217,12 @@ class KamiMusicPlayer {
               }
 
               case RepeatMode.Backward: {
-                if (this.currentIndex > 0)
+                if (this.currentIndex > 0) {
                   this.next();
-                else this.updateNowplayingMessage(true);
+                } else {
+                  this._isFinished = true;
+                  this.updateNowplayingMessage(true);
+                }
 
                 break;
               }
@@ -291,7 +303,7 @@ class KamiMusicPlayer {
   }
 
   /**
-   * @return {number}
+   * @return {number} starts from 0
    */
   get currentIndex() {
     return this._currentIndex;
@@ -445,8 +457,12 @@ class KamiMusicPlayer {
         this.currentIndex += 1;
 
       if (this.queue[this.nextIndex])
-        if (!this.queue[this.nextIndex].cache)
+        if (!this.queue[this.nextIndex].cache) {
+
+          playerLogger.debug(`Buffer called ${(new Error()).stack.split("\n")[1].trimStart().replace("C:\\Users\\Kamiya\\Documents\\GitHub\\Kamiya\\kami-music-bot\\Class\\", "")}`);
           await this.buffer(this.nextIndex);
+          this._isBuffering = false;
+        }
     }
 
     if (this.player.state.status == AudioPlayerStatus.Idle) {
@@ -464,25 +480,25 @@ class KamiMusicPlayer {
 
   /**
    * Remove a resource from the queue by index.
-   * @param {number} index The index of the resource to be removed.
+   * @param {number} index The index of the resource to be removed. (starts from 0)
    * @return {?KamiMusicMetadata} The removed resource.
    */
   removeIndex(index) {
     const resource = this.queue[index];
 
     if (resource instanceof KamiMusicMetadata) {
-      this.queue.splice(index, 1);
-
-      if (this.repeat == RepeatMode.RandomNoRepeat)
-        if (this._randomQueue.includes(resource))
-          this._randomQueue.splice(this._randomQueue.indexOf(resource), 1);
-
       if (![RepeatMode.Random, RepeatMode.RandomNoRepeat, RepeatMode.TrueRandom].includes(this.repeat))
         if (this.currentIndex > index && this.currentIndex > 0)
           this.currentIndex -= 1;
 
       if (this.currentIndex == index && this.player.state.status == AudioPlayerStatus.Playing)
         this.stop();
+
+      this.queue.splice(index, 1);
+
+      if (this.repeat == RepeatMode.RandomNoRepeat)
+        if (this._randomQueue.includes(resource))
+          this._randomQueue.splice(this._randomQueue.indexOf(resource), 1);
 
       return resource;
     }
@@ -499,18 +515,18 @@ class KamiMusicPlayer {
     const index = this.queue.indexOf(resource);
 
     if (index > -1) {
-      this.queue.splice(index, 1);
-
-      if (this.repeat == RepeatMode.RandomNoRepeat)
-        if (this._randomQueue.includes(resource))
-          this._randomQueue.splice(this._randomQueue.indexOf(resource), 1);
-
       if (![RepeatMode.Random, RepeatMode.RandomNoRepeat, RepeatMode.TrueRandom].includes(this.repeat))
         if (this.currentIndex > index && this.currentIndex > 0)
           this.currentIndex -= 1;
 
       if (this.currentIndex == index && this.player.state.status == AudioPlayerStatus.Playing)
         this.stop();
+
+      this.queue.splice(index, 1);
+
+      if (this.repeat == RepeatMode.RandomNoRepeat)
+        if (this._randomQueue.includes(resource))
+          this._randomQueue.splice(this._randomQueue.indexOf(resource), 1);
 
       return index;
     }
@@ -536,7 +552,10 @@ class KamiMusicPlayer {
   async play(index = this.currentIndex) {
     this.currentIndex = index;
 
+    playerLogger.debug(`Buffer called ${(new Error()).stack.split("\n")[1].trimStart().replace("C:\\Users\\Kamiya\\Documents\\GitHub\\Kamiya\\kami-music-bot\\Class\\", "")}`);
     await this.buffer(index);
+    this._isBuffering = false;
+
     const resource = this.queue[index];
 
     if (resource)
@@ -599,12 +618,19 @@ class KamiMusicPlayer {
           });
           this._resource = ar;
           this.volume = this._volume;
-          playerLogger.info(`▶ playing: ${resource.title} ${chalk.gray(this.guild.name)}`);
+          ar.encoder.setBitrate(192000);
           this.player.play(ar);
 
+          playerLogger.info(`▶ playing: ${resource.title} ${chalk.gray(this.guild.name)}`);
+
+          this._isFinished = false;
+          this.updateNowplayingMessage();
+
           if (this.queue[this.nextIndex])
-            if (!this.queue[this.nextIndex].cache)
-              this.buffer(this.nextIndex);
+            if (!this.queue[this.nextIndex].cache) {
+              playerLogger.debug(`Buffer called ${(new Error()).stack.split("\n")[1].trimStart().replace("C:\\Users\\Kamiya\\Documents\\GitHub\\Kamiya\\kami-music-bot\\Class\\", "")}`);
+              this.buffer(this.nextIndex).then(() => this._isBuffering = true);
+            }
         }
       } else {
         this.next();
@@ -618,6 +644,9 @@ class KamiMusicPlayer {
    */
   buffer(index, force = false, _retried = 0) {
     return new Promise((resolve, reject) => {
+      if (this._isBuffering) reject();
+      this._isBuffering = true;
+
       if (!existsSync(join(__dirname, "../.cache")))
         mkdirSync(join(__dirname, "../.cache"));
 
@@ -671,7 +700,7 @@ class KamiMusicPlayer {
                     _buf.push(data);
                   });
 
-                  stream.on("error", async (err) => {
+                  stream.on("error", (err) => {
                     if (err.message.startsWith("Status code: 4")) {
                       if (err.message.includes("410"))
                         resource.region.push("TW");
@@ -680,7 +709,12 @@ class KamiMusicPlayer {
 
                       if (_retried > 5) reject(new Error("Buffer retry limit exceeded."));
                       playerLogger.info(`🔄 buffer: ${resource.title} ${chalk.gray(this.guild.name)}`);
-                      await this.buffer(index, force, _retried + 1);
+
+                      this._isBuffering = false;
+                      playerLogger.debug(`Buffer called ${(new Error()).stack.split("\n")[1].trimStart().replace("C:\\Users\\Kamiya\\Documents\\GitHub\\Kamiya\\kami-music-bot\\Class\\", "")}`);
+                      this.buffer(index, force, _retried + 1);
+
+                      playerLogger.debug(`Buffer resolved ${(new Error()).stack.split("\n")[1].trimStart().replace("C:\\Users\\Kamiya\\Documents\\GitHub\\Kamiya\\kami-music-bot\\Class\\", "")}`);
                       resolve();
                     }
                   });
@@ -699,17 +733,24 @@ class KamiMusicPlayer {
                     writeFileSync(join(__dirname, "../.cache/", resource.id), _buffer, { flag: "w" });
                     resource.cache = join(__dirname, "../.cache/", resource.id);
                     stream.destroy();
+
+                    playerLogger.debug(`Buffer resolved ${(new Error()).stack.split("\n")[1].trimStart().replace("C:\\Users\\Kamiya\\Documents\\GitHub\\Kamiya\\kami-music-bot\\Class\\", "")}`);
                     resolve();
                   });
                 }
               }
           } else {
+            playerLogger.debug(`Resource has cache at ${join(__dirname, "../.cache/", resource.id).replace("C:\\Users\\Kamiya\\Documents\\GitHub\\Kamiya\\kami-music-bot", "")}`);
             resource.cache = join(__dirname, "../.cache/", resource.id);
           }
 
           // lyrics
 
-          if (resource.lyrics instanceof KamiMusicLyric) resolve();
+          if (resource.lyrics instanceof KamiMusicLyric)
+            if (resource.cache) {
+              playerLogger.debug(`Buffer resolved ${(new Error()).stack.split("\n")[1].trimStart().replace("C:\\Users\\Kamiya\\Documents\\GitHub\\Kamiya\\kami-music-bot\\Class\\", "")}`);
+              resolve();
+            }
 
           if (resource.lyric == null) {
             KamiMusicLyric.searchLyrics(resource.title).then(results => {
@@ -720,23 +761,37 @@ class KamiMusicPlayer {
                   resource.lyrics = new KamiMusicLyric(data);
                   writeFileSync(join(__dirname, "../.cache/", `${resource.id}.lyric`), JSON.stringify(data), { flag: "w" });
                   writeFileSync(join(__dirname, "../.cache", `${resource.id}.metadata`), JSON.stringify(resource.toJSON()), { encoding: "utf-8", flag: "w" });
-                  resolve();
+
+                  if (resource.cache) {
+                    playerLogger.debug(`Buffer resolved ${(new Error()).stack.split("\n")[1].trimStart().replace("C:\\Users\\Kamiya\\Documents\\GitHub\\Kamiya\\kami-music-bot\\Class\\", "")}`);
+                    resolve();
+                  }
                 });
-              } else {
-                resolve();
               }
+
+              playerLogger.debug(`Buffer resolved ${(new Error()).stack.split("\n")[1].trimStart().replace("C:\\Users\\Kamiya\\Documents\\GitHub\\Kamiya\\kami-music-bot\\Class\\", "")}`);
+              resolve();
             });
           } else if (!existsSync(join(__dirname, "../.cache/", `${resource.id}.lyric`))) {
             KamiMusicLyric.fetchLyric(resource.lyric).then(data => {
               resource.lyrics = new KamiMusicLyric(data);
               writeFileSync(join(__dirname, "../.cache/", `${resource.id}.lyric`), JSON.stringify(data), { flag: "w" });
-              resolve();
+
+              if (resource.cache) {
+                playerLogger.debug(`Buffer resolved ${(new Error()).stack.split("\n")[1].trimStart().replace("C:\\Users\\Kamiya\\Documents\\GitHub\\Kamiya\\kami-music-bot\\Class\\", "")}`);
+                resolve();
+              }
             });
           } else {
             resource.lyrics = new KamiMusicLyric(JSON.parse(readFileSync(join(__dirname, "../.cache/", `${resource.id}.lyric`), { encoding: "utf-8" })));
-            resolve();
+
+            if (resource.cache) {
+              playerLogger.debug(`Buffer resolved ${(new Error()).stack.split("\n")[1].trimStart().replace("C:\\Users\\Kamiya\\Documents\\GitHub\\Kamiya\\kami-music-bot\\Class\\", "")}`);
+              resolve();
+            }
           }
         } else {
+          playerLogger.debug(`Buffer resolved ${(new Error()).stack.split("\n")[1].trimStart().replace("C:\\Users\\Kamiya\\Documents\\GitHub\\Kamiya\\kami-music-bot\\Class\\", "").trimStart()}`);
           resolve();
         }
     });
@@ -835,17 +890,36 @@ class KamiMusicPlayer {
 
   /**
    * Updates the nowplaying message
-   * @param {boolean} [finished=false] Whether to sent a finished message
    */
-  async updateNowplayingMessage(finished = false) {
+  async updateNowplayingMessage() {
     try {
-      if (this.npmsg)
-        this.npmsg = await this.npmsg.edit(npTemplate(this, finished, !finished ? this._resource.metadata?.lyrics?.getLine(this.playbackTime) ?? null : null)).catch(async (err) => {
+      if (this.npmsg) {
+        this.npmsg = await this.npmsg.edit(npTemplate(this, this._isFinished, !this._isFinished ? this._resource.metadata?.lyrics?.getLine(this.playbackTime - this.lyricsOffset) ?? null : null)).catch(async (err) => {
           if (err.code != 10008) console.error(err);
-          this.npmsg = await this.textChannel.send(npTemplate(this, finished, !finished ? this._resource.metadata?.lyrics?.getLine(this.playbackTime) ?? null : null));
+
+          if (!this._npmsglock) {
+            this._npmsglock = true;
+            this.npmsg = await this.textChannel.send(npTemplate(this, this._isFinished, !this._isFinished ? this._resource.metadata?.lyrics?.getLine(this.playbackTime - this.lyricsOffset) ?? null : null));
+            this._npmsglock = false;
+          }
         });
-      else
-        this.npmsg = await this.textChannel.send(npTemplate(this, finished, !finished ? this._resource.metadata?.lyrics?.getLine(this.playbackTime) ?? null : null));
+      } else if (!this._npmsglock) {
+        this._npmsglock = true;
+        this.npmsg = await this.textChannel.send(npTemplate(this, this._isFinished, !this._isFinished ? this._resource.metadata?.lyrics?.getLine(this.playbackTime - this.lyricsOffset) ?? null : null));
+        this._npmsglock = false;
+        this._npmsgcollector = this.npmsg.createMessageComponentCollector({ componentType: ComponentType.Button });
+        this._npmsgcollector.on("collect", btnInter => {
+          switch (btnInter.customId) {
+            case "offset-1000": this.lyricsOffset -= 1000; break;
+            case "offset-100" : this.lyricsOffset -= 100; break;
+            case "offsetReset": this.lyricsOffset = 0; break;
+            case "offset+100" : this.lyricsOffset += 100; break;
+            case "offset+1000": this.lyricsOffset += 1000; break;
+          }
+
+          btnInter.update(npTemplate(this, this._isFinished, !this._isFinished ? this._resource.metadata?.lyrics?.getLine(this.playbackTime - this.lyricsOffset) ?? null : null));
+        });
+      }
     } catch (err) {
       playerLogger.error(`Unable to update nowplaying message in #${this.textChannel.name}`);
       playerLogger.error(err);
@@ -853,9 +927,9 @@ class KamiMusicPlayer {
   }
 
   stopLyrics() {
-    if (this.lyricstimer) {
-      clearInterval(this.lyricstimer);
-      delete this.lyricstimer;
+    if (this._lyricstimer) {
+      clearInterval(this._lyricstimer);
+      delete this._lyricstimer;
       delete this._currentLyricIndex;
     }
   }
@@ -884,20 +958,48 @@ const npTemplate = (player, finished, lyrics) => {
       .setAuthor({ name: `正在播放 | ${player.guild.name}`, iconURL: player.guild.iconURL() })
       .setDescription("目前沒有在播放任何東西，使用 `/add` 來添加項目")
       .setTimestamp()];
+  const components = [];
 
   if (lyrics) {
     const ly_prev = codeBlock("md", `${lyrics.prev?.ruby ? `| ${lyrics.prev.ruby}\n` : ""}| ${lyrics.prev?.value ?? ""}${lyrics.prev?.tw ? `\n> ${lyrics.prev.tw}` : ""}`);
-    const ly_current = codeBlock("md", `${lyrics.current?.ruby ? `# ${lyrics.current.ruby}\n` : ""}# ${lyrics.current?.value ?? " *start*"}${lyrics.current?.tw ? `\n> ${lyrics.current.tw}` : ""}`);
-    const ly_next = codeBlock("md", `${lyrics.next?.ruby ? `| ${lyrics.next?.ruby}\n` : ""}| ${lyrics.next?.value ?? " *end*"}${lyrics.next?.tw ? `\n> ${lyrics.next.tw}` : ""}`);
+    const ly_current = codeBlock("md", `${lyrics.current?.ruby ? `# ${lyrics.current.ruby}\n` : ""}# ${lyrics.current?.value ?? ""}${lyrics.current?.tw ? `\n> ${lyrics.current.tw}` : ""}`);
+    const ly_next = codeBlock("md", `${lyrics.next?.ruby ? `| ${lyrics.next?.ruby}\n` : ""}| ${lyrics.next?.value ?? ""}${lyrics.next?.tw ? `\n> ${lyrics.next.tw}` : ""}`);
     embeds.push(new EmbedBuilder()
       .setColor(Colors.DarkGrey)
       .setAuthor({ name: `歌詞${current?.lyricMetadata ? `：${current.lyricMetadata.artistPredict} - ${current.lyricMetadata.titlePredict}` : ""}` })
       .setDescription(
         `${ly_prev}${ly_current}${ly_next}`,
+      )
+      .setFooter({
+        text: `歌詞偏移：${player.lyricsOffset}ms`,
+      }));
+
+    components.push(new ActionRowBuilder()
+      .addComponents(
+        new ButtonBuilder()
+          .setCustomId("offset-1000")
+          .setStyle(ButtonStyle.Secondary)
+          .setLabel("-1s"),
+        new ButtonBuilder()
+          .setCustomId("offset-100")
+          .setStyle(ButtonStyle.Secondary)
+          .setLabel("-100ms"),
+        new ButtonBuilder()
+          .setCustomId("offsetReset")
+          .setStyle(ButtonStyle.Secondary)
+          .setLabel("重置"),
+        new ButtonBuilder()
+          .setCustomId("offset+100")
+          .setStyle(ButtonStyle.Secondary)
+          .setLabel("+100ms"),
+        new ButtonBuilder()
+          .setCustomId("offset+1000")
+          .setStyle(ButtonStyle.Secondary)
+          .setLabel("+1s"),
       ));
   }
 
-  return { content: `🎶 正在 ${player.voiceChannel} 播放`, embeds };
+  return { content: `🎶 正在 ${player.voiceChannel} 播放`, embeds, components };
 };
 
 module.exports = { KamiMusicPlayer, RepeatMode };

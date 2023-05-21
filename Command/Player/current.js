@@ -41,7 +41,8 @@ module.exports = {
         embed = embed.setDescription("目前沒有在播放任呵東西");
       }
 
-      await interaction.editReply({ embeds: [embed], ephemeral: true });
+      const sent = await interaction.editReply({ embeds: [embed], ephemeral: true });
+      setTimeout(() => sent.delete().catch(() => void 0), 30_000);
     } catch (e) {
       const errCase = {
         ERR_USER_NOT_IN_VOICE      : "你必須在語音頻道內才能使用這個指令",

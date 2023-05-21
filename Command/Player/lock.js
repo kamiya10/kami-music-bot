@@ -34,7 +34,8 @@ module.exports = {
         .setColor(interaction.client.Color.Success)
         .setDescription(state ? "🔒 已鎖定播放器，現在只有播放器擁有者可以和這個播放器互動。" : "🔓 已解鎖播放器，現在大家都可以和這個播放器互動。");
 
-      await interaction.editReply({ embeds: [embed] });
+      const sent = await interaction.editReply({ embeds: [embed] });
+      setTimeout(() => sent.delete().catch(() => void 0), 10_000);
     } catch (e) {
       const errCase = {
         ERR_USER_NOT_IN_VOICE : "你必須在語音頻道內才能使用這個指令",

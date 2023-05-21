@@ -83,7 +83,8 @@ module.exports = {
         "🔁◀ 倒序循環",
       ][mode];
 
-      await interaction.editReply({ content: modeString });
+      const sent = await interaction.editReply({ content: modeString });
+      setTimeout(() => sent.delete().catch(() => void 0), 10_000);
     } catch (e) {
       const errCase = {
         ERR_USER_NOT_IN_VOICE      : "你必須在語音頻道內才能使用這個指令",
