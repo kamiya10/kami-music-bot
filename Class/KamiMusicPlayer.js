@@ -459,7 +459,7 @@ class KamiMusicPlayer {
       if (this.queue[this.nextIndex])
         if (!this.queue[this.nextIndex].cache) {
 
-          playerLogger.debug(`Buffer called ${(new Error()).stack.split("\n")[1].trimStart().replace("C:\\Users\\Kamiya\\Documents\\GitHub\\Kamiya\\kami-music-bot\\Class\\", "")}`);
+          playerLogger.debug(`Buffer called at ${(new Error()).stack.split("\n")[1].trimStart().split("\\").pop()}`);
           await this.buffer(this.nextIndex);
           this._isBuffering = false;
         }
@@ -552,7 +552,7 @@ class KamiMusicPlayer {
   async play(index = this.currentIndex) {
     this.currentIndex = index;
 
-    playerLogger.debug(`Buffer called ${(new Error()).stack.split("\n")[1].trimStart().replace("C:\\Users\\Kamiya\\Documents\\GitHub\\Kamiya\\kami-music-bot\\Class\\", "")}`);
+    playerLogger.debug(`Buffer called at ${(new Error()).stack.split("\n")[1].trimStart().split("\\").pop()}`);
     await this.buffer(index);
     this._isBuffering = false;
 
@@ -563,7 +563,7 @@ class KamiMusicPlayer {
         let stream;
 
         if (resource.cache) {
-          playerLogger.info("▶ using cache");
+          playerLogger.info("▶ Using cache");
           stream = createReadStream(resource.cache);
         }
 
@@ -621,14 +621,14 @@ class KamiMusicPlayer {
           ar.encoder.setBitrate(192000);
           this.player.play(ar);
 
-          playerLogger.info(`▶ playing: ${resource.title} ${chalk.gray(this.guild.name)}`);
+          playerLogger.info(`▶ Playing ${resource.title} ${chalk.gray(this.guild.name)}`);
 
           this._isFinished = false;
           this.updateNowplayingMessage();
 
           if (this.queue[this.nextIndex])
             if (!this.queue[this.nextIndex].cache) {
-              playerLogger.debug(`Buffer called ${(new Error()).stack.split("\n")[1].trimStart().replace("C:\\Users\\Kamiya\\Documents\\GitHub\\Kamiya\\kami-music-bot\\Class\\", "")}`);
+              playerLogger.debug(`Buffer called at ${(new Error()).stack.split("\n")[1].trimStart().split("\\").pop()}`);
               this.buffer(this.nextIndex).then(() => this._isBuffering = true);
             }
         }
@@ -692,8 +692,9 @@ class KamiMusicPlayer {
 
                 if (stream) {
                   const retryTimeout = setTimeout(() => stream.emit("error", new Error("Timeouut")), 3000);
-                  playerLogger.info(`⏳ buffer: ${resource.title} ${chalk.gray(this.guild.name)}`);
+                  playerLogger.info(`⏳ Buffering ${resource.title} ${chalk.gray(this.guild.name)}`);
                   const _buf = [];
+
                   stream.on("data", (data) => {
                     if (retryTimeout)
                       clearTimeout(retryTimeout);
@@ -704,17 +705,17 @@ class KamiMusicPlayer {
                     if (err.message.startsWith("Status code: 4")) {
                       if (err.message.includes("410"))
                         resource.region.push("TW");
+
+                      reject(err);
                     } else {
                       stream.destroy();
 
                       if (_retried > 5) reject(new Error("Buffer retry limit exceeded."));
-                      playerLogger.info(`🔄 buffer: ${resource.title} ${chalk.gray(this.guild.name)}`);
+                      playerLogger.info(`🔄 Buffering ${resource.title} ${chalk.gray(this.guild.name)}`);
 
                       this._isBuffering = false;
-                      playerLogger.debug(`Buffer called ${(new Error()).stack.split("\n")[1].trimStart().replace("C:\\Users\\Kamiya\\Documents\\GitHub\\Kamiya\\kami-music-bot\\Class\\", "")}`);
                       this.buffer(index, force, _retried + 1);
 
-                      playerLogger.debug(`Buffer resolved ${(new Error()).stack.split("\n")[1].trimStart().replace("C:\\Users\\Kamiya\\Documents\\GitHub\\Kamiya\\kami-music-bot\\Class\\", "")}`);
                       resolve();
                     }
                   });
@@ -728,13 +729,12 @@ class KamiMusicPlayer {
                       writeFileSync(join(__dirname, "../.cache", `${resource.id}.metadata`), JSON.stringify(resource.toJSON()), { encoding: "utf-8", flag: "w" });
                     }
 
-                    playerLogger.info(`✅ buffer: ${resource.title} ${chalk.gray(this.guild.name)}`);
+                    playerLogger.info(`✅ Buffered  ${resource.title} ${chalk.gray(this.guild.name)}`);
                     const _buffer = Buffer.concat(_buf);
                     writeFileSync(join(__dirname, "../.cache/", resource.id), _buffer, { flag: "w" });
                     resource.cache = join(__dirname, "../.cache/", resource.id);
                     stream.destroy();
 
-                    playerLogger.debug(`Buffer resolved ${(new Error()).stack.split("\n")[1].trimStart().replace("C:\\Users\\Kamiya\\Documents\\GitHub\\Kamiya\\kami-music-bot\\Class\\", "")}`);
                     resolve();
                   });
                 }
@@ -747,10 +747,8 @@ class KamiMusicPlayer {
           // lyrics
 
           if (resource.lyrics instanceof KamiMusicLyric)
-            if (resource.cache) {
-              playerLogger.debug(`Buffer resolved ${(new Error()).stack.split("\n")[1].trimStart().replace("C:\\Users\\Kamiya\\Documents\\GitHub\\Kamiya\\kami-music-bot\\Class\\", "")}`);
+            if (resource.cache)
               resolve();
-            }
 
           if (resource.lyric == null) {
             KamiMusicLyric.searchLyrics(resource.title).then(results => {
@@ -762,14 +760,11 @@ class KamiMusicPlayer {
                   writeFileSync(join(__dirname, "../.cache/", `${resource.id}.lyric`), JSON.stringify(data), { flag: "w" });
                   writeFileSync(join(__dirname, "../.cache", `${resource.id}.metadata`), JSON.stringify(resource.toJSON()), { encoding: "utf-8", flag: "w" });
 
-                  if (resource.cache) {
-                    playerLogger.debug(`Buffer resolved ${(new Error()).stack.split("\n")[1].trimStart().replace("C:\\Users\\Kamiya\\Documents\\GitHub\\Kamiya\\kami-music-bot\\Class\\", "")}`);
+                  if (resource.cache)
                     resolve();
-                  }
                 });
               }
 
-              playerLogger.debug(`Buffer resolved ${(new Error()).stack.split("\n")[1].trimStart().replace("C:\\Users\\Kamiya\\Documents\\GitHub\\Kamiya\\kami-music-bot\\Class\\", "")}`);
               resolve();
             });
           } else if (!existsSync(join(__dirname, "../.cache/", `${resource.id}.lyric`))) {
@@ -777,21 +772,16 @@ class KamiMusicPlayer {
               resource.lyrics = new KamiMusicLyric(data);
               writeFileSync(join(__dirname, "../.cache/", `${resource.id}.lyric`), JSON.stringify(data), { flag: "w" });
 
-              if (resource.cache) {
-                playerLogger.debug(`Buffer resolved ${(new Error()).stack.split("\n")[1].trimStart().replace("C:\\Users\\Kamiya\\Documents\\GitHub\\Kamiya\\kami-music-bot\\Class\\", "")}`);
+              if (resource.cache)
                 resolve();
-              }
             });
           } else {
             resource.lyrics = new KamiMusicLyric(JSON.parse(readFileSync(join(__dirname, "../.cache/", `${resource.id}.lyric`), { encoding: "utf-8" })));
 
-            if (resource.cache) {
-              playerLogger.debug(`Buffer resolved ${(new Error()).stack.split("\n")[1].trimStart().replace("C:\\Users\\Kamiya\\Documents\\GitHub\\Kamiya\\kami-music-bot\\Class\\", "")}`);
+            if (resource.cache)
               resolve();
-            }
           }
         } else {
-          playerLogger.debug(`Buffer resolved ${(new Error()).stack.split("\n")[1].trimStart().replace("C:\\Users\\Kamiya\\Documents\\GitHub\\Kamiya\\kami-music-bot\\Class\\", "").trimStart()}`);
           resolve();
         }
     });

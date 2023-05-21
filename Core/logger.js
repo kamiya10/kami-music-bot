@@ -8,7 +8,7 @@ const logger = pino(
         colorize      : true,
         ignore        : "pid,hostname,scope",
         translateTime : "yyyy/mm/dd HH:MM:ss",
-        messageFormat : "[{scope}] {msg}",
+        messageFormat : "[{scope}]\x1b[0m {msg}",
       },
     },
   },
