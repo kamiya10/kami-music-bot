@@ -647,28 +647,27 @@ class KamiMusicPlayer {
    * @param {number} index The index of the resource to be buffered.
    * @param {?boolean} force Whether or not the cache checking should be skipped.
    */
-  buffer(index, force = false, _retried = 0) {
-    return new Promise((resolve, reject) => {
-      if (this._isBuffering) reject();
-      this._isBuffering = true;
+  async buffer(index, force = false, _retried = 0) {
+    if (this._isBuffering) return;
+    this._isBuffering = true;
 
-      if (!existsSync(join(__dirname, "../.cache")))
-        mkdirSync(join(__dirname, "../.cache"));
+    if (!existsSync(join(__dirname, "../.cache")))
+      mkdirSync(join(__dirname, "../.cache"));
 
-      const resource = this.queue[index];
+    const resource = this.queue[index];
 
-      if (resource)
-        if (resource.durationObject.minute < 6) {
-          if (!existsSync(join(__dirname, "../.cache", resource.id)) || force) {
-            if (!resource.cache || force)
-              if (resource.playable) {
-                let stream;
+    if (resource)
+      if (resource.durationObject.minute < 6) {
+        if (!existsSync(join(__dirname, "../.cache", resource.id)) || force) {
+          if (!resource.cache || force)
+            if (resource.playable) {
+              let stream;
 
-                switch (resource.platform) {
-                  case Platform.Youtube: {
-                    let agent;
+              switch (resource.platform) {
+                case Platform.Youtube: {
+                  let agent;
 
-                    /* Proxy
+                  /* Proxy
                     if (resource.region.length)
                     if (resource.region.includes("TW")) {
                       console.log("Using proxy: JP");
@@ -679,23 +678,24 @@ class KamiMusicPlayer {
                     }
                     */
 
-                    stream = ytdl(resource.url,
-                      {
-                        filter         : (format) => format.contentLength,
-                        quality        : "highestaudio",
-                        highWaterMark  : 1 << 25,
-                        requestOptions : {
-                          timeout: 3000,
-                        },
-                        ...(agent && { requestOptions: { agent } }),
-                      });
-                    break;
-                  }
-
-                  default: break;
+                  stream = ytdl(resource.url,
+                    {
+                      filter         : (format) => format.contentLength,
+                      quality        : "highestaudio",
+                      highWaterMark  : 1 << 25,
+                      requestOptions : {
+                        timeout: 3000,
+                      },
+                      ...(agent && { requestOptions: { agent } }),
+                    });
+                  break;
                 }
 
-                if (stream) {
+                default: break;
+              }
+
+              if (stream)
+                await new Promise((resolve, reject) => {
                   const retryTimeout = setTimeout(() => stream.emit("error", new Error("Timeouut")), 3000);
                   playerLogger.info(`⏳ Buffering ${resource.title} ${chalk.gray(this.guild.name)}`);
                   const _buf = [];
@@ -726,7 +726,7 @@ class KamiMusicPlayer {
                   });
 
                   stream.on("finish", async () => {
-                    // check duration
+                  // check duration
                     if (this.current.duration < 0) {
                       const duration = (await ytdl.getBasicInfo(resource.url)).videoDetails.lengthSeconds;
                       resource.duration = +duration;
@@ -742,54 +742,39 @@ class KamiMusicPlayer {
 
                     resolve();
                   });
-                }
-              }
-          } else {
-            playerLogger.debug(`Resource has cache at ${join(__dirname, "../.cache/", resource.id).replace("C:\\Users\\Kamiya\\Documents\\GitHub\\Kamiya\\kami-music-bot", "")}`);
-            resource.cache = join(__dirname, "../.cache/", resource.id);
-          }
-
-          // lyrics
-
-          if (resource.lyrics instanceof KamiMusicLyric)
-            if (resource.cache)
-              resolve();
-
-          if (resource.lyric == null) {
-            KamiMusicLyric.searchLyrics(resource.title).then(results => {
-              if (results.length) {
-                resource.lyric = results[0].id;
-                resource.lyricMetadata = results[0];
-                KamiMusicLyric.fetchLyric(resource.lyric).then(data => {
-                  resource.lyrics = new KamiMusicLyric(data);
-                  writeFileSync(join(__dirname, "../.cache/", `${resource.id}.lyric`), JSON.stringify(data), { flag: "w" });
-                  writeFileSync(join(__dirname, "../.cache", `${resource.id}.metadata`), JSON.stringify(resource.toJSON()), { encoding: "utf-8", flag: "w" });
-
-                  if (resource.cache)
-                    resolve();
                 });
-              }
-
-              resolve();
-            });
-          } else if (!existsSync(join(__dirname, "../.cache/", `${resource.id}.lyric`))) {
-            KamiMusicLyric.fetchLyric(resource.lyric).then(data => {
-              resource.lyrics = new KamiMusicLyric(data);
-              writeFileSync(join(__dirname, "../.cache/", `${resource.id}.lyric`), JSON.stringify(data), { flag: "w" });
-
-              if (resource.cache)
-                resolve();
-            });
-          } else {
-            resource.lyrics = new KamiMusicLyric(JSON.parse(readFileSync(join(__dirname, "../.cache/", `${resource.id}.lyric`), { encoding: "utf-8" })));
-
-            if (resource.cache)
-              resolve();
-          }
+            }
         } else {
-          resolve();
+          playerLogger.debug(`Resource has cache at ${join(__dirname, "../.cache/", resource.id).replace("C:\\Users\\Kamiya\\Documents\\GitHub\\Kamiya\\kami-music-bot", "")}`);
+          resource.cache = join(__dirname, "../.cache/", resource.id);
         }
-    });
+
+        // lyrics
+
+        if (resource.lyrics instanceof KamiMusicLyric)
+          if (resource.cache)
+            return;
+
+        if (resource.lyric == null)
+          KamiMusicLyric.searchLyrics(resource.title).then(results => {
+            if (results.length) {
+              resource.lyric = results[0].id;
+              resource.lyricMetadata = results[0];
+              KamiMusicLyric.fetchLyric(resource.lyric).then(data => {
+                resource.lyrics = new KamiMusicLyric(data);
+                writeFileSync(join(__dirname, "../.cache/", `${resource.id}.lyric`), JSON.stringify(data), { flag: "w" });
+                writeFileSync(join(__dirname, "../.cache", `${resource.id}.metadata`), JSON.stringify(resource.toJSON()), { encoding: "utf-8", flag: "w" });
+              });
+            }
+          });
+        else if (!existsSync(join(__dirname, "../.cache/", `${resource.id}.lyric`)))
+          KamiMusicLyric.fetchLyric(resource.lyric).then(data => {
+            resource.lyrics = new KamiMusicLyric(data);
+            writeFileSync(join(__dirname, "../.cache/", `${resource.id}.lyric`), JSON.stringify(data), { flag: "w" });
+          });
+        else
+          resource.lyrics = new KamiMusicLyric(JSON.parse(readFileSync(join(__dirname, "../.cache/", `${resource.id}.lyric`), { encoding: "utf-8" })));
+      }
   }
 
   /**
