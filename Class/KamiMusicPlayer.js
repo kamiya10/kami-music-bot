@@ -564,7 +564,12 @@ class KamiMusicPlayer {
 
         if (resource.cache) {
           playerLogger.info("▶ Using cache");
-          stream = createReadStream(resource.cache);
+
+          try {
+            stream = createReadStream(resource.cache);
+          } catch (error) {
+            resource.cache = null;
+          }
         }
 
         if (!stream)
