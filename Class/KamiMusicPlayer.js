@@ -760,11 +760,15 @@ class KamiMusicPlayer {
             if (results.length) {
               resource.lyric = results[0].id;
               resource.lyricMetadata = results[0];
-              KamiMusicLyric.fetchLyric(resource.lyric).then(data => {
-                resource.lyrics = new KamiMusicLyric(data);
-                writeFileSync(join(__dirname, "../.cache/", `${resource.lyric}.lyric`), JSON.stringify(data), { flag: "w" });
-                writeFileSync(join(__dirname, "../.cache", `${resource.id}.metadata`), JSON.stringify(resource.toJSON()), { encoding: "utf-8", flag: "w" });
-              });
+
+              if (!existsSync(join(__dirname, "../.cache/", `${resource.lyric}.lyric`)))
+                KamiMusicLyric.fetchLyric(resource.lyric).then(data => {
+                  resource.lyrics = new KamiMusicLyric(data);
+                  writeFileSync(join(__dirname, "../.cache/", `${resource.lyric}.lyric`), JSON.stringify(data), { flag: "w" });
+                  writeFileSync(join(__dirname, "../.cache", `${resource.id}.metadata`), JSON.stringify(resource.toJSON()), { encoding: "utf-8", flag: "w" });
+                });
+              else
+                resource.lyrics = new KamiMusicLyric(JSON.parse(readFileSync(join(__dirname, "../.cache/", `${resource.lyric}.lyric`), { encoding: "utf-8" })));
             }
           });
         else if (!existsSync(join(__dirname, "../.cache/", `${resource.lyric}.lyric`)))
