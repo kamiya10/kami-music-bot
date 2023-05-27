@@ -28,6 +28,7 @@ class KamiMusicLyric {
         current : {
           ruby  : "",
           value : "*end*",
+          raw   : "*end*",
           tw    : "",
         },
         next: null,
@@ -39,6 +40,7 @@ class KamiMusicLyric {
         next    : {
           ruby  : "",
           value : "*end*",
+          raw   : "*end*",
           tw    : "",
         },
       };
@@ -48,6 +50,7 @@ class KamiMusicLyric {
       current : time >= this.lyrics[index].end ? {
         ruby  : "",
         value : "♪",
+        raw   : "♪",
         tw    : "",
       } : this.lyrics[index],
       next: this.lyrics[index + 1],
