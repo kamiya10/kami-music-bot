@@ -124,6 +124,8 @@ class KamiMusicPlayer {
      */
     this.lyricsOffset = 0;
 
+    this.showRubyText = true;
+
     /**
      * @type {?NodeJS.Timer}
      */
@@ -899,6 +901,7 @@ class KamiMusicPlayer {
             case "offsetReset": this.lyricsOffset = 0; break;
             case "offset+100" : this.lyricsOffset += 100; break;
             case "offset+1000": this.lyricsOffset += 1000; break;
+            case "toggleRuby": this.showRubyText = !this.showRubyText; break;
           }
 
           btnInter.update(npTemplate(this, this._isFinished, !this._isFinished ? this._resource.metadata?.lyrics?.getLine(this.playbackTime - this.lyricsOffset) ?? null : null));
@@ -945,9 +948,9 @@ const npTemplate = (player, finished, lyrics) => {
   const components = [];
 
   if (lyrics) {
-    const ly_prev = codeBlock("md", `${lyrics.prev?.ruby ? `| ${lyrics.prev.ruby}\n` : ""}| ${lyrics.prev?.value ?? ""}${lyrics.prev?.tw ? `\n> ${lyrics.prev.tw}` : ""}`);
-    const ly_current = codeBlock("md", `${lyrics.current?.ruby ? `# ${lyrics.current.ruby}\n` : ""}# ${lyrics.current?.value ?? ""}${lyrics.current?.tw ? `\n> ${lyrics.current.tw}` : ""}`);
-    const ly_next = codeBlock("md", `${lyrics.next?.ruby ? `| ${lyrics.next?.ruby}\n` : ""}| ${lyrics.next?.value ?? ""}${lyrics.next?.tw ? `\n> ${lyrics.next.tw}` : ""}`);
+    const ly_prev = codeBlock("md", player.showRubyText ? `${lyrics.prev?.ruby ? `| ${lyrics.prev.ruby}\n` : ""}| ${lyrics.prev?.value ?? ""}${lyrics.prev?.tw ? `\n> ${lyrics.prev.tw}` : ""}` : `| ${lyrics.prev?.raw ?? ""}${lyrics.prev?.tw ? `\n> ${lyrics.prev.tw}` : ""}`);
+    const ly_current = codeBlock("md", player.showRubyText ? `${lyrics.current?.ruby ? `# ${lyrics.current.ruby}\n` : ""}# ${lyrics.current?.value ?? ""}${lyrics.current?.tw ? `\n> ${lyrics.current.tw}` : ""}` : `# ${lyrics.current?.raw ?? ""}${lyrics.current?.tw ? `\n> ${lyrics.current.tw}` : ""}`);
+    const ly_next = codeBlock("md", player.showRubyText ? `${lyrics.next?.ruby ? `| ${lyrics.next?.ruby}\n` : ""}| ${lyrics.next?.value ?? ""}${lyrics.next?.tw ? `\n> ${lyrics.next.tw}` : ""}` : `| ${lyrics.next?.raw ?? ""}${lyrics.next?.tw ? `\n> ${lyrics.next.tw}` : ""}`);
     embeds.push(new EmbedBuilder()
       .setColor(Colors.DarkGrey)
       .setAuthor({ name: `歌詞${current?.lyricMetadata ? `：${current.lyricMetadata.artistPredict} - ${current.lyricMetadata.titlePredict}` : ""}` })
@@ -980,6 +983,12 @@ const npTemplate = (player, finished, lyrics) => {
           .setCustomId("offset+1000")
           .setStyle(ButtonStyle.Secondary)
           .setLabel("+1s"),
+      ));
+    components.push(new ActionRowBuilder()
+      .addComponents(new ButtonBuilder()
+        .setCustomId("toggleRuby")
+        .setStyle(ButtonStyle.Secondary)
+        .setLabel(player.showRubyText ? "隱藏讀音" : "顯示讀音"),
       ));
   }
 
