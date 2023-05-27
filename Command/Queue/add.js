@@ -109,6 +109,8 @@ module.exports = {
                         throw "ERR_FETCH_VIDEO";
                       });
 
+                      video.url += "&bpctr=9999999999&has_verified=1";
+
                       // 不支援直播
                       if (video.raw.snippet.liveBroadcastContent === "live")
                         throw "ERR_NOT_SUPPORTED@LIVESTREAM";
@@ -116,7 +118,6 @@ module.exports = {
 
                     video.playlist = playlist;
                     const meta = new KamiMusicMetadata(video, interaction.member);
-                    meta.url += "&bpctr=9999999999&has_verified=1";
                     const blocked = "";
 
                     // if (!meta.blocked)
@@ -158,13 +159,14 @@ module.exports = {
                   throw "ERR_FETCH_VIDEO";
                 });
 
+                video.url += "&bpctr=9999999999&has_verified=1";
+
                 // 不支援直播
                 if (video.raw.snippet.liveBroadcastContent === "live")
                   throw "ERR_NOT_SUPPORTED@LIVESTREAM";
               }
 
               const meta = new KamiMusicMetadata(video, interaction.member);
-              meta.url += "&bpctr=9999999999&has_verified=1";
               const position = await GuildMusicPlayer.addResource(meta, placement != undefined ? placement - 1 : placement);
 
               embed = embed
@@ -193,13 +195,14 @@ module.exports = {
               throw "ERR_FETCH_VIDEO";
             });
 
+            video.url += "&bpctr=9999999999&has_verified=1";
+
             // 不支援直播
             if (video.raw.snippet.liveBroadcastContent === "live")
               throw "ERR_NOT_SUPPORTED@LIVESTREAM";
           }
 
           const meta = new KamiMusicMetadata(video, interaction.member);
-          meta.url += "&bpctr=9999999999&has_verified=1";
           const position = await GuildMusicPlayer.addResource(meta, placement);
 
           embed = embed
