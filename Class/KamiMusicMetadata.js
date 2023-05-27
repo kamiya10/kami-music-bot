@@ -49,7 +49,7 @@ class KamiMusicMetadata {
       /**
        * @type {string}
        */
-      this.url = data.url;
+      this.url = data.url + "&bpctr=9999999999&has_verified=1";
 
       /**
        * @type {string}

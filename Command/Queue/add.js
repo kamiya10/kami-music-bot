@@ -109,8 +109,6 @@ module.exports = {
                         throw "ERR_FETCH_VIDEO";
                       });
 
-                      video.url += "&bpctr=9999999999&has_verified=1";
-
                       // 不支援直播
                       if (video.raw.snippet.liveBroadcastContent === "live")
                         throw "ERR_NOT_SUPPORTED@LIVESTREAM";
@@ -159,8 +157,6 @@ module.exports = {
                   throw "ERR_FETCH_VIDEO";
                 });
 
-                video.url += "&bpctr=9999999999&has_verified=1";
-
                 // 不支援直播
                 if (video.raw.snippet.liveBroadcastContent === "live")
                   throw "ERR_NOT_SUPPORTED@LIVESTREAM";
@@ -194,8 +190,6 @@ module.exports = {
               console.error(e);
               throw "ERR_FETCH_VIDEO";
             });
-
-            video.url += "&bpctr=9999999999&has_verified=1";
 
             // 不支援直播
             if (video.raw.snippet.liveBroadcastContent === "live")
