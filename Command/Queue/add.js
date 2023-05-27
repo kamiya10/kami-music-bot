@@ -59,8 +59,8 @@ module.exports = {
       if (!interaction.member.voice.channel) throw { message: "ERR_USER_NOT_IN_VOICE" };
 
       /**
-             * @type {KamiMusicPlayer}
-             */
+       * @type {KamiMusicPlayer}
+       */
       let GuildMusicPlayer = interaction.client.players.get(interaction.guild.id);
 
       if (GuildMusicPlayer) {
@@ -116,6 +116,7 @@ module.exports = {
 
                     video.playlist = playlist;
                     const meta = new KamiMusicMetadata(video, interaction.member);
+                    meta.url += "&bpctr=9999999999&has_verified=1";
                     const blocked = "";
 
                     // if (!meta.blocked)
@@ -163,6 +164,7 @@ module.exports = {
               }
 
               const meta = new KamiMusicMetadata(video, interaction.member);
+              meta.url += "&bpctr=9999999999&has_verified=1";
               const position = await GuildMusicPlayer.addResource(meta, placement != undefined ? placement - 1 : placement);
 
               embed = embed
@@ -197,6 +199,7 @@ module.exports = {
           }
 
           const meta = new KamiMusicMetadata(video, interaction.member);
+          meta.url += "&bpctr=9999999999&has_verified=1";
           const position = await GuildMusicPlayer.addResource(meta, placement);
 
           embed = embed
