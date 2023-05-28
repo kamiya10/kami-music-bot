@@ -1,6 +1,6 @@
 const { createAudioPlayer, createAudioResource, entersState, joinVoiceChannel, AudioPlayerStatus, NoSubscriberBehavior, VoiceConnectionStatus } = require("@discordjs/voice");
 const { existsSync, mkdirSync, writeFileSync, createReadStream, readFileSync } = require("node:fs");
-const { EmbedBuilder, codeBlock, Colors, ActionRow, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType } = require("discord.js");
+const { EmbedBuilder, codeBlock, Colors, ActionRow, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, Message } = require("discord.js");
 const { KamiMusicMetadata } = require("./KamiMusicMetadata");
 const { Platform } = require("./KamiMusicMetadata");
 const { join } = require("node:path");
@@ -169,14 +169,19 @@ class KamiMusicPlayer {
               }
           }, 10);
     });
-    this.player.on(AudioPlayerStatus.Idle, (oldState) => {
+    this.player.on(AudioPlayerStatus.Idle, async (oldState) => {
       this._resource = null;
 
       connectionLogger.info("idle");
       this.stopLyrics();
 
       if (oldState.status == AudioPlayerStatus.Playing) {
-        if (!this.paused && !this.stopped)
+        if (!this.paused && !this.stopped) {
+          if (this.npmsg instanceof Message) {
+            await this.npmsg.delete();
+            this.npmsg = null;
+          }
+
           if (this.queue.length > 0)
             switch (this.repeat) {
               case RepeatMode.NoRepeat: {
@@ -236,6 +241,7 @@ class KamiMusicPlayer {
 
               default: break;
             }
+        }
 
         this.stopped = false;
       }
