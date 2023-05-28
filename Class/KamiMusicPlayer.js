@@ -1,5 +1,5 @@
-const { createAudioPlayer, createAudioResource, entersState, joinVoiceChannel, AudioPlayerStatus, NoSubscriberBehavior, VoiceConnectionStatus } = require("@discordjs/voice");
-const { existsSync, mkdirSync, writeFileSync, createReadStream, readFileSync } = require("node:fs");
+const { createAudioPlayer, createAudioResource, entersState, joinVoiceChannel, AudioPlayerStatus, NoSubscriberBehavior, VoiceConnectionStatus, StreamType } = require("@discordjs/voice");
+const { existsSync, mkdirSync, writeFileSync, createReadStream, readFileSync, statSync } = require("node:fs");
 const { EmbedBuilder, codeBlock, Colors, ActionRow, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, Message } = require("discord.js");
 const { KamiMusicMetadata } = require("./KamiMusicMetadata");
 const { Platform } = require("./KamiMusicMetadata");
@@ -7,6 +7,8 @@ const { join } = require("node:path");
 const chalk = require("chalk");
 const ytdl = require("ytdl-core");
 const KamiMusicLyric = require("./KamiMusicLyric");
+const { pipeline } = require("node:stream");
+const { FFmpeg } = require("prism-media");
 
 const connectionLogger = require("../Core/logger").child({ scope: "Connection" });
 const playerLogger = require("../Core/logger").child({ scope: "Player" });
@@ -24,6 +26,180 @@ const RepeatMode = Object.freeze({
   TrueRandom          : 5,
   Backward            : 6,
   BackwardRepeatQueue : 7,
+});
+
+/**
+ * @enum {Record<number, number>}
+ */
+const EqualizerPresets = Object.freeze({
+  Normal: {
+    32    : 0,
+    64    : 0,
+    125   : 0,
+    250   : 0,
+    500   : 0,
+    1000  : 0,
+    2000  : 0,
+    4000  : 0,
+    8000  : 0,
+    16000 : 0,
+  },
+  Classic: {
+    32    : 4,
+    64    : 1,
+    125   : -2,
+    250   : -4,
+    500   : 0,
+    1000  : 1,
+    2000  : 1,
+    4000  : -2,
+    8000  : -4,
+    16000 : 3,
+  },
+  Pop: {
+    32    : -3,
+    64    : -3,
+    125   : -5,
+    250   : -2,
+    500   : 3,
+    1000  : 3,
+    2000  : -1,
+    4000  : -2,
+    8000  : -3,
+    16000 : 0,
+  },
+  Rock: {
+    32    : 0,
+    64    : 3,
+    125   : -1,
+    250   : -1,
+    500   : 1,
+    1000  : -2,
+    2000  : 0,
+    4000  : 4,
+    8000  : -4,
+    16000 : 0,
+  },
+  HipHop: {
+    32    : 2,
+    64    : 2,
+    125   : 1,
+    250   : -5,
+    500   : 3,
+    1000  : 1,
+    2000  : 0,
+    4000  : -1,
+    8000  : -5,
+    16000 : 0,
+  },
+  Jazz: {
+    32    : -1,
+    64    : 0,
+    125   : -3,
+    250   : -4,
+    500   : -4,
+    1000  : 3,
+    2000  : -1,
+    4000  : 2,
+    8000  : -1,
+    16000 : -3,
+  },
+  Latin: {
+    32    : -1,
+    64    : 0,
+    125   : -1,
+    250   : -3,
+    500   : 0,
+    1000  : 2,
+    2000  : 1,
+    4000  : -2,
+    8000  : -5,
+    16000 : -3,
+  },
+  Acoustic: {
+    32    : 0,
+    64    : 0,
+    125   : 2,
+    250   : -2,
+    500   : 3,
+    1000  : 0,
+    2000  : -2,
+    4000  : 1,
+    8000  : -2,
+    16000 : -4,
+  },
+  Electronic: {
+    32    : 2,
+    64    : 4,
+    125   : 0,
+    250   : 0,
+    500   : 1,
+    1000  : -2,
+    2000  : -2,
+    4000  : 3,
+    8000  : 0,
+    16000 : 0,
+  },
+  Lounge: {
+    32    : 4,
+    64    : 4,
+    125   : 3,
+    250   : 2,
+    500   : 0,
+    1000  : 0,
+    2000  : 2,
+    4000  : 6,
+    8000  : 6,
+    16000 : 3,
+  },
+  SoftLounge: {
+    32    : -1,
+    64    : -1,
+    125   : -2,
+    250   : -4,
+    500   : -6,
+    1000  : -6,
+    2000  : -1,
+    4000  : 2,
+    8000  : 0,
+    16000 : -2,
+  },
+  VocalBoost: {
+    32    : -2,
+    64    : 0,
+    125   : -5,
+    250   : 3,
+    500   : 3,
+    1000  : 0,
+    2000  : 1,
+    4000  : -4,
+    8000  : -2,
+    16000 : 0,
+  },
+  TrebleBoost: {
+    32    : -2,
+    64    : -2,
+    125   : -4,
+    250   : -2,
+    500   : 0,
+    1000  : 1,
+    2000  : 2,
+    4000  : 2,
+    8000  : 1,
+    16000 : 2,
+  },
+  BassBoost: {
+    32    : 5,
+    64    : 4,
+    125   : 3,
+    250   : 1,
+    500   : 0,
+    1000  : 1,
+    2000  : 1,
+    4000  : 1,
+    8000  : 1,
+    16000 : 1,
+  },
 });
 
 class KamiMusicPlayer {
@@ -130,6 +306,11 @@ class KamiMusicPlayer {
      * @type {?NodeJS.Timer}
      */
     this._lyricstimer = null;
+
+    /**
+     * Equalizer parameters
+     */
+    this.equalizer = EqualizerPresets.Normal;
 
     this.connection.on(VoiceConnectionStatus.Disconnected, async () => {
       try {
@@ -277,8 +458,8 @@ class KamiMusicPlayer {
   }
 
   /**
-     * @param {boolean} value
-     */
+   * @param {boolean} value
+   */
   set locked(value) {
     this.guild.members.me.setNickname((value ? "🔒 " : "") + this.guild.members.me.displayName.replace(/🔒\s?/g, ""));
     this._locked = value;
@@ -371,6 +552,25 @@ class KamiMusicPlayer {
    */
   get volume() {
     return this._volume;
+  }
+
+  /**
+   * @param {Record<number, number>} value
+   */
+  set equalizer(value) {
+    this._equalizer = value;
+
+    if (this._resource) {
+      const time = this.playbackTimeObject;
+      this.play(undefined, `${time.hour.toString().padStart(2, "0")}:${time.minute.toString().padStart(2, "0")}:${time.second.toString().padStart(2, "0")}`);
+    }
+  }
+
+  /**
+   * @return {Record<number, number>}
+   */
+  get equalizer() {
+    return this._equalizer;
   }
 
   /**
@@ -557,7 +757,7 @@ class KamiMusicPlayer {
    * Play resources.
    * @param {number} [index=this.currentIndex] The index of the resource to be played by the player.
    */
-  async play(index = this.currentIndex) {
+  async play(index = this.currentIndex, seek) {
     this.currentIndex = index;
 
     playerLogger.debug(`Buffer called at ${(new Error()).stack.split("\n")[1].trimStart().split("\\").pop()}`);
@@ -574,7 +774,9 @@ class KamiMusicPlayer {
           playerLogger.info("▶ Using cache");
 
           try {
-            stream = createReadStream(resource.cache);
+            stream = createReadStream(resource.cache, {
+              highWaterMark: 1 << 25,
+            });
           } catch (error) {
             resource.cache = null;
           }
@@ -613,27 +815,26 @@ class KamiMusicPlayer {
           }
 
         if (stream) {
-
-          /*
           const transcoderArgs = [
             "-analyzeduration", "0",
             "-loglevel", "0",
             "-f", "s16le",
             "-ar", "48000",
             "-ac", "2",
-            "-af", `bass=g=${this.audiofilter.bass}`,
+            ...(seek != null ? ["-ss", seek] : []),
+            "-af", `firequalizer=gain_entry='${Object.keys(this.equalizer).map(k => `entry(${k},${this.equalizer[k]})`).join(";")}',dynaudnorm=n=0:c=1`,
+            // "-af", `bass=g=${this.audiofilter.bass}`,
           ];
-          const transcoder = new FFmpeg({ args: transcoderArgs });
-          */
-          const ar = createAudioResource(stream, {
+
+          this._transcoder = new FFmpeg({ args: transcoderArgs });
+          const ar = createAudioResource(pipeline(stream, this._transcoder, () => void 0), {
+            inputType    : StreamType.Raw,
             inlineVolume : true,
             metadata     : resource,
           });
           this._resource = ar;
           this.volume = this._volume;
-          ar.encoder.setBitrate(192000);
           this.player.play(ar);
-
           playerLogger.info(`▶ Playing ${resource.title} ${chalk.gray(this.guild.name)}`);
 
           this._isFinished = false;
@@ -1001,4 +1202,4 @@ const npTemplate = (player, finished, lyrics) => {
   return { content: `🎶 正在 ${player.voiceChannel} 播放`, embeds, components };
 };
 
-module.exports = { KamiMusicPlayer, RepeatMode };
+module.exports = { KamiMusicPlayer, EqualizerPresets, RepeatMode };

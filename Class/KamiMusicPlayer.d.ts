@@ -1,5 +1,5 @@
 import { AudioPlayer, AudioResource, PlayerSubscription, VoiceConnection } from "@discordjs/voice";
-import { Client, Guild, GuildMember, VoiceChannel } from "discord.js";
+import { Client, Guild, GuildMember, Message, VoiceChannel } from "discord.js";
 import { KamiMusicMetadata } from "./KamiMusicMetadata";
 
 export declare enum RepeatMode {
@@ -49,6 +49,11 @@ export declare class KamiMusicPlayer {
 
     _resource: AudioResource<KamiMusicMetadata>;
     _randomQueue: KamiMusicMetadata[];
+    npmsg: Message;
+    lyricsOffset: number;
+    showRubyText: Boolean;
+    _lyricstimer: NodeJS.Timer;
+    equalizer: Record<number, number>;
 
     addResource(resource: KamiMusicMetadata, index?: number): Promise<number>;
     removeIndex(index: number): ?KamiMusicMetadata;
