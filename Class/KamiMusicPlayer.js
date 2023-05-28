@@ -1,6 +1,6 @@
 const { createAudioPlayer, createAudioResource, entersState, joinVoiceChannel, AudioPlayerStatus, NoSubscriberBehavior, VoiceConnectionStatus, StreamType } = require("@discordjs/voice");
-const { existsSync, mkdirSync, writeFileSync, createReadStream, readFileSync, statSync } = require("node:fs");
-const { EmbedBuilder, codeBlock, Colors, ActionRow, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, Message } = require("discord.js");
+const { existsSync, mkdirSync, writeFileSync, createReadStream, readFileSync } = require("node:fs");
+const { EmbedBuilder, codeBlock, Colors, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, Message } = require("discord.js");
 const { KamiMusicMetadata } = require("./KamiMusicMetadata");
 const { Platform } = require("./KamiMusicMetadata");
 const { join } = require("node:path");
@@ -328,8 +328,6 @@ class KamiMusicPlayer {
     this.player.on(AudioPlayerStatus.Playing, () => {
       this.current.error = undefined;
 
-      connectionLogger.info("playing");
-
       if (this._resource.metadata.lyric)
         if (!this._lyricstimer)
           this._lyricstimer = setInterval(() => {
@@ -353,7 +351,6 @@ class KamiMusicPlayer {
     this.player.on(AudioPlayerStatus.Idle, async (oldState) => {
       this._resource = null;
 
-      connectionLogger.info("idle");
       this.stopLyrics();
 
       if (oldState.status == AudioPlayerStatus.Playing) {
@@ -560,10 +557,8 @@ class KamiMusicPlayer {
   set equalizer(value) {
     this._equalizer = value;
 
-    if (this._resource) {
-      const time = this.playbackTimeObject;
-      this.play(undefined, `${time.hour.toString().padStart(2, "0")}:${time.minute.toString().padStart(2, "0")}:${time.second.toString().padStart(2, "0")}`);
-    }
+    if (this._resource)
+      this.play(undefined, this.playbackTime);
   }
 
   /**
@@ -760,20 +755,21 @@ class KamiMusicPlayer {
   async play(index = this.currentIndex, seek) {
     this.currentIndex = index;
 
-    playerLogger.debug(`Buffer called at ${(new Error()).stack.split("\n")[1].trimStart().split("\\").pop()}`);
-    await this.buffer(index);
-    this._isBuffering = false;
+    if (seek == null) {
+      playerLogger.debug(`Buffer called at ${(new Error()).stack.split("\n")[1].trimStart().split("\\").pop()}`);
+      await this.buffer(index);
+      this._isBuffering = false;
+    }
 
     const resource = this.queue[index];
 
     if (resource)
       if (resource.playable) {
-        this._resource = null;
-
         let stream;
 
         if (resource.cache) {
-          playerLogger.info("▶ Using cache");
+          if (seek == null)
+            playerLogger.info("▶ Using cache");
 
           try {
             stream = createReadStream(resource.cache, {
@@ -823,7 +819,7 @@ class KamiMusicPlayer {
             "-f", "s16le",
             "-ar", "48000",
             "-ac", "2",
-            ...(seek != null ? ["-ss", seek] : []),
+            ...(seek != null ? ["-ss", formatTime(~~(seek / 1000))] : []),
             "-af", `firequalizer=gain_entry='${Object.keys(this.equalizer).map(k => `entry(${k},${this.equalizer[k]})`).join(";")}',dynaudnorm=n=0:c=1`,
             // "-af", `bass=g=${this.audiofilter.bass}`,
           ];
@@ -835,18 +831,26 @@ class KamiMusicPlayer {
             metadata     : resource,
           });
           this._resource = ar;
+
+          if (seek != null)
+            this._resource.playbackDuration = seek;
+
           this.volume = this._volume;
           this.player.play(ar);
-          playerLogger.info(`▶ Playing ${resource.title} ${chalk.gray(this.guild.name)}`);
+
+          if (seek == null)
+            playerLogger.info(`▶ Playing ${resource.title} ${chalk.gray(this.guild.name)}`);
 
           this._isFinished = false;
           this.updateNowplayingMessage();
 
           if (this.queue[this.nextIndex])
-            if (!this.queue[this.nextIndex].cache) {
-              playerLogger.debug(`Buffer called at ${(new Error()).stack.split("\n")[1].trimStart().split("\\").pop()}`);
-              this.buffer(this.nextIndex).then(() => this._isBuffering = true);
-            }
+            if (!this.queue[this.nextIndex].cache)
+              if (seek == null) {
+                playerLogger.debug(`Buffer called at ${(new Error()).stack.split("\n")[1].trimStart().split("\\").pop()}`);
+                this.buffer(this.nextIndex).then(() => this._isBuffering = true);
+              }
+
         }
       } else {
         this.next();
@@ -1051,6 +1055,7 @@ class KamiMusicPlayer {
       this.stopped = true;
 
     this.player.stop();
+    delete this._resource;
   }
 
   /**
@@ -1203,5 +1208,18 @@ const npTemplate = (player, finished, lyrics) => {
 
   return { content: `🎶 正在 ${player.voiceChannel} 播放`, embeds, components };
 };
+
+function formatTime(seconds) {
+  let str = "";
+  const second = ~~(seconds % 60);
+  const minute = ~~(seconds / 60);
+  const hour = ~~(minute / 60);
+
+  str += `${hour.toString().padStart(2, "0")}:`;
+  str += `${minute.toString().padStart(2, "0")}:`;
+  str += `${second.toString().padStart(2, "0")}`;
+
+  return str;
+}
 
 module.exports = { KamiMusicPlayer, EqualizerPresets, RepeatMode };

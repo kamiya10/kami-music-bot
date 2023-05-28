@@ -43,7 +43,7 @@ module.exports = {
 
         if (time != null) {
           GuildMusicPlayer.pause();
-          GuildMusicPlayer.play(undefined, formatTime(time, true));
+          GuildMusicPlayer.play(undefined, time);
           content = `⤵️ ${formatTime(time)}`;
         } else {
           throw "ERR_FORMAT";
