@@ -38,7 +38,7 @@ module.exports = {
           .setURL(GuildMusicPlayer.current.url)
           .setDescription(`${GuildMusicPlayer.formattedPlaybackTime} ${progress} ${GuildMusicPlayer.current.formattedDuration}`);
       } else {
-        embed = embed.setDescription("目前沒有在播放任呵東西");
+        embed = embed.setDescription("目前沒有在播放任何東西");
       }
 
       const sent = await interaction.editReply({ embeds: [embed], ephemeral: true });
