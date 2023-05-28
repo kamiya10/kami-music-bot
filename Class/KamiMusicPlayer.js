@@ -768,6 +768,8 @@ class KamiMusicPlayer {
 
     if (resource)
       if (resource.playable) {
+        this._resource = null;
+
         let stream;
 
         if (resource.cache) {
