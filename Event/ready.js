@@ -1,8 +1,9 @@
+const { Events } = require("discord.js");
 const logger = require("../Core/logger").child({ scope: "Main" });
 
 module.exports = {
   name  : "ready",
-  event : "ready",
+  event : Events.ClientReady,
   once  : true,
 
   /**

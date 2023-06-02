@@ -1,4 +1,4 @@
-const { ApplicationCommandType, InteractionType } = require("discord.js");
+const { ApplicationCommandType, InteractionType, Events } = require("discord.js");
 const logger = require("../Core/logger").child({ scope: "CommandHandler" });
 const YouTube = require("simple-youtube-api");
 const Youtube = new YouTube(process.env.YOUTUBE_TOKEN);
@@ -8,7 +8,7 @@ const ytLogger = require("../Core/logger").child({ scope: "Youtube" });
 const autocompletedata = {};
 module.exports = {
   name  : "interactionCreate",
-  event : "interactionCreate",
+  event : Events.InteractionCreate,
   once  : false,
 
   /**
