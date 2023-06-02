@@ -1,6 +1,6 @@
 const { createAudioPlayer, createAudioResource, entersState, joinVoiceChannel, AudioPlayerStatus, NoSubscriberBehavior, VoiceConnectionStatus, StreamType } = require("@discordjs/voice");
 const { existsSync, mkdirSync, writeFileSync, createReadStream, readFileSync } = require("node:fs");
-const { EmbedBuilder, codeBlock, Colors, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, Message } = require("discord.js");
+const { EmbedBuilder, codeBlock, Colors, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, Message, MessageFlags, RESTJSONErrorCodes } = require("discord.js");
 const { KamiMusicMetadata } = require("./KamiMusicMetadata");
 const { Platform } = require("./KamiMusicMetadata");
 const { join } = require("node:path");
@@ -15,7 +15,7 @@ const playerLogger = require("../Core/logger").child({ scope: "Player" });
 // const { FFmpeg } = require("prism-media");
 
 /**
- * @enum {String}
+ * @enum {number}
  */
 const RepeatMode = Object.freeze({
   NoRepeat            : 0,
@@ -1093,19 +1093,21 @@ class KamiMusicPlayer {
    */
   async updateNowplayingMessage() {
     try {
+      const lyrics = !this._isFinished ? this._resource.metadata?.lyrics?.getLine(this.playbackTime - this.lyricsOffset) ?? null : null;
+
       if (this.npmsg) {
-        this.npmsg = await this.npmsg.edit(npTemplate(this, !this._isFinished ? this._resource.metadata?.lyrics?.getLine(this.playbackTime - this.lyricsOffset) ?? null : null)).catch(async (err) => {
-          if (err.code != 10008) console.error(err);
+        this.npmsg = await this.npmsg.edit(npTemplate(this, lyrics)).catch(async (err) => {
+          if (err.code != RESTJSONErrorCodes.UnknownMessage) console.error(err);
 
           if (!this._npmsglock) {
             this._npmsglock = true;
-            this.npmsg = await this.textChannel.send(npTemplate(this, !this._isFinished ? this._resource.metadata?.lyrics?.getLine(this.playbackTime - this.lyricsOffset) ?? null : null));
+            this.npmsg = await this.textChannel.send(npTemplate(this, lyrics));
             this._npmsglock = false;
           }
         });
       } else if (!this._npmsglock) {
         this._npmsglock = true;
-        this.npmsg = await this.textChannel.send(npTemplate(this, !this._isFinished ? this._resource.metadata?.lyrics?.getLine(this.playbackTime - this.lyricsOffset) ?? null : null));
+        this.npmsg = await this.textChannel.send(npTemplate(this, lyrics));
         this._npmsglock = false;
         this._npmsgcollector = this.npmsg.createMessageComponentCollector({ componentType: ComponentType.Button });
         this._npmsgcollector.on("collect", btnInter => {
@@ -1118,7 +1120,7 @@ class KamiMusicPlayer {
             case "toggleRuby": this.showRubyText = !this.showRubyText; break;
           }
 
-          btnInter.update(npTemplate(this, !this._isFinished ? this._resource.metadata?.lyrics?.getLine(this.playbackTime - this.lyricsOffset) ?? null : null));
+          btnInter.update(npTemplate(this, lyrics));
         });
       }
     } catch (err) {
@@ -1207,7 +1209,7 @@ const npTemplate = (player, lyrics) => {
       ));
   }
 
-  return { content: `🎶 正在 ${player.voiceChannel} ${player._resource != null ? "播放" : "待機"}`, embeds, components };
+  return { content: `🎶 正在 ${player.voiceChannel} ${player._resource != null ? "播放" : "待機"}`, embeds, components, flags: MessageFlags.SuppressNotifications };
 };
 
 function formatTime(seconds) {
