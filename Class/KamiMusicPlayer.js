@@ -189,14 +189,14 @@ const EqualizerPresets = Object.freeze({
     16000 : 2,
   },
   BassBoost: {
-    32    : 5,
-    64    : 4,
-    125   : 3,
-    250   : 1,
-    500   : 0,
-    1000  : 1,
-    2000  : 1,
-    4000  : 1,
+    32    : 8,
+    64    : 8,
+    125   : 7,
+    250   : 4,
+    500   : 1,
+    1000  : 0,
+    2000  : 0,
+    4000  : 0,
     8000  : 1,
     16000 : 1,
   },
@@ -1094,18 +1094,18 @@ class KamiMusicPlayer {
   async updateNowplayingMessage() {
     try {
       if (this.npmsg) {
-        this.npmsg = await this.npmsg.edit(npTemplate(this, this._isFinished, !this._isFinished ? this._resource.metadata?.lyrics?.getLine(this.playbackTime - this.lyricsOffset) ?? null : null)).catch(async (err) => {
+        this.npmsg = await this.npmsg.edit(npTemplate(this, !this._isFinished ? this._resource.metadata?.lyrics?.getLine(this.playbackTime - this.lyricsOffset) ?? null : null)).catch(async (err) => {
           if (err.code != 10008) console.error(err);
 
           if (!this._npmsglock) {
             this._npmsglock = true;
-            this.npmsg = await this.textChannel.send(npTemplate(this, this._isFinished, !this._isFinished ? this._resource.metadata?.lyrics?.getLine(this.playbackTime - this.lyricsOffset) ?? null : null));
+            this.npmsg = await this.textChannel.send(npTemplate(this, !this._isFinished ? this._resource.metadata?.lyrics?.getLine(this.playbackTime - this.lyricsOffset) ?? null : null));
             this._npmsglock = false;
           }
         });
       } else if (!this._npmsglock) {
         this._npmsglock = true;
-        this.npmsg = await this.textChannel.send(npTemplate(this, this._isFinished, !this._isFinished ? this._resource.metadata?.lyrics?.getLine(this.playbackTime - this.lyricsOffset) ?? null : null));
+        this.npmsg = await this.textChannel.send(npTemplate(this, !this._isFinished ? this._resource.metadata?.lyrics?.getLine(this.playbackTime - this.lyricsOffset) ?? null : null));
         this._npmsglock = false;
         this._npmsgcollector = this.npmsg.createMessageComponentCollector({ componentType: ComponentType.Button });
         this._npmsgcollector.on("collect", btnInter => {
@@ -1118,7 +1118,7 @@ class KamiMusicPlayer {
             case "toggleRuby": this.showRubyText = !this.showRubyText; break;
           }
 
-          btnInter.update(npTemplate(this, this._isFinished, !this._isFinished ? this._resource.metadata?.lyrics?.getLine(this.playbackTime - this.lyricsOffset) ?? null : null));
+          btnInter.update(npTemplate(this, !this._isFinished ? this._resource.metadata?.lyrics?.getLine(this.playbackTime - this.lyricsOffset) ?? null : null));
         });
       }
     } catch (err) {
@@ -1140,9 +1140,9 @@ class KamiMusicPlayer {
  * @param {KamiMusicPlayer} player
  * @returns
  */
-const npTemplate = (player, finished, lyrics) => {
+const npTemplate = (player, lyrics) => {
   const current = player.current;
-  const embeds = [!finished ? new EmbedBuilder()
+  const embeds = [player._resource != null ? new EmbedBuilder()
     .setColor(player.client.Color.Info)
     .setAuthor({ name: `正在播放 | ${player.guild.name}`, iconURL: player.guild.iconURL() })
     .setThumbnail(current.thumbnail)
@@ -1157,7 +1157,7 @@ const npTemplate = (player, finished, lyrics) => {
     : new EmbedBuilder()
       .setColor(player.client.Color.Info)
       .setAuthor({ name: `正在播放 | ${player.guild.name}`, iconURL: player.guild.iconURL() })
-      .setDescription("目前沒有在播放任何東西，使用 `/add` 來添加項目")
+      .setDescription("目前沒有在播放任何東西，使用 </add url:1015871208438382749> 或 </add search:1015871208438382749> 來添加項目")
       .setTimestamp()];
   const components = [];
 
@@ -1202,11 +1202,12 @@ const npTemplate = (player, finished, lyrics) => {
       .addComponents(new ButtonBuilder()
         .setCustomId("toggleRuby")
         .setStyle(ButtonStyle.Secondary)
+        .setEmoji("✏️")
         .setLabel(player.showRubyText ? "隱藏讀音" : "顯示讀音"),
       ));
   }
 
-  return { content: `🎶 正在 ${player.voiceChannel} 播放`, embeds, components };
+  return { content: `🎶 正在 ${player.voiceChannel} ${player._resource != null ? "播放" : "待機"}`, embeds, components };
 };
 
 function formatTime(seconds) {
