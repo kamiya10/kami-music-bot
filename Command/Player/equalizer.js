@@ -118,7 +118,7 @@ function createAsciiChart(data) {
   // Populate the chart with emojis
   Object.entries(data).forEach(([frequency, dB]) => {
     const y = Object.keys(data).indexOf(frequency);
-    let x = dB < 0 ? Math.abs(minDB) - Math.abs(dB) : center + dB - 1;
+    let x = dB < 0 ? center - Math.abs(dB) - 1 : center + dB - 1;
 
     chart[y][center - 1] = "│";
 
