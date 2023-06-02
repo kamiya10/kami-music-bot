@@ -51,7 +51,7 @@ module.exports = {
         components : [row],
       });
 
-      const collector = sent.createMessageComponentCollector({ idle: 30_000 });
+      const collector = sent.createMessageComponentCollector({ idle: 180_000 });
       collector.on("collect", async inter => {
         const player = inter.client.players.get(interaction.guild.id);
 
