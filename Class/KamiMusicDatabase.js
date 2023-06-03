@@ -1,4 +1,4 @@
-const { existsSync, writeFileSync, readFileSync, writeFile } = require("node:fs");
+const { existsSync, readFileSync, writeFile, writeFileSync } = require("node:fs");
 
 class KamiMusicDatabase {
 

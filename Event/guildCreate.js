@@ -1,7 +1,7 @@
 require("dotenv").config();
+const { Events } = require("discord.js");
 const { REST } = require("@discordjs/rest");
 const { Routes } = require("discord-api-types/v10");
-const { Events } = require("discord.js");
 const logger = require("../Core/logger").child({ scope: "Main" });
 const rest = new REST({ version: "10" }).setToken(process.env.KAMI_TOKEN);
 

@@ -1,14 +1,14 @@
-const { createAudioPlayer, createAudioResource, entersState, joinVoiceChannel, AudioPlayerStatus, NoSubscriberBehavior, VoiceConnectionStatus, StreamType } = require("@discordjs/voice");
-const { existsSync, mkdirSync, writeFileSync, createReadStream, readFileSync } = require("node:fs");
-const { EmbedBuilder, codeBlock, Colors, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, Message, MessageFlags, RESTJSONErrorCodes } = require("discord.js");
+const { ActionRowBuilder, ButtonBuilder, ButtonStyle, Colors, ComponentType, codeBlock, EmbedBuilder, Message, MessageFlags, RESTJSONErrorCodes } = require("discord.js");
+const { AudioPlayerStatus, createAudioPlayer, createAudioResource, entersState, joinVoiceChannel, NoSubscriberBehavior, StreamType, VoiceConnectionStatus } = require("@discordjs/voice");
+const { createReadStream, existsSync, mkdirSync, readFileSync, writeFileSync } = require("node:fs");
+const { FFmpeg } = require("prism-media");
 const { KamiMusicMetadata } = require("./KamiMusicMetadata");
 const { Platform } = require("./KamiMusicMetadata");
 const { join } = require("node:path");
+const { pipeline } = require("node:stream");
 const chalk = require("chalk");
 const ytdl = require("ytdl-core");
 const KamiMusicLyric = require("./KamiMusicLyric");
-const { pipeline } = require("node:stream");
-const { FFmpeg } = require("prism-media");
 
 const connectionLogger = require("../Core/logger").child({ scope: "Connection" });
 const playerLogger = require("../Core/logger").child({ scope: "Player" });
@@ -1062,8 +1062,9 @@ class KamiMusicPlayer {
    * Destroys the player.
    */
   async destroy() {
-    if (this.npmsg.deletable)
-      await this.npmsg.delete().catch(() => void 0);
+    if (this.npmsg instanceof Message)
+      if (this.npmsg.deletable)
+        await this.npmsg.delete().catch(() => void 0);
     this.connection.destroy();
     this.client.players.delete(this.guild.id);
   }
