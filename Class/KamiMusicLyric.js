@@ -13,8 +13,13 @@ class KamiMusicLyric {
     if (index < 0)
       return {
         prev    : null,
-        current : null,
-        next    : this.lyrics[0],
+        current : {
+          ruby  : "",
+          value : "*start*",
+          raw   : "*start*",
+          tw    : "",
+        },
+        next: this.lyrics[0],
       };
     else if (index == 0)
       return {
