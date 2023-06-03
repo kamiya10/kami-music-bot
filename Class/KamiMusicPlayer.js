@@ -1094,7 +1094,7 @@ class KamiMusicPlayer {
    */
   async updateNowplayingMessage() {
     try {
-      const lyrics = !this._isFinished ? this._resource.metadata?.lyrics?.getLine(this.playbackTime - this.lyricsOffset) ?? null : null;
+      const lyrics = this._resource ? this._resource.metadata?.lyrics?.getLine(this.playbackTime - this.lyricsOffset) ?? null : null;
 
       if (this.npmsg) {
         this.npmsg = await this.npmsg.edit(npTemplate(this, lyrics)).catch(async (err) => {
@@ -1121,7 +1121,7 @@ class KamiMusicPlayer {
             case "toggleRuby": this.showRubyText = !this.showRubyText; break;
           }
 
-          btnInter.update(npTemplate(this, lyrics));
+          btnInter.update(npTemplate(this, this._resource ? this._resource.metadata?.lyrics?.getLine(this.playbackTime - this.lyricsOffset) ?? null : null));
         });
       }
     } catch (err) {
