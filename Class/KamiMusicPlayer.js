@@ -339,9 +339,7 @@ class KamiMusicPlayer {
 
                 if (this._currentLyricIndex != index) {
                   this._currentLyricIndex = index;
-
-                  if (this._currentLyricIndex >= 0)
-                    this.updateNowplayingMessage();
+                  this.updateNowplayingMessage();
                 }
               } catch (error) {
                 // ignoring all errors here because it will be spammy in the console
