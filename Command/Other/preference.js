@@ -165,10 +165,11 @@ module.exports = {
         })
         .setTimestamp();
 
-      if (is_global)
+      if (is_global) {
         userPreference.global ??= {};
-      else
+      } else {
         userPreference[interaction.guild.id] ??= {};
+      }
 
       switch (settingKey) {
         case "list": {
@@ -267,9 +268,12 @@ module.exports = {
           .setFooter({ text: e.message });
       }
 
-      if (this.defer)
-        if (!this.ephemeral)
+      if (this.defer) {
+        if (!this.ephemeral) {
           await interaction.deleteReply().catch(() => void 0);
+        }
+      }
+
       await interaction.followUp({ embeds: [embed], ephemeral: true });
     }
   },

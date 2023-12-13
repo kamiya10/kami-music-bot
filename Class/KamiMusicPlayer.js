@@ -328,10 +328,10 @@ class KamiMusicPlayer {
     this.player.on(AudioPlayerStatus.Playing, () => {
       this.current.error = undefined;
 
-      if (this._resource.metadata.lyric)
-        if (!this._lyricstimer)
+      if (this._resource.metadata.lyric) {
+        if (!this._lyricstimer) {
           this._lyricstimer = setInterval(() => {
-            if (this.playbackTime)
+            if (this.playbackTime) {
               try {
                 const offsetTime = this.playbackTime - this.lyricsOffset;
 
@@ -342,9 +342,12 @@ class KamiMusicPlayer {
                   this.updateNowplayingMessage();
                 }
               } catch (error) {
-                // ignoring all errors here because it will be spammy in the console
+              // ignoring all errors here because it will be spammy in the console
               }
+            }
           }, 10);
+        }
+      }
     });
     this.player.on(AudioPlayerStatus.Idle, async (oldState) => {
       this._resource = null;
@@ -358,7 +361,7 @@ class KamiMusicPlayer {
             this.npmsg = null;
           }
 
-          if (this.queue.length > 0)
+          if (this.queue.length > 0) {
             switch (this.repeat) {
               case RepeatMode.NoRepeat: {
                 if (this.currentIndex < (this.queue.length - 1)) {
@@ -388,8 +391,9 @@ class KamiMusicPlayer {
               }
 
               case RepeatMode.RandomNoRepeat: {
-                if (this._randomQueue.length == 0)
+                if (this._randomQueue.length == 0) {
                   this._randomQueue = [...this.queue];
+                }
 
                 this._randomQueue = this._randomQueue.sort(() => 0.5 - Math.random());
                 const resource = this._randomQueue.shift();
@@ -417,6 +421,7 @@ class KamiMusicPlayer {
 
               default: break;
             }
+          }
         }
 
         this.stopped = false;
@@ -439,8 +444,9 @@ class KamiMusicPlayer {
         this.currentIndex = Math.floor(Math.random() * this.queue.length);
         this.play();
       } else if (this.repeat == RepeatMode.RandomNoRepeat) {
-        if (this._randomQueue.length == 0)
+        if (this._randomQueue.length == 0) {
           this._randomQueue = [...this.queue];
+        }
 
         this._randomQueue = this._randomQueue.sort(() => 0.5 - Math.random());
         const resource = this._randomQueue.shift();
@@ -478,11 +484,14 @@ class KamiMusicPlayer {
    * @param {number} value
    */
   set currentIndex(value) {
-    if (value < 0)
+    if (value < 0) {
       value = this.queue.length - 1;
+    }
 
-    if (value > (this.queue.length - 1))
+    if (value > (this.queue.length - 1)) {
       value = 0;
+    }
+
     this._currentIndex = value;
   }
 
@@ -499,25 +508,32 @@ class KamiMusicPlayer {
   get nextIndex() {
     switch (this.repeat) {
       case RepeatMode.NoRepeat:
-        if (this.currentIndex < (this.queue.length - 1))
+        if (this.currentIndex < (this.queue.length - 1)) {
           return this.currentIndex + 1;
+        }
+
         break;
       case RepeatMode.RepeatQueue:
-        if (this.currentIndex < (this.queue.length - 1))
+        if (this.currentIndex < (this.queue.length - 1)) {
           return this.currentIndex + 1;
-        else
+        } else {
           return 0;
+        }
+
       case RepeatMode.RepeatCurrent:
         return this.currentIndex;
       case RepeatMode.Backward:
-        if (this.currentIndex > 0)
+        if (this.currentIndex > 0) {
           return this.currentIndex - 1;
+        }
+
         break;
       case RepeatMode.BackwardRepeatQueue:
-        if (this.currentIndex > 0)
+        if (this.currentIndex > 0) {
           return this.currentIndex - 1;
-        else
+        } else {
           return this.queue.length - 1;
+        }
 
       default: break;
     }
@@ -538,8 +554,9 @@ class KamiMusicPlayer {
   set volume(value) {
     this._volume = value;
 
-    if (this._resource)
+    if (this._resource) {
       this._resource.volume.setVolume(this._volume / (1 / 0.4));
+    }
   }
 
   /**
@@ -555,8 +572,9 @@ class KamiMusicPlayer {
   set equalizer(value) {
     this._equalizer = value;
 
-    if (this._resource)
+    if (this._resource) {
       this.play(undefined, this.playbackTime);
+    }
   }
 
   /**
@@ -573,12 +591,18 @@ class KamiMusicPlayer {
     switch (value) {
       case RepeatMode.RepeatQueue:
       case RepeatMode.BackwardRepeatQueue: {
-        if (this.player.state.status == AudioPlayerStatus.Idle) this.next();
+        if (this.player.state.status == AudioPlayerStatus.Idle) {
+          this.next();
+        }
+
         break;
       }
 
       case RepeatMode.RandomNoRepeat: {
-        if (value != this.repeat) this._randomQueue = [...this.queue];
+        if (value != this.repeat) {
+          this._randomQueue = [...this.queue];
+        }
+
         break;
       }
 
@@ -642,36 +666,43 @@ class KamiMusicPlayer {
    * @return {Promise<number>} The index the resource is at in the queue.
    */
   async addResource(resource, index = this.queue.length) {
-    if (Array.isArray(resource))
+    if (Array.isArray(resource)) {
       this.queue.splice(index, 0, ...resource);
-    else
+    } else {
       this.queue.splice(index, 0, resource);
+    }
 
-    if (this.repeat == RepeatMode.RandomNoRepeat)
-      if (Array.isArray(resource))
+    if (this.repeat == RepeatMode.RandomNoRepeat) {
+      if (Array.isArray(resource)) {
         this._randomQueue.splice(index, 0, ...resource);
-      else
+      } else {
         this._randomQueue.splice(index, 0, resource);
+      }
+    }
 
     if (![RepeatMode.Random, RepeatMode.RandomNoRepeat, RepeatMode.TrueRandom].includes(this.repeat)) {
-      if (this.currentIndex > index)
+      if (this.currentIndex > index) {
         this.currentIndex += 1;
+      }
 
-      if (this.queue[this.nextIndex])
+      if (this.queue[this.nextIndex]) {
         if (!this.queue[this.nextIndex].cache) {
 
           playerLogger.debug(`Buffer called at ${(new Error()).stack.split("\n")[1].trimStart().split("\\").pop()}`);
           await this.buffer(this.nextIndex);
           this._isBuffering = false;
         }
+      }
     }
 
     if (this.player.state.status == AudioPlayerStatus.Idle) {
-      if (![RepeatMode.Random, RepeatMode.RandomNoRepeat, RepeatMode.TrueRandom].includes(this.repeat))
-        if (Array.isArray(resource))
+      if (![RepeatMode.Random, RepeatMode.RandomNoRepeat, RepeatMode.TrueRandom].includes(this.repeat)) {
+        if (Array.isArray(resource)) {
           this.currentIndex = this.queue.indexOf(resource[0]);
-        else
+        } else {
           this.currentIndex = this.queue.indexOf(resource);
+        }
+      }
 
       this.play();
     }
@@ -688,18 +719,21 @@ class KamiMusicPlayer {
     const resource = this.queue[index];
 
     if (resource instanceof KamiMusicMetadata) {
-      if (![RepeatMode.Random, RepeatMode.RandomNoRepeat, RepeatMode.TrueRandom].includes(this.repeat))
-        if (this.currentIndex > index && this.currentIndex > 0)
-          this.currentIndex -= 1;
-
-      if (this.currentIndex == index && this.player.state.status == AudioPlayerStatus.Playing)
+      if (this.currentIndex == index && this.player.state.status == AudioPlayerStatus.Playing) {
         this.stop();
+      } else if (![RepeatMode.Random, RepeatMode.RandomNoRepeat, RepeatMode.TrueRandom].includes(this.repeat)) {
+        if (this.currentIndex > index && this.currentIndex > 0) {
+          this.currentIndex -= 1;
+        }
+      }
 
       this.queue.splice(index, 1);
 
-      if (this.repeat == RepeatMode.RandomNoRepeat)
-        if (this._randomQueue.includes(resource))
+      if (this.repeat == RepeatMode.RandomNoRepeat) {
+        if (this._randomQueue.includes(resource)) {
           this._randomQueue.splice(this._randomQueue.indexOf(resource), 1);
+        }
+      }
 
       return resource;
     }
@@ -716,18 +750,23 @@ class KamiMusicPlayer {
     const index = this.queue.indexOf(resource);
 
     if (index > -1) {
-      if (![RepeatMode.Random, RepeatMode.RandomNoRepeat, RepeatMode.TrueRandom].includes(this.repeat))
-        if (this.currentIndex > index && this.currentIndex > 0)
+      if (![RepeatMode.Random, RepeatMode.RandomNoRepeat, RepeatMode.TrueRandom].includes(this.repeat)) {
+        if (this.currentIndex > index && this.currentIndex > 0) {
           this.currentIndex -= 1;
+        }
+      }
 
-      if (this.currentIndex == index && this.player.state.status == AudioPlayerStatus.Playing)
+      if (this.currentIndex == index && this.player.state.status == AudioPlayerStatus.Playing) {
         this.stop();
+      }
 
       this.queue.splice(index, 1);
 
-      if (this.repeat == RepeatMode.RandomNoRepeat)
-        if (this._randomQueue.includes(resource))
+      if (this.repeat == RepeatMode.RandomNoRepeat) {
+        if (this._randomQueue.includes(resource)) {
           this._randomQueue.splice(this._randomQueue.indexOf(resource), 1);
+        }
+      }
 
       return index;
     }
@@ -761,13 +800,14 @@ class KamiMusicPlayer {
 
     const resource = this.queue[index];
 
-    if (resource)
+    if (resource) {
       if (resource.playable) {
         let stream;
 
         if (resource.cache) {
-          if (seek == null)
+          if (seek == null) {
             playerLogger.info("▶ Using cache");
+          }
 
           try {
             stream = createReadStream(resource.cache, {
@@ -778,7 +818,7 @@ class KamiMusicPlayer {
           }
         }
 
-        if (!stream)
+        if (!stream) {
           switch (resource.platform) {
             case Platform.Youtube: {
               let agent;
@@ -809,6 +849,7 @@ class KamiMusicPlayer {
 
             default: break;
           }
+        }
 
         if (stream) {
           const transcoderArgs = [
@@ -819,7 +860,7 @@ class KamiMusicPlayer {
             "-ac", "2",
             ...(seek != null ? ["-ss", formatTime(~~(seek / 1000))] : []),
             "-af", `firequalizer=gain_entry='${Object.keys(this.equalizer).map(k => `entry(${k},${this.equalizer[k]})`).join(";")}',dynaudnorm=n=0:c=1`,
-            // "-af", `bass=g=${this.audiofilter.bass}`,
+          // "-af", `bass=g=${this.audiofilter.bass}`,
           ];
 
           this._transcoder = new FFmpeg({ args: transcoderArgs });
@@ -830,29 +871,34 @@ class KamiMusicPlayer {
           });
           this._resource = ar;
 
-          if (seek != null)
+          if (seek != null) {
             this._resource.playbackDuration = seek;
+          }
 
           this.volume = this._volume;
           this.player.play(ar);
 
-          if (seek == null)
+          if (seek == null) {
             playerLogger.info(`▶ Playing ${resource.title} ${chalk.gray(this.guild.name)}`);
+          }
 
           this._isFinished = false;
           this.updateNowplayingMessage();
 
-          if (this.queue[this.nextIndex])
-            if (!this.queue[this.nextIndex].cache)
+          if (this.queue[this.nextIndex]) {
+            if (!this.queue[this.nextIndex].cache) {
               if (seek == null) {
                 playerLogger.debug(`Buffer called at ${(new Error()).stack.split("\n")[1].trimStart().split("\\").pop()}`);
                 this.buffer(this.nextIndex).then(() => this._isBuffering = true);
               }
+            }
+          }
 
         }
       } else {
         this.next();
       }
+    }
   }
 
   /**
@@ -861,18 +907,22 @@ class KamiMusicPlayer {
    * @param {?boolean} force Whether or not the cache checking should be skipped.
    */
   async buffer(index, force = false, _retried = 0) {
-    if (this._isBuffering) return;
+    if (this._isBuffering) {
+      return;
+    }
+
     this._isBuffering = true;
 
-    if (!existsSync(join(__dirname, "../.cache")))
+    if (!existsSync(join(__dirname, "../.cache"))) {
       mkdirSync(join(__dirname, "../.cache"));
+    }
 
     const resource = this.queue[index];
 
-    if (resource)
+    if (resource) {
       if (resource.durationObject.minute < 6) {
         if (!existsSync(join(__dirname, "../.cache", resource.id)) || force) {
-          if (!resource.cache || force)
+          if (!resource.cache || force) {
             if (resource.playable) {
               let stream;
 
@@ -907,28 +957,34 @@ class KamiMusicPlayer {
                 default: break;
               }
 
-              if (stream)
+              if (stream) {
                 await new Promise((resolve, reject) => {
                   const retryTimeout = setTimeout(() => stream.emit("error", new Error("Timeouut")), 3000);
                   playerLogger.info(`⏳ Buffering ${resource.title} ${chalk.gray(this.guild.name)}`);
                   const _buf = [];
 
                   stream.on("data", (data) => {
-                    if (retryTimeout)
+                    if (retryTimeout) {
                       clearTimeout(retryTimeout);
+                    }
+
                     _buf.push(data);
                   });
 
                   stream.on("error", (err) => {
                     if (err.message.startsWith("Status code: 4")) {
-                      if (err.message.includes("410"))
+                      if (err.message.includes("410")) {
                         resource.region.push("TW");
+                      }
 
                       reject(err);
                     } else {
                       stream.destroy();
 
-                      if (_retried > 5) reject(new Error("Buffer retry limit exceeded."));
+                      if (_retried > 5) {
+                        reject(new Error("Buffer retry limit exceeded."));
+                      }
+
                       playerLogger.info(`🔄 Buffering ${resource.title} ${chalk.gray(this.guild.name)}`);
 
                       this._isBuffering = false;
@@ -956,7 +1012,9 @@ class KamiMusicPlayer {
                     resolve();
                   });
                 });
+              }
             }
+          }
         } else {
           playerLogger.debug(`Resource has cache at ${join(__dirname, "../.cache/", resource.id).replace("C:\\Users\\Kamiya\\Documents\\GitHub\\Kamiya\\kami-music-bot", "")}`);
           resource.cache = join(__dirname, "../.cache/", resource.id);
@@ -964,34 +1022,39 @@ class KamiMusicPlayer {
 
         // lyrics
 
-        if (resource.lyrics instanceof KamiMusicLyric)
-          if (resource.cache)
+        if (resource.lyrics instanceof KamiMusicLyric) {
+          if (resource.cache) {
             return;
+          }
+        }
 
-        if (resource.lyric == null)
+        if (resource.lyric == null) {
           KamiMusicLyric.searchLyrics(resource.title).then(results => {
             if (results.length) {
               resource.lyric = results[0].id;
               resource.lyricMetadata = results[0];
 
-              if (!existsSync(join(__dirname, "../.cache/", `${resource.lyric}.lyric`)))
+              if (!existsSync(join(__dirname, "../.cache/", `${resource.lyric}.lyric`))) {
                 KamiMusicLyric.fetchLyric(resource.lyric).then(data => {
                   resource.lyrics = new KamiMusicLyric(data);
                   writeFileSync(join(__dirname, "../.cache/", `${resource.lyric}.lyric`), JSON.stringify(data), { flag: "w" });
                   writeFileSync(join(__dirname, "../.cache", `${resource.id}.metadata`), JSON.stringify(resource.toJSON()), { encoding: "utf-8", flag: "w" });
                 });
-              else
+              } else {
                 resource.lyrics = new KamiMusicLyric(JSON.parse(readFileSync(join(__dirname, "../.cache/", `${resource.lyric}.lyric`), { encoding: "utf-8" })));
+              }
             }
           });
-        else if (!existsSync(join(__dirname, "../.cache/", `${resource.lyric}.lyric`)))
+        } else if (!existsSync(join(__dirname, "../.cache/", `${resource.lyric}.lyric`))) {
           KamiMusicLyric.fetchLyric(resource.lyric).then(data => {
             resource.lyrics = new KamiMusicLyric(data);
             writeFileSync(join(__dirname, "../.cache/", `${resource.lyric}.lyric`), JSON.stringify(data), { flag: "w" });
           });
-        else
+        } else {
           resource.lyrics = new KamiMusicLyric(JSON.parse(readFileSync(join(__dirname, "../.cache/", `${resource.lyric}.lyric`), { encoding: "utf-8" })));
+        }
       }
+    }
   }
 
   /**
@@ -1000,8 +1063,9 @@ class KamiMusicPlayer {
    */
   next() {
     if (this.repeat == RepeatMode.RandomNoRepeat) {
-      if (this._randomQueue.length == 0)
+      if (this._randomQueue.length == 0) {
         this._randomQueue = [...this.queue];
+      }
 
       this._randomQueue = this._randomQueue.sort(() => 0.5 - Math.random());
       const resource = this._randomQueue.shift();
@@ -1021,10 +1085,11 @@ class KamiMusicPlayer {
    * @returns {KamiMusicMetadata} The resource to be played.
    */
   prev() {
-    if (this.repeat == RepeatMode.Backward || this.repeat == RepeatMode.BackwardRepeatQueue)
+    if (this.repeat == RepeatMode.Backward || this.repeat == RepeatMode.BackwardRepeatQueue) {
       this.currentIndex += 1;
-    else
+    } else {
       this.currentIndex -= 1;
+    }
 
     this.play();
     return this.current;
@@ -1049,8 +1114,9 @@ class KamiMusicPlayer {
    * @param {boolean} force If `true`, the player won't transition into the next resource.
    */
   stop(force = false) {
-    if (force)
+    if (force) {
       this.stopped = true;
+    }
 
     this.player.stop();
     delete this._resource;
@@ -1060,9 +1126,12 @@ class KamiMusicPlayer {
    * Destroys the player.
    */
   async destroy() {
-    if (this.npmsg instanceof Message)
-      if (this.npmsg.deletable)
+    if (this.npmsg instanceof Message) {
+      if (this.npmsg.deletable) {
         await this.npmsg.delete().catch(() => void 0);
+      }
+    }
+
     this.connection.destroy();
     this.client.players.delete(this.guild.id);
   }
@@ -1096,7 +1165,9 @@ class KamiMusicPlayer {
 
       if (this.npmsg) {
         this.npmsg = await this.npmsg.edit(npTemplate(this, lyrics)).catch(async (err) => {
-          if (err.code != RESTJSONErrorCodes.UnknownMessage) console.error(err);
+          if (err.code != RESTJSONErrorCodes.UnknownMessage) {
+            console.error(err);
+          }
 
           if (!this._npmsglock) {
             this._npmsglock = true;

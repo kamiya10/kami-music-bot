@@ -18,10 +18,11 @@ const eventFiles = readdirSync("./Event").filter((file) => file.endsWith(".js"))
 for (const file of eventFiles) {
   const event = require(path.resolve(`./Event/${file}`));
 
-  if (event.once)
+  if (event.once) {
     Kami.once(event.event, (...args) => event.execute(Kami, ...args));
-  else
+  } else {
     Kami.on(event.event, (...args) => event.execute(Kami, ...args));
+  }
 }
 
 // #endregion
@@ -69,7 +70,7 @@ Kami.EmbedIcon = Object.freeze({
 if (existsSync(path.join(__dirname, "../.cache"))) {
   const metafiles = readdirSync(path.join(__dirname, "../.cache")).filter((file) => file.endsWith(".metadata"));
 
-  for (const file of metafiles)
+  for (const file of metafiles) {
     readFile(path.join(__dirname, "../.cache", file), { encoding: "utf-8" }, (err, data) => {
       if (!err) {
         const meta = JSON.parse(data);
@@ -78,6 +79,7 @@ if (existsSync(path.join(__dirname, "../.cache"))) {
         logger.error(err);
       }
     });
+  }
 
 }
 

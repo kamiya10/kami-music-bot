@@ -22,19 +22,30 @@ module.exports = {
 	 */
   async execute(interaction) {
     try {
-      if (!interaction.member.voice.channel) throw { message: "ERR_USER_NOT_IN_VOICE" };
+      if (!interaction.member.voice.channel) {
+        throw { message: "ERR_USER_NOT_IN_VOICE" };
+      }
+
       const GuildMusicPlayer = interaction.client.players.get(interaction.guild.id);
 
-      if (!GuildMusicPlayer) throw { message: "ERR_NO_PLAYER" };
+      if (!GuildMusicPlayer) {
+        throw { message: "ERR_NO_PLAYER" };
+      }
 
-      if (GuildMusicPlayer.locked && GuildMusicPlayer.owner.id != interaction.member.id) throw { message: "ERR_PLAYER_LOCKED" };
+      if (GuildMusicPlayer.locked && GuildMusicPlayer.owner.id != interaction.member.id) {
+        throw { message: "ERR_PLAYER_LOCKED" };
+      }
 
-      if (GuildMusicPlayer.voiceChannel.id != interaction.member.voice.channel.id)
+      if (GuildMusicPlayer.voiceChannel.id != interaction.member.voice.channel.id) {
         throw "ERR_USER_NOT_IN_SAME_VOICE";
+      }
 
       const index = interaction.options.getInteger("index") - 1;
 
-      if (index > (GuildMusicPlayer.queue.length - 1)) throw { message: "ERR_OUT_OF_BOUNDS" };
+      if (index > (GuildMusicPlayer.queue.length - 1)) {
+        throw { message: "ERR_OUT_OF_BOUNDS" };
+      }
+
       GuildMusicPlayer.play(index);
 
       const sent = await interaction.editReply({ content: `▶ \`#${GuildMusicPlayer.currentIndex + 1}\` ${GuildMusicPlayer.current.title}` });
@@ -61,9 +72,12 @@ module.exports = {
           .setFooter({ text: e.message });
       }
 
-      if (this.defer)
-        if (!this.ephemeral)
+      if (this.defer) {
+        if (!this.ephemeral) {
           await interaction.deleteReply().catch(() => void 0);
+        }
+      }
+
       await interaction.followUp({ embeds: [embed], ephemeral: true });
     }
   },

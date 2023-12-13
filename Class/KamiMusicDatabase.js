@@ -14,8 +14,9 @@ class KamiMusicDatabase {
      */
     this.PATH = path;
 
-    if (!existsSync(this.PATH))
+    if (!existsSync(this.PATH)) {
       writeFileSync(this.PATH, "{}", { encoding: "utf-8" });
+    }
 
     this.data = JSON.parse(readFileSync(this.PATH, { encoding: "utf-8" }));
     client.setting ??= {};

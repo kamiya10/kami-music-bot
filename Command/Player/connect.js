@@ -18,7 +18,9 @@ module.exports = {
 	 */
   async execute(interaction) {
     try {
-      if (!interaction.member.voice.channel) throw { message: "ERR_USER_NOT_IN_VOICE" };
+      if (!interaction.member.voice.channel) {
+        throw { message: "ERR_USER_NOT_IN_VOICE" };
+      }
 
       /**
 			 * @type {KamiMusicPlayer}
@@ -26,7 +28,10 @@ module.exports = {
       const GuildMusicPlayer = interaction.client.players.get(interaction.guild.id);
 
       if (GuildMusicPlayer) {
-        if (GuildMusicPlayer.locked && GuildMusicPlayer.owner.id != interaction.member.id) throw { message: "ERR_PLAYER_LOCKED" };
+        if (GuildMusicPlayer.locked && GuildMusicPlayer.owner.id != interaction.member.id) {
+          throw { message: "ERR_PLAYER_LOCKED" };
+        }
+
         GuildMusicPlayer.connect(interaction.member.voice.channel);
       } else {
         new KamiMusicPlayer(interaction.member.voice.channel, interaction.member, interaction.channel);
@@ -53,9 +58,12 @@ module.exports = {
           .setFooter({ text: e.message });
       }
 
-      if (this.defer)
-        if (!this.ephemeral)
+      if (this.defer) {
+        if (!this.ephemeral) {
           await interaction.deleteReply().catch(() => void 0);
+        }
+      }
+
       await interaction.followUp({ embeds: [embed], ephemeral: true });
     }
   },

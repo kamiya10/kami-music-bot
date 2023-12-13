@@ -23,7 +23,9 @@ module.exports = {
 			 */
       const GuildMusicPlayer = interaction.client.players.get(interaction.guild.id);
 
-      if (!GuildMusicPlayer) throw { message: "ERR_NO_PLAYER" };
+      if (!GuildMusicPlayer) {
+        throw { message: "ERR_NO_PLAYER" };
+      }
 
       const listMapper = (v, i, a) =>
         (
@@ -110,8 +112,10 @@ module.exports = {
             case "prev": {
               cursor -= 9;
 
-              if (cursor < 0)
+              if (cursor < 0) {
                 cursor = 0;
+              }
+
               break;
             }
 
@@ -123,8 +127,10 @@ module.exports = {
             case "next": {
               cursor += 9;
 
-              if (cursor > songlist.length - 1)
+              if (cursor > songlist.length - 1) {
                 cursor = songlist.length - 1;
+              }
+
               break;
             }
 
@@ -205,16 +211,22 @@ module.exports = {
           .setFooter({ text: e.message });
       }
 
-      if (this.defer)
-        if (!this.ephemeral)
+      if (this.defer) {
+        if (!this.ephemeral) {
           await interaction.deleteReply().catch(() => void 0);
+        }
+      }
+
       await interaction.followUp({ embeds: [embed], ephemeral: true });
     }
   },
 };
 
 function getSubset(array, value, size) {
-  if (array.length <= size) return array;
+  if (array.length <= size) {
+    return array;
+  }
+
   const index = array.indexOf(value) - (size - 1) / 2,
     max = Math.max(index, 0),
     min = Math.min(max, array.length - size);
@@ -222,7 +234,10 @@ function getSubset(array, value, size) {
 }
 
 function getSubsetRange(array, value, size) {
-  if (array.length <= size) return { min: 1, max: array.length };
+  if (array.length <= size) {
+    return { min: 1, max: array.length };
+  }
+
   const index = array.indexOf(value) - (size - 1) / 2,
     max = Math.max(index, 0),
     min = Math.min(max, array.length - size);

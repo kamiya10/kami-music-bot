@@ -10,7 +10,7 @@ class KamiMusicLyric {
     const i = this.getIndex(time);
     const index = ~~i;
 
-    if (index < 0)
+    if (index < 0) {
       return {
         prev    : null,
         current : {
@@ -21,13 +21,13 @@ class KamiMusicLyric {
         },
         next: this.lyrics[0],
       };
-    else if (index == 0)
+    } else if (index == 0) {
       return {
         prev    : null,
         current : this.lyrics[index],
         next    : this.lyrics[index + 1],
       };
-    else if ((i - 0.5) == (this.lyrics.length - 1))
+    } else if ((i - 0.5) == (this.lyrics.length - 1)) {
       return {
         prev    : this.lyrics[index],
         current : {
@@ -38,7 +38,7 @@ class KamiMusicLyric {
         },
         next: null,
       };
-    else if (index == (this.lyrics.length - 1))
+    } else if (index == (this.lyrics.length - 1)) {
       return {
         prev    : this.lyrics[index - 1],
         current : this.lyrics[index],
@@ -49,6 +49,7 @@ class KamiMusicLyric {
           tw    : "",
         },
       };
+    }
 
     return {
       prev    : time >= this.lyrics[index].end ? this.lyrics[index] : this.lyrics[index - 1],
@@ -64,13 +65,15 @@ class KamiMusicLyric {
 
   getIndex(time) {
     for (let i = 0, n = this.lyrics.length; i < n; i++) {
-      if (i == 0 && time < this.lyrics[i].start)
+      if (i == 0 && time < this.lyrics[i].start) {
         return -1;
+      }
 
-      if (time >= this.lyrics[i].start && time <= this.lyrics[i].end)
+      if (time >= this.lyrics[i].start && time <= this.lyrics[i].end) {
         return i;
-      else if (time > this.lyrics[i].end && time < (this.lyrics[i + 1]?.start ?? Infinity))
+      } else if (time > this.lyrics[i].end && time < (this.lyrics[i + 1]?.start ?? Infinity)) {
         return i + 0.5;
+      }
     }
   }
 
@@ -109,12 +112,13 @@ class KamiMusicLyric {
       for (const match of matches) {
         let space = "";
 
-        if (match[2].length == 1 || match[1].length == match[2].length)
+        if (match[2].length == 1 || match[1].length == match[2].length) {
           space = "";
-        else if (Math.abs(match[1].length - match[2].length) % 2)
+        } else if (Math.abs(match[1].length - match[2].length) % 2) {
           space = " ".repeat(Math.abs(match[1].length - match[2].length));
-        else
+        } else {
           space = "　".repeat(Math.abs(match[1].length - match[2].length) / 2);
+        }
 
         rubyReplaceStr.push(match[2]);
         raw[i] = data.Lyrics[i];
@@ -124,9 +128,12 @@ class KamiMusicLyric {
 
       if (rubyReplaceStr.length) {
         ruby[i] = ruby[i].split("#");
-        for (const rubyI in ruby[i])
-          if (!rubyReplaceStr.includes(ruby[i][rubyI]))
+
+        for (const rubyI in ruby[i]) {
+          if (!rubyReplaceStr.includes(ruby[i][rubyI])) {
             ruby[i][rubyI] = ruby[i][rubyI].replace(/[ぁ-んァ-ン，。、？！：；【】「」『』（）〈〉《》～・]/g, "　").replace(/(?<=\s)ー/g, "　").replace(/[a-zA-Z0-9<>,."':;!?~()[\]…-]/g, " ");
+          }
+        }
       } else {
         ruby[i] = [""];
       }
@@ -171,7 +178,7 @@ class KamiMusicLyric {
         for (let i = 0, n = raw.results.length; i < n; i++) {
           const e = raw.results[i];
 
-          if (e.url.startsWith("https://www.jpmarumaru.com/tw/JPSongPlay-"))
+          if (e.url.startsWith("https://www.jpmarumaru.com/tw/JPSongPlay-")) {
             result.push({
               name          : e.titleNoFormatting.replace("-歌詞-唱歌學日語-日語教室-MARUMARU", ""),
               url           : e.url,
@@ -179,6 +186,7 @@ class KamiMusicLyric {
               artistPredict : e.titleNoFormatting.replace("-歌詞-唱歌學日語-日語教室-MARUMARU", "").split("-").slice(1).join(""),
               id            : e.url.replace(/https:\/\/www\.jpmarumaru\.com\/tw\/JPSongPlay-(.+)\.html/, "$1"),
             });
+          }
         }
 
         console.log("lyric found");
@@ -200,8 +208,10 @@ function convertSecond(time) {
   const timearr = time.split(":"); ["04", "23"];
 
   let second = 0;
-  for (let i = 0, n = timearr.length; i < n; i++)
+
+  for (let i = 0, n = timearr.length; i < n; i++) {
     second += Number(timearr.pop()) * Math.pow(60, i) * 1000;
+  }
 
   return second;
 }
@@ -213,15 +223,17 @@ function searchPredefinedDictionary(kw) {
   for (let i = 0, n = dictionary.length; i < n; i++) {
     const e = dictionary[i];
 
-    if (kw.includes(e.titlePredict) && kw.includes(e.artistPredict))
+    if (kw.includes(e.titlePredict) && kw.includes(e.artistPredict)) {
       results.push(e);
+    }
   }
 
   for (let i = 0, n = dictionary.length; i < n; i++) {
     const e = dictionary[i];
 
-    if (!(kw.includes(e.titlePredict) && kw.includes(e.artistPredict)) && kw.includes(e.titlePredict))
+    if (!(kw.includes(e.titlePredict) && kw.includes(e.artistPredict)) && kw.includes(e.titlePredict)) {
       results.push(e);
+    }
   }
 
   return results;

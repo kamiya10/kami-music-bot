@@ -68,14 +68,20 @@ rl._writeToOutput = function _writeToOutput(stringToWrite) {
       case "log": {
         args[0] = chalk.blueBright(args[0]);
 
-        if (args[1]) args[1] = args[1].startsWith("\"") ? chalk.greenBright(args[1]) : chalk.yellow(args[1]);
+        if (args[1]) {
+          args[1] = args[1].startsWith("\"") ? chalk.greenBright(args[1]) : chalk.yellow(args[1]);
+        }
+
         break;
       }
 
       case "emit": {
         args[0] = chalk.blueBright(args[0]);
 
-        if (args[1]) args[1] = chalk.greenBright(args[1]);
+        if (args[1]) {
+          args[1] = chalk.greenBright(args[1]);
+        }
+
         break;
       }
 

@@ -16,19 +16,26 @@ module.exports = {
    */
   async execute(interaction) {
     try {
-      if (!interaction.member.voice.channel) throw { message: "ERR_USER_NOT_IN_VOICE" };
+      if (!interaction.member.voice.channel) {
+        throw { message: "ERR_USER_NOT_IN_VOICE" };
+      }
 
       /**
        * @type {import("../../Class/KamiMusicPlayer").KamiMusicPlayer}
        */
       const GuildMusicPlayer = interaction.client.players.get(interaction.guild.id);
 
-      if (!GuildMusicPlayer) throw { message: "ERR_NO_PLAYER" };
+      if (!GuildMusicPlayer) {
+        throw { message: "ERR_NO_PLAYER" };
+      }
 
-      if (GuildMusicPlayer.locked && GuildMusicPlayer.owner.id != interaction.member.id) throw { message: "ERR_PLAYER_LOCKED" };
+      if (GuildMusicPlayer.locked && GuildMusicPlayer.owner.id != interaction.member.id) {
+        throw { message: "ERR_PLAYER_LOCKED" };
+      }
 
-      if (GuildMusicPlayer.voiceChannel.id != interaction.member.voice.channel.id)
+      if (GuildMusicPlayer.voiceChannel.id != interaction.member.voice.channel.id) {
         throw "ERR_USER_NOT_IN_SAME_VOICE";
+      }
 
       const embed = new EmbedBuilder()
         .setColor(interaction.client.Color.Info)
@@ -92,9 +99,12 @@ module.exports = {
           .setFooter({ text: e.message });
       }
 
-      if (this.defer)
-        if (!this.ephemeral)
+      if (this.defer) {
+        if (!this.ephemeral) {
           await interaction.deleteReply().catch(() => void 0);
+        }
+      }
+
       await interaction.followUp({ embeds: [embed], ephemeral: true });
     }
   },
@@ -125,8 +135,11 @@ function createAsciiChart(data) {
     while (x != center - 1) {
       chart[y][x] = "=";
 
-      if (x < center) x++;
-      else x--;
+      if (x < center) {
+        x++;
+      } else {
+        x--;
+      }
     }
   });
 
@@ -136,8 +149,12 @@ function createAsciiChart(data) {
     let frequency = +Object.keys(data)[i];
     const db = data[frequency];
 
-    if (frequency >= 1000) frequency = `${~~(frequency / 1000)}k`.padStart(3, " ");
-    else frequency = `${frequency.toString().padStart(3, " ")}`;
+    if (frequency >= 1000) {
+      frequency = `${~~(frequency / 1000)}k`.padStart(3, " ");
+    } else {
+      frequency = `${frequency.toString().padStart(3, " ")}`;
+    }
+
     chartString += `${frequency} ` + row.join("") + ` (${db >= 0 ? "+" : ""}${db}db)` + "\n";
   });
 

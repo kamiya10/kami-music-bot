@@ -23,7 +23,9 @@ module.exports = {
 			 */
       const GuildMusicPlayer = interaction.client.players.get(interaction.guild.id);
 
-      if (!GuildMusicPlayer) throw { message: "ERR_NO_PLAYER" };
+      if (!GuildMusicPlayer) {
+        throw { message: "ERR_NO_PLAYER" };
+      }
 
       const resource = GuildMusicPlayer._resource;
       let embed = new EmbedBuilder()
@@ -35,7 +37,7 @@ module.exports = {
         .setFooter({ text: "歌詞提供：Genius", iconURL: "https://upload.cc/i1/2022/09/11/KmhuEB.png" })
         .setTimestamp();
 
-      if (resource)
+      if (resource) {
         try {
           const song = (await genius.songs.search(GuildMusicPlayer.current.title))[0];
 
@@ -48,8 +50,9 @@ module.exports = {
             .setURL(GuildMusicPlayer.current.url)
             .setDescription("找不到歌詞");
         }
-      else
+      } else {
         embed = embed.setDescription("目前沒有在播放任何東西");
+      }
 
       await interaction.editReply({ embeds: [embed], ephemeral: true });
     } catch (e) {
@@ -72,9 +75,12 @@ module.exports = {
           .setFooter({ text: e.message });
       }
 
-      if (this.defer)
-        if (!this.ephemeral)
+      if (this.defer) {
+        if (!this.ephemeral) {
           await interaction.deleteReply().catch(() => void 0);
+        }
+      }
+
       await interaction.followUp({ embeds: [embed], ephemeral: true });
     }
   },

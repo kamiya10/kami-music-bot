@@ -21,7 +21,9 @@ module.exports = {
 			 */
       const GuildMusicPlayer = interaction.client.players.get(interaction.guild.id);
 
-      if (!GuildMusicPlayer) throw { message: "ERR_NO_PLAYER" };
+      if (!GuildMusicPlayer) {
+        throw { message: "ERR_NO_PLAYER" };
+      }
 
       const resource = GuildMusicPlayer._resource;
       let embed = new EmbedBuilder()
@@ -63,9 +65,12 @@ module.exports = {
           .setFooter({ text: e.message });
       }
 
-      if (this.defer)
-        if (!this.ephemeral)
+      if (this.defer) {
+        if (!this.ephemeral) {
           await interaction.deleteReply().catch(() => void 0);
+        }
+      }
+
       await interaction.followUp({ embeds: [embed], ephemeral: true });
     }
   },
@@ -75,7 +80,7 @@ function playbackBar(time, total) {
   const playBackBarLocation = Math.round((time / total) * 10);
   let playBack = "";
 
-  for (let i = 1; i < 11; i++)
+  for (let i = 1; i < 11; i++) {
     if (playBackBarLocation == 0) {
       playBack = ":radio_button:　　　　　　　　　";
       break;
@@ -87,6 +92,7 @@ function playbackBar(time, total) {
     } else {
       playBack = playBack + "　";
     }
+  }
 
   return `~~​${playBack}​~~`;
 }

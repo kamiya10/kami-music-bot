@@ -20,12 +20,19 @@ module.exports = {
 	 */
   async execute(interaction) {
     try {
-      if (!interaction.member.voice.channel) throw { message: "ERR_USER_NOT_IN_VOICE" };
+      if (!interaction.member.voice.channel) {
+        throw { message: "ERR_USER_NOT_IN_VOICE" };
+      }
+
       const GuildMusicPlayer = interaction.client.players.get(interaction.guild.id);
 
-      if (!GuildMusicPlayer) throw { message: "ERR_NO_PLAYER" };
+      if (!GuildMusicPlayer) {
+        throw { message: "ERR_NO_PLAYER" };
+      }
 
-      if (GuildMusicPlayer.owner.id != interaction.member.id) throw { message: "ERR_PERMISSION_DENIED" };
+      if (GuildMusicPlayer.owner.id != interaction.member.id) {
+        throw { message: "ERR_PERMISSION_DENIED" };
+      }
 
       const state = interaction.options.getBoolean("state") ?? !GuildMusicPlayer.locked;
       GuildMusicPlayer.locked = state;
@@ -56,9 +63,12 @@ module.exports = {
           .setFooter({ text: e.message });
       }
 
-      if (this.defer)
-        if (!this.ephemeral)
+      if (this.defer) {
+        if (!this.ephemeral) {
           await interaction.deleteReply().catch(() => void 0);
+        }
+      }
+
       await interaction.followUp({ embeds: [embed], ephemeral: true });
     }
   },

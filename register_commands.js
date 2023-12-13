@@ -37,7 +37,9 @@ client.once("ready", async () => {
           errcount++;
         });
 
-      if ((count + errcount) == client.guilds.cache.size) resolve(true);
+      if ((count + errcount) == client.guilds.cache.size) {
+        resolve(true);
+      }
     });
   })) {
     console.log(`\nFinished register with ${count} succeed, ${errcount} failed.`);

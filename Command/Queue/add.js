@@ -56,7 +56,9 @@ module.exports = {
       const subcommand = interaction.options.getSubcommand(true);
       const placement = interaction.options.getInteger("placement") ?? undefined;
 
-      if (!interaction.member.voice.channel) throw { message: "ERR_USER_NOT_IN_VOICE" };
+      if (!interaction.member.voice.channel) {
+        throw { message: "ERR_USER_NOT_IN_VOICE" };
+      }
 
       /**
        * @type {KamiMusicPlayer}
@@ -64,13 +66,16 @@ module.exports = {
       let GuildMusicPlayer = interaction.client.players.get(interaction.guild.id);
 
       if (GuildMusicPlayer) {
-        if (GuildMusicPlayer.locked && GuildMusicPlayer.owner.id != interaction.member.id) throw { message: "ERR_PLAYER_LOCKED" };
+        if (GuildMusicPlayer.locked && GuildMusicPlayer.owner.id != interaction.member.id) {
+          throw { message: "ERR_PLAYER_LOCKED" };
+        }
       } else {
         GuildMusicPlayer = new KamiMusicPlayer(interaction.member.voice.channel, interaction.member, interaction.channel);
       }
 
-      if (GuildMusicPlayer.voiceChannel.id != interaction.member.voice.channel.id)
+      if (GuildMusicPlayer.voiceChannel.id != interaction.member.voice.channel.id) {
         throw "ERR_USER_NOT_IN_SAME_VOICE";
+      }
 
       let embed = new EmbedBuilder()
         .setColor(interaction.client.Color.Success)
@@ -81,9 +86,9 @@ module.exports = {
           const url = interaction.options.getString("url");
 
           // #region Youtube
-          if (url.match(/youtu(be|.be)/))
+          if (url.match(/youtu(be|.be)/)) {
             if (url.match(/^(?!.*\?.*\bv=)(http(s)?:\/\/)?(((w){3}|music)\.)?youtube\.com\/.*\?.*\blist=.*$/)) {
-              // #region 播放佇列
+            // #region 播放佇列
               ytLogger.debug(`Fetching Playlist from: ${url}`);
               const playlist = await Youtube.getPlaylist(url).catch(() => {
                 throw "ERR_PLAYLIST_NOT_EXIST";
@@ -95,10 +100,10 @@ module.exports = {
               const metas = [];
               let songs = [];
 
-              for (let i = 0; i < videosArr.length; i++)
-                if (videosArr[i].raw.status.privacyStatus == "private")
+              for (let i = 0; i < videosArr.length; i++) {
+                if (videosArr[i].raw.status.privacyStatus == "private") {
                   continue;
-                else
+                } else {
                   try {
                     let video = interaction.client.apiCache.get(videosArr[i].id);
 
@@ -110,8 +115,9 @@ module.exports = {
                       });
 
                       // 不支援直播
-                      if (video.raw.snippet.liveBroadcastContent === "live")
+                      if (video.raw.snippet.liveBroadcastContent === "live") {
                         throw "ERR_NOT_SUPPORTED@LIVESTREAM";
+                      }
                     }
 
                     video.playlist = playlist;
@@ -126,6 +132,8 @@ module.exports = {
                   } catch (err) {
                     return console.error(err);
                   }
+                }
+              }
 
               const position = await GuildMusicPlayer.addResource(metas, placement != undefined ? placement - 1 : placement);
 
@@ -141,9 +149,9 @@ module.exports = {
                 .addFields({ name: "已新增", value: songs.join("\n") })
                 .setFooter({ text: `位置：#${position + 1}`, iconURL: interaction.member.displayAvatarURL() })
                 .setTimestamp();
-              // #endregion
+            // #endregion
             } else if (url.match(/^(http(s)?:\/\/)?(((w){3}|music)\.)?youtu(be|.be)?(\.com)?\/.+/)) {
-              // #region 影片
+            // #region 影片
               const query = url
                 .replace(/(>|<)/gi, "")
                 .split(/(vi\/|v=|\/v\/|youtu\.be\/|\/embed\/)/);
@@ -158,8 +166,9 @@ module.exports = {
                 });
 
                 // 不支援直播
-                if (video.raw.snippet.liveBroadcastContent === "live")
+                if (video.raw.snippet.liveBroadcastContent === "live") {
                   throw "ERR_NOT_SUPPORTED@LIVESTREAM";
+                }
               }
 
               const meta = new KamiMusicMetadata(video, interaction.member);
@@ -170,10 +179,11 @@ module.exports = {
                 .setDescription(`:musical_note: [${meta.title}](${meta.url}) 已加到播放佇列`)
                 .setFooter({ text: `位置：#${position + 1}`, iconURL: interaction.member.displayAvatarURL() })
                 .setTimestamp();
-              // #endregion
+            // #endregion
             } else {
               throw { message: "ERR_INVALID_PARAMETER@URL" };
             }
+          }
 
           // #endregion
           break;
@@ -192,8 +202,9 @@ module.exports = {
             });
 
             // 不支援直播
-            if (video.raw.snippet.liveBroadcastContent === "live")
+            if (video.raw.snippet.liveBroadcastContent === "live") {
               throw "ERR_NOT_SUPPORTED@LIVESTREAM";
+            }
           }
 
           const meta = new KamiMusicMetadata(video, interaction.member);
@@ -239,9 +250,12 @@ module.exports = {
           .setFooter({ text: e.message });
       }
 
-      if (this.defer)
-        if (!this.ephemeral)
+      if (this.defer) {
+        if (!this.ephemeral) {
           await interaction.deleteReply().catch(() => void 0);
+        }
+      }
+
       await interaction.followUp({ embeds: [embed], ephemeral: true });
     }
   },

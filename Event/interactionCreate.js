@@ -16,7 +16,9 @@ module.exports = {
      * @param {import("discord.js").Interaction} interaction The interaction which was created
      */
   async execute(client, interaction) {
-    if (!interaction.guildId) return;
+    if (!interaction.guildId) {
+      return;
+    }
 
     switch (interaction.type) {
       case InteractionType.ApplicationCommand: {
@@ -34,12 +36,17 @@ module.exports = {
 				 */
         const command = client[interaction.commandType == ApplicationCommandType.ChatInput ? "commands" : "contexts"].get(interaction.commandName);
 
-        if (!command) return;
+        if (!command) {
+          return;
+        }
 
         try {
-          if (command.defer) await interaction.deferReply({
-            ephemeral: command.ephemeral,
-          });
+          if (command.defer) {
+            await interaction.deferReply({
+              ephemeral: command.ephemeral,
+            });
+          }
+
           await command.execute(interaction);
         } catch (error) {
           logger.error(error);
@@ -68,7 +75,7 @@ module.exports = {
               const focused = autocompletedata[interaction.user.id].interaction.options.getFocused(true);
               let choices = [];
 
-              if (focused.value.length > 1)
+              if (focused.value.length > 1) {
                 switch (focused.name) {
                   case "query": {
                     ytLogger.debug(`Searching term: ${focused.value}`);
@@ -81,6 +88,7 @@ module.exports = {
 
                   default: break;
                 }
+              }
 
               await interaction.respond(choices);
             }
@@ -91,7 +99,10 @@ module.exports = {
             checkTyping();
           }
 
-          if (autocompletedata[interaction.user.id].timer) clearTimeout(autocompletedata[interaction.user.id].timer);
+          if (autocompletedata[interaction.user.id].timer) {
+            clearTimeout(autocompletedata[interaction.user.id].timer);
+          }
+
           autocompletedata[interaction.user.id].timer = setTimeout(() => {
             autocompletedata[interaction.user.id].is_typing = false;
             autocompletedata[interaction.user.id].timer = null;
