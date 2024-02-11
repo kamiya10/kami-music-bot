@@ -1,4 +1,4 @@
-const { ActionRowBuilder, ButtonBuilder, ButtonStyle, Colors, ComponentType, codeBlock, EmbedBuilder, Message, MessageFlags, RESTJSONErrorCodes } = require("discord.js");
+const { ActionRowBuilder, ButtonBuilder, ButtonStyle, Colors, ComponentType, codeBlock, EmbedBuilder, Message, MessageFlags, RESTJSONErrorCodes, REST } = require("discord.js");
 const { AudioPlayerStatus, createAudioPlayer, createAudioResource, entersState, joinVoiceChannel, NoSubscriberBehavior, StreamType, VoiceConnectionStatus } = require("@discordjs/voice");
 const { createReadStream, existsSync, mkdirSync, readFileSync, writeFileSync } = require("node:fs");
 const { FFmpeg } = require("prism-media");
@@ -9,10 +9,24 @@ const { pipeline } = require("node:stream");
 const chalk = require("chalk");
 const ytdl = require("ytdl-core");
 const KamiMusicLyric = require("./KamiMusicLyric");
+const rest = new REST().setToken(process.env.KAMI_TOKEN);
 
 const connectionLogger = require("../Core/logger").child({ scope: "Connection" });
 const playerLogger = require("../Core/logger").child({ scope: "Player" });
 // const { FFmpeg } = require("prism-media");
+
+/**
+ * 全域調整音量
+ * 倍率 1 = 原始音量 (-0db)
+ * 倍率 0.4 大約 (-30db)
+ * 倍率越小音量越小
+ * @range 1.0 ~ 0.0
+ * @default 0.35
+ */
+const GlobalVolumeAdjustment = 0.3;
+
+const AddByUrlCommandMention = "</add url:1196368138728657013>";
+const AddBySearchCommandMention = "</add search:1196368138728657013>";
 
 /**
  * @enum {number}
@@ -243,6 +257,11 @@ class KamiMusicPlayer {
     this.locked = preference?.global?.locked ?? preference?.[this.guild.id]?.locked ?? false;
 
     /**
+     * @type {boolean}
+     */
+    this.updateVoiceStatus = preference?.global?.status ?? preference?.[this.guild.id]?.status ?? true;
+
+    /**
      * @type {import("@discordjs/voice").VoiceConnection}
      */
     this.connection = joinVoiceChannel({
@@ -353,6 +372,11 @@ class KamiMusicPlayer {
       this._resource = null;
 
       this.stopLyrics();
+
+      if (this.updateNowplayingMessage) {
+        // TODO: Wait for discord.js to implement method for updating channel status
+        await rest.put(`/channels/${this.voiceChannel.id}/voice-status`, { body: { status: "" } }).catch(playerLogger.error);
+      }
 
       if (oldState.status == AudioPlayerStatus.Playing) {
         if (!this.paused && !this.stopped) {
@@ -555,7 +579,7 @@ class KamiMusicPlayer {
     this._volume = value;
 
     if (this._resource) {
-      this._resource.volume.setVolume(this._volume / (1 / 0.4));
+      this._resource.volume.setVolume(this._volume / (1 / GlobalVolumeAdjustment));
     }
   }
 
@@ -880,6 +904,17 @@ class KamiMusicPlayer {
 
           if (seek == null) {
             playerLogger.info(`▶ Playing ${resource.title} ${chalk.gray(this.guild.name)}`);
+
+            if (this.updateVoiceStatus) {
+              let statusText = `🎵 ${resource.title}`;
+
+              if (this.current?.lyricMetadata) {
+                statusText = `🎵 ${this.current.lyricMetadata.artistPredict} - ${this.current.lyricMetadata.titlePredict}`;
+              }
+
+              // TODO: Wait for discord.js to implement method for updating channel status
+              await rest.put(`/channels/${this.voiceChannel.id}/voice-status`, { body: { status: statusText } }).catch(playerLogger.error);
+            }
           }
 
           this._isFinished = false;
@@ -1217,6 +1252,7 @@ const npTemplate = (player, lyrics) => {
   const embeds = [player._resource != null ? new EmbedBuilder()
     .setColor(player.client.Color.Info)
     .setAuthor({ name: `正在播放 | ${player.guild.name}`, iconURL: player.guild.iconURL() })
+    .setDescription(`${this.locked ? "🔒" : ""} 使用 ${AddByUrlCommandMention} 或 ${AddBySearchCommandMention} 來添加項目`)
     .setThumbnail(current.thumbnail)
     .setTitle(current.title)
     .setURL(current.shortURL)
@@ -1229,7 +1265,7 @@ const npTemplate = (player, lyrics) => {
     : new EmbedBuilder()
       .setColor(player.client.Color.Info)
       .setAuthor({ name: `正在播放 | ${player.guild.name}`, iconURL: player.guild.iconURL() })
-      .setDescription("目前沒有在播放任何東西，使用 </add url:1015871208438382749> 或 </add search:1015871208438382749> 來添加項目")
+      .setDescription(`目前沒有在播放任何東西，使用 ${AddByUrlCommandMention} 或 ${AddBySearchCommandMention} 來添加項目`)
       .setTimestamp()];
   const components = [];
 

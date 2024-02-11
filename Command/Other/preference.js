@@ -142,6 +142,21 @@ module.exports = {
         .setNameLocalization("zh-TW", "全域")
         .setDescription("Make this preference global scoped.")
         .setDescriptionLocalization("zh-TW", "將這個設定設為全域設定")))
+    .addSubcommand(new SlashCommandSubcommandBuilder()
+      .setName("status")
+      .setNameLocalization("zh-TW", "語音頻道狀態")
+      .setDescription("Set the initial state to whether update the channel state based on currently playing.")
+      .setDescriptionLocalization("zh-TW", "設定是否讓播放器初始在換歌時更新頻道狀態。")
+      .addBooleanOption(new SlashCommandBooleanOption()
+        .setName("state")
+        .setNameLocalization("zh-TW", "狀態")
+        .setDescription("The lock state to set to.")
+        .setDescriptionLocalization("zh-TW", "設定換歌時是否更新頻道狀態。"))
+      .addBooleanOption(new SlashCommandBooleanOption()
+        .setName("global")
+        .setNameLocalization("zh-TW", "全域")
+        .setDescription("Make this preference global scoped.")
+        .setDescriptionLocalization("zh-TW", "將這個設定設為全域設定")))
     .setDMPermission(false),
   defer     : true,
   ephemeral : true,
@@ -239,6 +254,13 @@ module.exports = {
           const settingValue = interaction.options.getBoolean("mode");
           userPreference[is_global ? "global" : interaction.guild.id].repeat = settingValue;
           embed = embed.setDescription(`已將初始循環模式設為 *${settingValue != null ? `${modeString[settingValue]}` : "`未設定`"}*`);
+          break;
+        }
+
+        case "status": {
+          const settingValue = interaction.options.getBoolean("status");
+          userPreference[is_global ? "global" : interaction.guild.id].status = settingValue;
+          embed = embed.setDescription(`${settingValue == true ? "將在歌曲變換時設定語音頻道狀態" : "歌曲變換時**__不會__**設定語音頻道狀態"}`);
           break;
         }
 
