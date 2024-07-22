@@ -7,7 +7,7 @@ const { Platform } = require("./KamiMusicMetadata");
 const { join } = require("node:path");
 const { pipeline } = require("node:stream");
 const chalk = require("chalk");
-const ytdl = require("ytdl-core");
+const ytdl = require("@distube/ytdl-core");
 const KamiMusicLyric = require("./KamiMusicLyric");
 const rest = new REST().setToken(process.env.KAMI_TOKEN);
 
