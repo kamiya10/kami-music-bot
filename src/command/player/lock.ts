@@ -51,7 +51,7 @@ export default {
       GuildMusicPlayer.locked = state;
 
       const embed = new EmbedBuilder()
-        .setColor(interaction.client.Color.Success)
+        .setColor(Colors.Green)
         .setDescription(
           state
             ? "🔒 已鎖定播放器，現在只有播放器擁有者可以和這個播放器互動。"
@@ -68,8 +68,8 @@ export default {
       }[e.message];
 
       const embed = new EmbedBuilder()
-        .setColor(interaction.client.Color.Error)
-        .setTitle(`${interaction.client.EmbedIcon.Error} 錯誤`);
+        .setColor(Colors.Red)
+        .setTitle(`❌ 錯誤`);
 
       if (!errCase) {
         embed

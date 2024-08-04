@@ -1,13 +1,15 @@
 import {
+  Colors,
   EmbedBuilder,
   SlashCommandBuilder,
   SlashCommandIntegerOption,
 } from "discord.js";
 import { RepeatMode } from "../../class/KamiMusicPlayer";
 import type { Command } from "..";
+import { KamiClient } from "@/class/KamiClient";
 
 export default {
-  data: new SlashCommandBuilder()
+  data : new SlashCommandBuilder()
     .setName("repeat")
     .setNameLocalization("zh-TW", "重複")
     .setDescription("Set playback repeat mode.")
@@ -21,47 +23,47 @@ export default {
         .setChoices(
           ...[
             {
-              name: "No Repeat",
-              name_localizations: { "zh-TW": "不重複" },
-              value: RepeatMode.NoRepeat,
+              name               : "Forward",
+              name_localizations : { "zh-TW" : "不重複" },
+              value              : RepeatMode.Forward,
             },
             {
-              name: "Repeat Queue",
-              name_localizations: { "zh-TW": "循環" },
-              value: RepeatMode.RepeatQueue,
+              name               : "Repeat Queue",
+              name_localizations : { "zh-TW" : "循環" },
+              value              : RepeatMode.RepeatQueue,
             },
             {
-              name: "Repeat Current",
-              name_localizations: { "zh-TW": "單曲重複" },
-              value: RepeatMode.RepeatCurrent,
+              name               : "Repeat Current",
+              name_localizations : { "zh-TW" : "單曲重複" },
+              value              : RepeatMode.RepeatCurrent,
             },
             {
-              name: "Random",
-              name_localizations: { "zh-TW": "隨機" },
-              value: RepeatMode.Random,
+              name               : "Random",
+              name_localizations : { "zh-TW" : "隨機" },
+              value              : RepeatMode.Random,
             },
             {
-              name: "Random Without Repeat",
-              name_localizations: { "zh-TW": "隨機（不重複）" },
-              value: RepeatMode.RandomNoRepeat,
+              name               : "Random Without Repeat",
+              name_localizations : { "zh-TW" : "隨機（不重複）" },
+              value              : RepeatMode.RandomNoRepeat,
             },
             {
-              name: "Backward",
-              name_localizations: { "zh-TW": "倒序播放" },
-              value: RepeatMode.Backward,
+              name               : "Backward",
+              name_localizations : { "zh-TW" : "倒序播放" },
+              value              : RepeatMode.Backward,
             },
             {
-              name: "Backward Repeat Queue",
-              name_localizations: { "zh-TW": "倒序循環" },
-              value: RepeatMode.BackwardRepeatQueue,
+              name               : "Backward Repeat Queue",
+              name_localizations : { "zh-TW" : "倒序循環" },
+              value              : RepeatMode.BackwardRepeatQueue,
             },
           ]
         )
         .setRequired(true)
     )
     .setDMPermission(false),
-  defer: true,
-  ephemeral: false,
+  defer     : true,
+  ephemeral : false,
 
   /**
    * @param {import("discord.js").ChatInputCommandInteraction} interaction
@@ -69,32 +71,30 @@ export default {
   async execute(interaction) {
     try {
       if (!interaction.member.voice.channel) {
-        throw { message: "ERR_USER_NOT_IN_VOICE" };
+        throw { message : "ERR_USER_NOT_IN_VOICE" };
       }
 
-      const GuildMusicPlayer = interaction.client.players.get(
-        interaction.guild.id
-      );
+      const player = this.players.get(interaction.guild.id);
 
-      if (!GuildMusicPlayer) {
-        throw { message: "ERR_NO_PLAYER" };
+      if (!player) {
+        throw { message : "ERR_NO_PLAYER" };
       }
 
       if (
-        GuildMusicPlayer.locked &&
-        GuildMusicPlayer.owner.id != interaction.member.id
+        player.locked &&
+        player.owner.id != interaction.member.id
       ) {
-        throw { message: "ERR_PLAYER_LOCKED" };
+        throw { message : "ERR_PLAYER_LOCKED" };
       }
 
       if (
-        GuildMusicPlayer.voiceChannel.id != interaction.member.voice.channel.id
+        player.voice.id != interaction.member.voice.channel.id
       ) {
         throw "ERR_USER_NOT_IN_SAME_VOICE";
       }
 
-      const mode = interaction.options.getInteger("mode");
-      GuildMusicPlayer.repeat = mode;
+      const mode = interaction.options.getInteger("mode", true);
+      player.repeat = mode;
 
       const modeString = [
         "▶ 不重複",
@@ -107,27 +107,27 @@ export default {
         "🔁◀ 倒序循環",
       ][mode];
 
-      const sent = await interaction.editReply({ content: modeString });
-      setTimeout(() => sent.delete().catch(() => void 0), 10_000);
+      const sent = await interaction.editReply({ content : modeString });
+      setTimeout(() => void sent.delete().catch(() => void 0), KamiClient.MessageAutoDeleteTimeout);
     } catch (e) {
       const errCase = {
-        ERR_USER_NOT_IN_VOICE: "你必須在語音頻道內才能使用這個指令",
-        ERR_USER_NOT_IN_SAME_VOICE: "你和我在同一個語音頻道內才能使用這個指令",
-        ERR_NO_PLAYER: "現在沒有在放音樂",
-        ERR_PLAYER_LOCKED: "你沒有權限和這個播放器互動",
+        ERR_USER_NOT_IN_VOICE      : "你必須在語音頻道內才能使用這個指令",
+        ERR_USER_NOT_IN_SAME_VOICE : "你和我在同一個語音頻道內才能使用這個指令",
+        ERR_NO_PLAYER              : "現在沒有在放音樂",
+        ERR_PLAYER_LOCKED          : "你沒有權限和這個播放器互動",
       }[e.message];
 
       const embed = new EmbedBuilder()
-        .setColor(interaction.client.Color.Error)
-        .setTitle(`${interaction.client.EmbedIcon.Error} 錯誤`);
+        .setColor(Colors.Red)
+        .setTitle(`❌ 錯誤`);
 
       if (!errCase) {
         embed
           .setDescription(`發生了預料之外的錯誤：\`${e.message}\``)
-          .setFooter({ text: "ERR_UNCAUGHT_EXCEPTION" });
+          .setFooter({ text : "ERR_UNCAUGHT_EXCEPTION" });
         console.error(e);
       } else {
-        embed.setDescription(errCase).setFooter({ text: e.message });
+        embed.setDescription(errCase).setFooter({ text : e.message });
       }
 
       if (this.defer) {
@@ -136,7 +136,7 @@ export default {
         }
       }
 
-      await interaction.followUp({ embeds: [embed], ephemeral: true });
+      await interaction.followUp({ embeds : [embed], ephemeral : true });
     }
   },
 } satisfies Command;

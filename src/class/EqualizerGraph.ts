@@ -169,4 +169,4 @@ export const EuqalizerPresets = {
   }
 } as Record<string, EqualizerGraph>;
 
-export type EqualizerGraph = Record<number, number>;
+export type EqualizerGraph = Record<string, number>;

@@ -1,10 +1,10 @@
 import type { KamiEventListener } from ".";
 
 import { Events } from "discord.js";
-import Logger from "@/coree/logger";
+import Logger from "@/core/logger";
 
 export default {
-  name: Events.ClientReady,
+  name : Events.ClientReady,
   once(client) {
     Logger.info(`Bot is ready: ${client.user.tag}`);
 

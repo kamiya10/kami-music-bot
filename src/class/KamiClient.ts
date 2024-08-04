@@ -1,19 +1,20 @@
 import { Client, Collection, GatewayIntentBits } from "discord.js";
 import { existsSync, mkdirSync, readFile, readdirSync } from "fs";
+import { join, resolve } from "path";
 import { KamiDatabase } from "./KamiDatabase";
-import { join } from "path";
 import { version } from "~/package.json";
 
 import ora from "ora";
 
-import Logger from "@/coree/logger";
+import Logger from "@/core/logger";
 import commands from "@/command";
 import events from "@/event";
 
 import type { ClientOptions } from "discord.js";
 import type { Command } from "@/command";
 import type { GuildDataModel } from "@/databases/GuildDatabase";
-import type { KamiMusicMetadata } from "@/class/KamiMusicMetadata";
+import type { KamiMusicMetadataCache } from "@/class/KamiMusicMetadata";
+import type { KamiMusicPlayer } from "@/class/KamiMusicPlayer";
 import type { Low } from "lowdb";
 import type { UserDataModel } from "@/databases/UserDatabase";
 
@@ -32,8 +33,11 @@ export class KamiClient extends Client {
   version = version;
   database= new KamiDatabase();
   commands = new Collection<string, Command>();
-  players = new Collection();
-  cache = new Collection();
+  players = new Collection<string, KamiMusicPlayer>();
+  cache = new Collection<string, KamiMusicMetadataCache>();
+
+  static MessageAutoDeleteTimeout : 8_000;
+  static CacheFolder = resolve( ".cache");
 
   constructor(options: ClientOptions) {
     super(options);
@@ -71,21 +75,19 @@ export class KamiClient extends Client {
   private loadCache() {
     const spinner = ora("Loading cache...");
 
-    const cacheFolder = join(import.meta.dir, ".cache");
-
-    if (!existsSync(cacheFolder)) {
-      mkdirSync(cacheFolder, { recursive : true });
+    if (!existsSync(KamiClient.CacheFolder)) {
+      mkdirSync(KamiClient.CacheFolder, { recursive : true });
       return;
     }
 
-    const metafiles = readdirSync(cacheFolder).filter((file) =>
+    const metafiles = readdirSync(KamiClient.CacheFolder).filter((file) =>
       file.endsWith(".metadata")
     );
 
     for (const file of metafiles) {
-      readFile(join(cacheFolder, file), { encoding : "utf-8" }, (err, data) => {
+      readFile(join(KamiClient.CacheFolder, file), { encoding : "utf-8" }, (err, data) => {
         if (!err) {
-          const meta = JSON.parse(data) as KamiMusicMetadata;
+          const meta = JSON.parse(data) as KamiMusicMetadataCache;
           this.cache.set(meta.id, meta);
         } else {
           Logger.error(err);

@@ -54,8 +54,8 @@ export default {
       }[e.message];
 
       const embed = new EmbedBuilder()
-        .setColor(interaction.client.Color.Error)
-        .setTitle(`${interaction.client.EmbedIcon.Error} 錯誤`);
+        .setColor(Colors.Red)
+        .setTitle(`❌ 錯誤`);
 
       if (!errCase) {
         embed

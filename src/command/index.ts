@@ -4,6 +4,8 @@ import type {
   SlashCommandOptionsOnlyBuilder,
   SlashCommandSubcommandsOnlyBuilder,
 } from "discord.js";
+import type { KamiClient } from "@/class/KamiClient";
+
 import preference from "./other/preference";
 
 import connect from "./player/connect";
@@ -25,18 +27,17 @@ import volume from "./player/volume";
 import add from "./queue/add";
 import clear from "./queue/clear";
 import remove from "./queue/remove";
-import type { KamiClient } from "@/core/client";
 
 export interface Command {
   data:
     | SlashCommandBuilder
     | SlashCommandOptionsOnlyBuilder
     | SlashCommandSubcommandsOnlyBuilder;
-  defer: boolean;
-  ephemeral: boolean;
+  defer     : boolean;
+  ephemeral : boolean;
   execute(
     this: KamiClient,
-    interaction: ChatInputCommandInteraction
+    interaction: ChatInputCommandInteraction<"cached">
   ): Promise<void>;
 }
 

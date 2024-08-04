@@ -5,23 +5,16 @@ import {
   Colors,
   ComponentType,
   EmbedBuilder,
-  type Guild,
-  type GuildMember,
   Message,
   MessageFlags,
   REST,
   RESTJSONErrorCodes,
-  type TextChannel,
-  type VoiceChannel,
   codeBlock,
 } from "discord.js";
 import {
-  type AudioPlayer,
   AudioPlayerStatus,
   NoSubscriberBehavior,
-  type PlayerSubscription,
   StreamType,
-  type VoiceConnection,
   VoiceConnectionStatus,
   createAudioPlayer,
   createAudioResource,
@@ -31,25 +24,29 @@ import {
 import { KamiMusicMetadata, Platform } from "@/class/KamiMusicMetadata";
 import {
   createReadStream,
+  createWriteStream,
   existsSync,
-  mkdirSync,
-  readFileSync,
   writeFileSync,
 } from "fs";
 import { EuqalizerPresets } from "@/class/EqualizerGraph";
 import { FFmpeg } from "prism-media";
+import { KamiClient } from "@/class/KamiClient";
+import { inspect } from "bun";
 import { join } from "path";
-import { pipeline }from "stream";
+import { pipeline } from "stream";
 
-import KamiMusicLyric from"@/class/KamiMusicLyric";
-import Logger from "@/coree/logger";
-import chalk from"chalk";
-import ytdl from"@distube/ytdl-core";
+import Logger from "@/core/logger";
+import chalk from "chalk";
+import ytdl from "@distube/ytdl-core";
 
+import type { AudioPlayer, AudioResource, PlayerSubscription, VoiceConnection } from "@discordjs/voice";
+import type { Guild,GuildMember, MessageCreateOptions, MessageEditOptions, MessagePayload, TextBasedChannel, VoiceBasedChannel } from "discord.js";
 import type { EqualizerGraph } from "@/class/EqualizerGraph";
-import type { KamiClient } from "@/class/KamiClient";
+import type { Readable } from "stream";
 
 // const { FFmpeg } = require("prism-media");
+
+const rest = new REST().setToken(process.env["DISCORD_TOKEN"]!);
 
 /**
  * 全域調整音量
@@ -83,24 +80,29 @@ interface KamiMusicPlayerPreference {
 }
 
 export class KamiMusicPlayer {
-  client                : KamiClient;
-  voice                 : VoiceChannel;
-  text                  : TextChannel;
-  guild                 : Guild;
-  owner                 : GuildMember;
-  preference            : KamiMusicPlayerPreference;
-  queue                 : KamiMusicMetadata[] = [];
-  stopped               : boolean             = false;
-  private connection    : VoiceConnection;
-  private player        : AudioPlayer;
-  private subscription  : PlayerSubscription;
-  private message       : Message | null      = null;
-  private destroyed     : boolean             = false;
-  private _lyricTimer   : Timer | null        = null;
-  private _currentIndex : number              = 0;
-  private _locked       : boolean             = false;
-  
-  constructor(client: KamiClient, text: TextChannel, voice: VoiceChannel, owner: GuildMember) {
+  client                 : KamiClient;
+  voice                  : VoiceBasedChannel;
+  text                   : TextBasedChannel;
+  guild                  : Guild;
+  owner                  : GuildMember;
+  preference             : KamiMusicPlayerPreference;
+  queue                  : KamiMusicMetadata[] = [];
+  stopped                : boolean             = false;
+  connection             : VoiceConnection;
+  player                 : AudioPlayer;
+  subscription           : PlayerSubscription;
+  private message        : Message | null       = null;
+  private destroyed      : boolean              = false;
+  private _lyricTimer    : Timer | null         = null;
+  private _currentIndex  : number               = 0;
+  private _locked        : boolean              = false;
+  private _isBuffering   : boolean              = false;
+  private _isFinished    : boolean              = false;
+  private _random        : KamiMusicMetadata[]  = [];
+  private _transcoder    : Readable | null      = null;
+  private _audioResource : AudioResource | null = null;
+
+  constructor(client: KamiClient, text: TextBasedChannel, voice: VoiceBasedChannel, owner: GuildMember) {
     this.client = client;
     this.voice = voice;
     this.text = text;
@@ -130,7 +132,7 @@ export class KamiMusicPlayer {
       },
     });
 
-    this.subscription = this.connection.subscribe(this.player);
+    this.subscription = this.connection.subscribe(this.player)!;
 
     this.connection.on(VoiceConnectionStatus.Disconnected, () => {
       Promise.race([
@@ -147,7 +149,7 @@ export class KamiMusicPlayer {
     });
 
     this.player.on(AudioPlayerStatus.Playing, () => {
-      if (!this._resource.metadata.lyric) return;
+      if (!this._audioResource.metadata.lyric) return;
       if (this._lyricTimer) return;
 
       this._lyricTimer = setInterval(() => {
@@ -156,7 +158,7 @@ export class KamiMusicPlayer {
           const offsetTime = this.playbackTime - this.lyricsOffset;
 
           const index =
-                  this._resource.metadata.lyrics.getIndex(offsetTime);
+                  this._audioResource.metadata.lyrics.getIndex(offsetTime);
 
           if (this._currentLyricIndex != index) {
             this._currentLyricIndex = index;
@@ -168,35 +170,28 @@ export class KamiMusicPlayer {
       }, 10);
     });
 
-    this.player.on(AudioPlayerStatus.Idle,  async (oldState) => {
-      this._resource = null;
+    this.player.on(AudioPlayerStatus.Idle,   (oldState) => {
+      this._audioResource = null;
 
-      this.stopLyrics();
-
-      if (this.updateNowplayingMessage) {
-        // TODO: Wait for discord.js to implement method for updating channel status
-        await rest
-          .put(`/channels/${this.voiceChannel.id}/voice-status`, {
-            body : { status : "" },
-          })
-          .catch(Logger.error);
+      if (this.preference.updateVoiceStatus) {
+        this.updateVoiceStatus();
       }
 
       if (oldState.status == AudioPlayerStatus.Playing) {
         if (!this.paused && !this.stopped) {
-          if (this.npmsg instanceof Message) {
-            await this.npmsg.delete();
-            this.npmsg = null;
+          if (this.message instanceof Message) {
+            void this.message.delete();
+            this.message = null;
           }
 
           if (this.queue.length > 0) {
             switch (this.repeat) {
-              case RepeatMode.NoRepeat: {
+              case RepeatMode.Forward: {
                 if (this.currentIndex < this.queue.length - 1) {
                   this.next();
                 } else {
                   this._isFinished = true;
-                  this.updateNowplayingMessage(true);
+                  void this.updateNowplayingMessage();
                 }
 
                 break;
@@ -221,14 +216,14 @@ export class KamiMusicPlayer {
               }
 
               case RepeatMode.RandomNoRepeat: {
-                if (this._randomQueue.length == 0) {
-                  this._randomQueue = [...this.queue];
+                if (this._random.length == 0) {
+                  this._random = [...this.queue];
                 }
 
-                this._randomQueue = this._randomQueue.sort(
+                this._random = this._random.sort(
                   () => 0.5 - Math.random()
                 );
-                const resource = this._randomQueue.shift();
+                const resource = this._random.shift();
                 this.currentIndex = this.queue.indexOf(resource);
 
                 this.play();
@@ -266,13 +261,13 @@ export class KamiMusicPlayer {
         `Error: ${error.message} with resource ${error.resource?.metadata?.title}`
       );
       Logger.error(error);
-      this._resource = null;
+      this._audioResource = null;
 
       if (this.current?.error?.message != error.message) {
         this.current.error = error;
         this.play();
       } else if (
-        (this.repeat == RepeatMode.NoRepeat &&
+        (this.repeat == RepeatMode.Forward &&
           this.currentIndex < this.queue.length - 1) ||
         this.repeat == RepeatMode.RepeatQueue ||
         (this.repeat == RepeatMode.Backward && this.currentIndex > 0) ||
@@ -294,6 +289,7 @@ export class KamiMusicPlayer {
         this.play();
       }
     });
+
     this.client.players.set(this.guild.id, this);
   }
 
@@ -372,8 +368,8 @@ export class KamiMusicPlayer {
   set volume(value) {
     this.preference.volume = value;
 
-    if (this._resource) {
-      void this._resource.volume.setVolume(
+    if (this._audioResource) {
+      void this._audioResource.volume.setVolume(
         this._volume / (1 / GlobalVolumeAdjustment)
       );
     }
@@ -386,7 +382,7 @@ export class KamiMusicPlayer {
   set equalizer(value) {
     this.preference.equalizer = value;
 
-    if (this._resource) {
+    if (this._audioResource) {
       void this.play(this.currentIndex, this.playbackTime);
     }
   }
@@ -426,7 +422,7 @@ export class KamiMusicPlayer {
   }
 
   get playbackTime() {
-    return this._resource?.playbackDuration ?? null;
+    return this._audioResource?.playbackDuration ?? null;
   }
 
   get playbackTimeObject() {
@@ -617,359 +613,214 @@ export class KamiMusicPlayer {
     return deleted;
   }
 
-  /**
-   * Play resources.
-   * @param {number} [index=this.currentIndex] The index of the resource to be played by the player.
-   */
-  async play(index = this.currentIndex, seek) {
+  async play(index = this.currentIndex, seek?: number) {
     this.currentIndex = index;
 
-    if (seek == null) {
-      Logger.debug(
-        `Buffer called at ${new Error().stack.split("\n")[1].trimStart().split("\\").pop()}`
-      );
+    if (typeof seek != "number") {
       await this.buffer(index);
       this._isBuffering = false;
     }
 
     const resource = this.queue[index];
 
-    if (resource) {
-      if (resource.playable) {
-        let stream;
+    if (!resource) {
+      throw new Error(`Resource at ${index} doesn't exists.\n${inspect(this.queue,{colors : true})}`);
+    }
+      
+    let stream;
 
-        if (resource.cache) {
-          if (seek == null) {
-            Logger.info("▶ Using cache");
-          }
+    if (resource.cachePath) {
+      stream = createReadStream(resource.cachePath, {
+        highWaterMark : 1 << 25,
+      });
+    }
 
-          try {
-            stream = createReadStream(resource.cache, {
-              highWaterMark : 1 << 25,
-            });
-          } catch (error) {
-            resource.cache = null;
-          }
+    if (!stream) {
+      switch (resource.platform) {
+        case Platform.Youtube: {
+          /* Proxy
+            let agent;
+
+            if (resource.region.length)
+            if (resource.region.includes("TW")) {
+              console.log("Using proxy: JP");
+              const Agent = require("https-proxy-agent");
+              const proxy = "http://139.162.78.109:3128";
+              // const proxy = "http://140.227.59.167:3180";
+              agent = new Agent(proxy);
+            }
+          */
+
+          stream = ytdl(resource.url, {
+            filter         : (format) => !!format.contentLength,
+            quality        : "highestaudio",
+            highWaterMark  : 1 << 25,
+            requestOptions : {
+              headersTimeout : 5000,
+            },
+            // ...(agent && { requestOptions : { agent } }),
+          });
+          break;
         }
 
-        if (!stream) {
-          switch (resource.platform) {
-            case Platform.Youtube: {
-              let agent;
-
-              /* Proxy
-              if (resource.region.length)
-              if (resource.region.includes("TW")) {
-                console.log("Using proxy: JP");
-                const Agent = require("https-proxy-agent");
-                const proxy = "http://139.162.78.109:3128";
-                // const proxy = "http://140.227.59.167:3180";
-                agent = new Agent(proxy);
-              }
-              */
-
-              stream = ytdl(resource.url, {
-                filter         : (format) => format.contentLength,
-                quality        : "highestaudio",
-                highWaterMark  : 1 << 25,
-                requestOptions : {
-                  timeout : 5000,
-                },
-                ...(agent && { requestOptions : { agent } }),
-              });
-              break;
-            }
-
-            default:
-              break;
-          }
-        }
-
-        if (stream) {
-          const transcoderArgs = [
-            "-analyzeduration",
-            "0",
-            "-loglevel",
-            "0",
-            "-f",
-            "s16le",
-            "-ar",
-            "48000",
-            "-ac",
-            "2",
-            ...(seek != null ? ["-ss", formatTime(~~(seek / 1000))] : []),
-            "-af",
-            `firequalizer=gain_entry='${Object.keys(this.equalizer)
-              .map((k) => `entry(${k},${this.equalizer[k]})`)
-              .join(";")}',dynaudnorm=n=0:c=1`,
-            // "-af", `bass=g=${this.audiofilter.bass}`,
-          ];
-
-          this._transcoder = new FFmpeg({ args : transcoderArgs });
-          const ar = createAudioResource(
-            pipeline(stream, this._transcoder, () => void 0),
-            {
-              inputType    : StreamType.Raw,
-              inlineVolume : true,
-              metadata     : resource,
-            }
-          );
-          this._resource = ar;
-
-          if (seek != null) {
-            this._resource.playbackDuration = seek;
-          }
-
-          this.volume = this._volume;
-          this.player.play(ar);
-
-          if (seek == null) {
-            Logger.info(
-              `▶ Playing ${resource.title} ${chalk.gray(this.guild.name)}`
-            );
-
-            if (this.updateVoiceStatus) {
-              let statusText = `🎵 ${resource.title}`;
-
-              if (this.current?.lyricMetadata) {
-                statusText = `🎵 ${this.current.lyricMetadata.artistPredict} - ${this.current.lyricMetadata.titlePredict}`;
-              }
-
-              // TODO: Wait for discord.js to implement method for updating channel status
-              await rest
-                .put(`/channels/${this.voiceChannel.id}/voice-status`, {
-                  body : { status : statusText },
-                })
-                .catch(Logger.error);
-            }
-          }
-
-          this._isFinished = false;
-          this.updateNowplayingMessage();
-
-          if (this.queue[this.nextIndex]) {
-            if (!this.queue[this.nextIndex].cache) {
-              if (seek == null) {
-                Logger.debug(
-                  `Buffer called at ${new Error().stack.split("\n")[1].trimStart().split("\\").pop()}`
-                );
-                this.buffer(this.nextIndex).then(
-                  () => (this._isBuffering = true)
-                );
-              }
-            }
-          }
-        }
-      } else {
-        this.next();
+        default:
+          break;
       }
     }
+
+    if (stream) {
+      const transcoderArgs = [
+        "-analyzeduration",
+        "0",
+        "-loglevel",
+        "0",
+        "-f",
+        "s16le",
+        "-ar",
+        "48000",
+        "-ac",
+        "2",
+        ...(seek != null ? ["-ss", formatTime(~~(seek / 1000))] : []),
+        "-af",
+        `firequalizer=gain_entry='${Object.keys(this.equalizer)
+          .map((k) => `entry(${k},${this.equalizer[k]})`)
+          .join(";")}',dynaudnorm=n=0:c=1`,
+        // "-af", `bass=g=${this.audiofilter.bass}`,
+      ];
+
+      this._transcoder = new FFmpeg({ args : transcoderArgs });
+
+      const ar = createAudioResource(
+        pipeline(stream, this._transcoder, () => void 0),
+        {
+          inputType    : StreamType.Raw,
+          inlineVolume : true,
+          metadata     : resource,
+        }
+      );
+
+      this._audioResource = ar;
+
+      if (seek != null) {
+        this._audioResource.playbackDuration = seek;
+      }
+
+      this.volume = this.preference.volume;
+      this.player.play(ar);
+
+      if (seek == null) {
+        Logger.info(
+          `▶ Playing ${resource.title} ${chalk.gray(this.guild.name)}`
+        );
+
+        if (this.preference.updateVoiceStatus) {
+          const statusText = `🎵 ${resource.title}`;
+
+          // TODO: Wait for discord.js to implement method for updating channel status
+          await rest
+            .put(`/channels/${this.voice.id}/voice-status`, {
+              body : { status : statusText },
+            })
+            .catch((e) => Logger.error(e));
+        }
+      }
+
+      this._isFinished = false;
+      await this.updateNowplayingMessage();
+
+      if (this.queue[this.nextIndex]) {
+        if (!this.queue[this.nextIndex].cachePath) {
+          if (seek == null) {
+            void this.buffer(this.nextIndex).then(
+              () => (this._isBuffering = true)
+            );
+          }
+        }
+      }
+    }
+        
   }
 
-  /**
-   * Pre-buffer a resource.
-   * @param {number} index The index of the resource to be buffered.
-   * @param {?boolean} force Whether or not the cache checking should be skipped.
-   */
-  async buffer(index, force = false, _retried = 0) {
+  async buffer(index: number, force = false) {
     if (this._isBuffering) {
       return;
     }
 
-    this._isBuffering = true;
-
-    if (!existsSync(join(__dirname, "../.cache"))) {
-      mkdirSync(join(__dirname, "../.cache"));
-    }
-
     const resource = this.queue[index];
 
-    if (resource) {
-      if (resource.durationObject.minute < 6) {
-        if (!existsSync(join(__dirname, "../.cache", resource.id)) || force) {
-          if (!resource.cache || force) {
-            if (resource.playable) {
-              let stream;
+    if (!resource) {
+      throw new Error(`Cannot buffer at index ${index}, resouce does not exists.\n${inspect(this.queue, {colors : true})}`);
+    }
 
-              switch (resource.platform) {
-                case Platform.Youtube: {
-                  let agent;
+    const filePath = join(KamiClient.CacheFolder, resource.id);
 
-                  /* Proxy
-                    if (resource.region.length)
-                    if (resource.region.includes("TW")) {
-                      console.log("Using proxy: JP");
-                      const Agent = require("https-proxy-agent");
-                      const proxy = "http://139.162.78.109:3128";
-                      // const proxy = "http://140.227.59.167:3180";
-                      agent = new Agent(proxy);
-                    }
-                    */
+    if (existsSync(filePath) && !force) {
+      Logger.debug(`Resource ${resource.id} is already cached, skipping.`);
+      return;
+    }
 
-                  stream = ytdl(resource.url, {
-                    filter         : (format) => !!format.contentLength,
-                    quality        : "highestaudio",
-                    highWaterMark  : 1 << 25,
-                    requestOptions : {
-                      headersTimeout : 3000,
-                    },
-                    // ...(agent && { requestOptions : { agent } }),
-                  });
-                  break;
-                }
+    let retryCount = 0;
+    this._isBuffering = true;
 
-                default:
-                  break;
-              }
+    const _buffer = () => new Promise<boolean>((resolve) => {
+      let stream: Readable;
 
-              if (stream) {
-                await new Promise((resolve, reject) => {
-                  const retryTimeout = setTimeout(
-                    () => stream.emit("error", new Error("Timeouut")),
-                    3000
-                  );
-                  Logger.info(
-                    `⏳ Buffering ${resource.title} ${chalk.gray(this.guild.name)}`
-                  );
-                  const _buf = [];
+      switch (resource.platform) {
+        case Platform.Youtube: {
+          /* Proxy
+            let agent;
 
-                  stream.on("data", (data) => {
-                    if (retryTimeout) {
-                      clearTimeout(retryTimeout);
-                    }
-
-                    _buf.push(data);
-                  });
-
-                  stream.on("error", (err) => {
-                    if (err.message.startsWith("Status code: 4")) {
-                      if (err.message.includes("410")) {
-                        resource.region.push("TW");
-                      }
-
-                      reject(err);
-                    } else {
-                      stream.destroy();
-
-                      if (_retried > 5) {
-                        reject(new Error("Buffer retry limit exceeded."));
-                      }
-
-                      Logger.info(
-                        `🔄 Buffering ${resource.title} ${chalk.gray(this.guild.name)}`
-                      );
-
-                      this._isBuffering = false;
-                      this.buffer(index, force, _retried + 1);
-
-                      resolve();
-                    }
-                  });
-
-                  stream.on("finish", async () => {
-                    // check duration
-                    if (this.current.duration < 0) {
-                      const duration = (await ytdl.getBasicInfo(resource.url))
-                        .videoDetails.lengthSeconds;
-                      resource.duration = +duration;
-                      this.client.apiCache.set(resource.id, resource.toJSON());
-                      writeFileSync(
-                        join(__dirname, "../.cache", `${resource.id}.metadata`),
-                        JSON.stringify(resource.toJSON()),
-                        { encoding : "utf-8", flag : "w" }
-                      );
-                    }
-
-                    Logger.info(
-                      `✅ Buffered  ${resource.title} ${chalk.gray(this.guild.name)}`
-                    );
-                    const _buffer = Buffer.concat(_buf);
-                    writeFileSync(
-                      join(__dirname, "../.cache/", resource.id),
-                      _buffer,
-                      { flag : "w" }
-                    );
-                    resource.cache = join(__dirname, "../.cache/", resource.id);
-                    stream.destroy();
-
-                    resolve();
-                  });
-                });
-              }
+            if (resource.region.length)
+            if (resource.region.includes("TW")) {
+              console.log("Using proxy: JP");
+              const Agent = require("https-proxy-agent");
+              const proxy = "http://139.162.78.109:3128";
+              // const proxy = "http://140.227.59.167:3180";
+              agent = new Agent(proxy);
             }
-          }
-        } else {
-          Logger.debug(
-            `Resource has cache at ${join(__dirname, "../.cache/", resource.id).replace("C:\\Users\\Kamiya\\Documents\\GitHub\\Kamiya\\kami-music-bot", "")}`
-          );
-          resource.cache = join(__dirname, "../.cache/", resource.id);
-        }
+          */
 
-        // lyrics
-
-        if (resource.lyrics instanceof KamiMusicLyric) {
-          if (resource.cache) {
-            return;
-          }
-        }
-
-        if (resource.lyric == null) {
-          KamiMusicLyric.searchLyrics(resource.title).then((results) => {
-            if (results.length) {
-              resource.lyric = results[0].id;
-              resource.lyricMetadata = results[0];
-
-              if (
-                !existsSync(
-                  join(__dirname, "../.cache/", `${resource.lyric}.lyric`)
-                )
-              ) {
-                KamiMusicLyric.fetchLyric(resource.lyric).then((data) => {
-                  resource.lyrics = new KamiMusicLyric(data);
-                  writeFileSync(
-                    join(__dirname, "../.cache/", `${resource.lyric}.lyric`),
-                    JSON.stringify(data),
-                    { flag : "w" }
-                  );
-                  writeFileSync(
-                    join(__dirname, "../.cache", `${resource.id}.metadata`),
-                    JSON.stringify(resource.toJSON()),
-                    { encoding : "utf-8", flag : "w" }
-                  );
-                });
-              } else {
-                resource.lyrics = new KamiMusicLyric(
-                  JSON.parse(
-                    readFileSync(
-                      join(__dirname, "../.cache/", `${resource.lyric}.lyric`),
-                      { encoding : "utf-8" }
-                    )
-                  )
-                );
-              }
-            }
+          stream = ytdl(resource.url, {
+            filter        : (format) => +format.contentLength > 0,
+            quality       : "highestaudio",
+            highWaterMark : 1 << 25,
+            // ...(agent && { requestOptions : { agent } }),
           });
-        } else if (
-          !existsSync(join(__dirname, "../.cache/", `${resource.lyric}.lyric`))
-        ) {
-          KamiMusicLyric.fetchLyric(resource.lyric).then((data) => {
-            resource.lyrics = new KamiMusicLyric(data);
-            writeFileSync(
-              join(__dirname, "../.cache/", `${resource.lyric}.lyric`),
-              JSON.stringify(data),
-              { flag : "w" }
-            );
-          });
-        } else {
-          resource.lyrics = new KamiMusicLyric(
-            JSON.parse(
-              readFileSync(
-                join(__dirname, "../.cache/", `${resource.lyric}.lyric`),
-                { encoding : "utf-8" }
-              )
-            )
-          );
+          break;
         }
+
+        default:
+          break;
+      }
+
+      if (!stream) {
+        return resolve(false);
+      }
+
+      Logger.info(
+        `⏳ Buffering ${resource.title} ${chalk.gray(this.guild.name)}`
+      );
+
+      const writeStream = stream.pipe(createWriteStream(filePath));
+
+      writeStream.on("close",()=>{
+        console.log("close");
+      })
+
+      writeStream.on("finish", () => {
+        Logger.info(`✅ Buffered  ${resource.title} ${chalk.gray(this.guild.name)}`);
+
+        resource.cachePath = filePath;
+
+        resolve(false);
+      });
+    });
+
+    while (await _buffer()) {
+      retryCount++;
+      if (retryCount > 3) {
+        Logger.error(`Cannot buffer resource at index ${index}, retry count exceeded.`);
+        return;
       }
     }
   }
@@ -1034,7 +885,7 @@ export class KamiMusicPlayer {
 
   /**
    * Stops the player and transitions to the next resource, if any.
-   * @param {boolean} force If `true`, the player won't transition into the next resource.
+   * @param  force If `true`, the player won't transition into the next resource.
    */
   stop(force = false) {
     if (force) {
@@ -1042,34 +893,38 @@ export class KamiMusicPlayer {
     }
 
     this.player.stop();
-    delete this._resource;
+    this._audioResource = null;
   }
 
   /**
    * Destroys the player.
    */
-  async destroy() {
-    if (this.npmsg instanceof Message) {
-      if (this.npmsg.deletable) {
-        await this.npmsg.delete().catch(() => void 0);
-      }
+  destroy() {
+    if (this.message instanceof Message) {
+      void this.message.delete().catch(() => void 0);
     }
 
+    this.subscription.unsubscribe();
     this.connection.destroy();
     this.client.players.delete(this.guild.id);
   }
 
-  /**
-   * Connects the player.
-   * @param {import("discord.js").VoiceChannel} channel
-   */
-  connect(channel) {
-    this.connection = joinVoiceChannel({
-      channelId      : channel.id,
-      guildId        : channel.guild.id,
-      adapterCreator : channel.guild.voiceAdapterCreator,
-    });
-    this.subscription = this.connection.subscribe(this.player);
+  connect(channel = this.voice) {
+    if (this.connection) {
+      this.connection.rejoin();
+    } else {
+      this.connection = joinVoiceChannel({
+        channelId      : channel.id,
+        guildId        : channel.guild.id,
+        adapterCreator : channel.guild.voiceAdapterCreator,
+      });
+    }
+
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+    }
+
+    this.subscription = this.connection.subscribe(this.player)!;
   }
 
   /**
@@ -1083,107 +938,43 @@ export class KamiMusicPlayer {
    * Updates the nowplaying message
    */
   async updateNowplayingMessage() {
-    try {
-      const lyrics = this._resource
-        ? (this._resource.metadata?.lyrics?.getLine(
-          this.playbackTime - this.lyricsOffset
-        ) ?? null)
-        : null;
-
-      if (this.npmsg) {
-        this.npmsg = await this.npmsg
-          .edit(npTemplate(this, lyrics))
-          .catch(async (err) => {
-            if (err.code != RESTJSONErrorCodes.UnknownMessage) {
-              console.error(err);
-            }
-
-            if (!this._npmsglock) {
-              this._npmsglock = true;
-              this.npmsg = await this.textChannel.send(
-                npTemplate(this, lyrics)
-              );
-              this._npmsglock = false;
-            }
-          });
-      } else if (!this._npmsglock) {
-        this._npmsglock = true;
-        this.npmsg = await this.textChannel.send(npTemplate(this, lyrics));
-        this._npmsglock = false;
-        this._npmsgcollector = this.npmsg.createMessageComponentCollector({
-          componentType : ComponentType.Button,
-        });
-        this._npmsgcollector.on("collect", (btnInter) => {
-          switch (btnInter.customId) {
-            case "offset-1000":
-              this.lyricsOffset -= 1000;
-              break;
-            case "offset-100":
-              this.lyricsOffset -= 100;
-              break;
-            case "offsetReset":
-              this.lyricsOffset = 0;
-              break;
-            case "offset+100":
-              this.lyricsOffset += 100;
-              break;
-            case "offset+1000":
-              this.lyricsOffset += 1000;
-              break;
-            case "toggleRuby":
-              this.showRubyText = !this.showRubyText;
-              break;
-          }
-
-          btnInter.update(
-            npTemplate(
-              this,
-              this._resource
-                ? (this._resource.metadata?.lyrics?.getLine(
-                  this.playbackTime - this.lyricsOffset
-                ) ?? null)
-                : null
-            )
-          );
-        });
-      }
-    } catch (err) {
-      Logger.error(
-        `Unable to update nowplaying message in #${this.textChannel.name}`
-      );
-      Logger.error(err);
+    if (!this.message) {
+      this.message = await this.text.send({
+        ...nowPlayingMessagePayload(this),
+        flags : MessageFlags.SuppressNotifications,
+      });
+      return;
     }
+
+    await this.message.edit(nowPlayingMessagePayload(this));
   }
 
-  stopLyrics() {
-    if (this._lyricstimer) {
-      clearInterval(this._lyricstimer);
-      delete this._lyricstimer;
-      delete this._currentLyricIndex;
-    }
+  async updateVoiceStatus() {
+    // TODO: Wait for discord.js to implement method for updating channel status
+    await rest
+      .put(`/channels/${this.voice.id}/voice-status`, {
+        body : { status : "" },
+      })
+      .catch((e) => Logger.error(e));
   }
 }
 
-/**
- * @param {KamiMusicPlayer} player
- * @returns
- */
-const npTemplate = (player, lyrics) => {
+const nowPlayingMessagePayload = (player: KamiMusicPlayer, lyrics?): MessageCreateOptions & MessageEditOptions => {
   const current = player.current;
   const embeds = [
     player._resource != null
       ? new EmbedBuilder()
-        .setColor(player.client.Color.Info)
+        .setColor(Colors.Blue)
         .setAuthor({
           name    : `正在播放 | ${player.guild.name}`,
-          iconURL : player.guild.iconURL(),
+          iconURL : player.guild.iconURL()!,
         })
         .setDescription(
-          `${this.locked ? "🔒" : ""} 使用 ${AddByUrlCommandMention} 或 ${AddBySearchCommandMention} 來添加項目`
+          `${player.locked ? "🔒" : ""} 使用 ${AddByUrlCommandMention} 或 ${AddBySearchCommandMention} 來添加項目`
         )
         .setThumbnail(current.thumbnail)
         .setTitle(current.title)
-        .setURL(current.shortURL)
+        .setURL(current.shortUrl ?? current.url)
         .setFields([
           {
             name   : "#️⃣ 編號",
@@ -1198,18 +989,17 @@ const npTemplate = (player, lyrics) => {
         })
         .setTimestamp()
       : new EmbedBuilder()
-        .setColor(player.client.Color.Info)
+        .setColor(Colors.Blue)
         .setAuthor({
           name    : `正在播放 | ${player.guild.name}`,
-          iconURL : player.guild.iconURL(),
+          iconURL : player.guild.iconURL()!,
         })
         .setDescription(
           `目前沒有在播放任何東西，使用 ${AddByUrlCommandMention} 或 ${AddBySearchCommandMention} 來添加項目`
         )
         .setTimestamp(),
   ];
-  const components = [];
-
+  /* 
   if (lyrics) {
     const ly_prev = codeBlock(
       "md",
@@ -1275,16 +1065,15 @@ const npTemplate = (player, lyrics) => {
       )
     );
   }
+ */
 
   return {
-    content : `🎶 正在 ${player.voiceChannel} ${player._resource != null ? "播放" : "待機"}`,
+    content : `🎶 正在 ${player.voice.toString()} ${player.player.state.status == AudioPlayerStatus.Playing ? "播放" : "待機"}`,
     embeds,
-    components,
-    flags   : MessageFlags.SuppressNotifications,
   };
 };
 
-function formatTime(seconds) {
+function formatTime(seconds: number) {
   let str = "";
   const second = ~~(seconds % 60);
   const minute = ~~(seconds / 60);

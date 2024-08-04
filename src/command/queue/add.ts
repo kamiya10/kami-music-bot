@@ -1,22 +1,21 @@
 import {
+  Colors,
   EmbedBuilder,
   SlashCommandBuilder,
   SlashCommandIntegerOption,
   SlashCommandStringOption,
   SlashCommandSubcommandBuilder,
-  escapeMarkdown,
 } from "discord.js";
-import { KamiMusicMetadata } from "../../class/KamiMusicMetadata";
-import { KamiMusicPlayer } from "../../class/KamiMusicPlayer";
-import YouTube from "simple-youtube-api";
-import chalk from "chalk";
-import type { Command } from "..";
-const Youtube = new YouTube(process.env.YOUTUBE_TOKEN);
+import { KamiMusicMetadata, Platform } from "@/class/KamiMusicMetadata";
+import { fetchPlaylist, fetchVideo, parseUrl } from "@/core/youtube/api";
+import { getPlatform, replyError } from "@/core/utils";
+import { KamiMusicPlayer } from "@/class/KamiMusicPlayer";
 
-import Logger from "@/coree/logger";
+import type { Command } from "@/command";
+
 
 export default {
-  data: new SlashCommandBuilder()
+  data : new SlashCommandBuilder()
     .setName("add")
     .setNameLocalization("zh-TW", "新增")
     .setDescription("Add songs into the queue.")
@@ -65,266 +64,156 @@ export default {
         )
     )
     .setDMPermission(false),
-  defer: true,
-  ephemeral: true,
-
-  /**
-   * @param {import("discord.js").ChatInputCommandInteraction} interaction
-   */
+  defer     : true,
+  ephemeral : true,
   async execute(interaction) {
-    try {
-      const subcommand = interaction.options.getSubcommand(true);
-      const placement =
+    const subcommand = interaction.options.getSubcommand(true);
+    const placement =
         interaction.options.getInteger("placement") ?? undefined;
 
-      if (!interaction.member.voice.channel) {
-        throw { message: "ERR_USER_NOT_IN_VOICE" };
-      }
+    if (!interaction.member.voice.channel) {
+      await replyError(interaction, "你必須在語音頻道內才能使用這個指令");
+      return;
+    }
 
-      /**
-       * @type {KamiMusicPlayer}
-       */
-      let GuildMusicPlayer = interaction.client.players.get(
-        interaction.guild.id
+    const GuildMusicPlayer = this.players.get(interaction.guild.id)
+      ?? new KamiMusicPlayer(
+        this,
+        interaction.channel!,
+        interaction.member.voice.channel,
+        interaction.member,
       );
 
-      if (GuildMusicPlayer) {
-        if (
-          GuildMusicPlayer.locked &&
-          GuildMusicPlayer.owner.id != interaction.member.id
-        ) {
-          throw { message: "ERR_PLAYER_LOCKED" };
-        }
-      } else {
-        GuildMusicPlayer = new KamiMusicPlayer(
-          interaction.member.voice.channel,
-          interaction.member,
-          interaction.channel
-        );
-      }
+    if (GuildMusicPlayer.locked && GuildMusicPlayer.owner.id != interaction.member.id) {
+      await replyError(interaction, "你沒有權限和這個播放器互動");
+      return;
+    }
 
-      if (
-        GuildMusicPlayer.voiceChannel.id != interaction.member.voice.channel.id
-      ) {
-        throw "ERR_USER_NOT_IN_SAME_VOICE";
-      }
+    if (GuildMusicPlayer.voice.id != interaction.member.voice.channel.id) {
+      await replyError(interaction, "你必須和我在同一個語音頻道內才能使用這個指令");
+      return;
+    }
 
-      let embed = new EmbedBuilder()
-        .setColor(interaction.client.Color.Success)
-        .setAuthor({
-          name: `新增 | ${interaction.guild.name}`,
-          iconURL: interaction.guild.iconURL(),
-        });
+    const embed = new EmbedBuilder()
+      .setColor(Colors.Green)
+      .setAuthor({
+        name    : `新增 | ${interaction.guild.name}`,
+        iconURL : interaction.guild.iconURL()!,
+      });
 
-      switch (subcommand) {
-        case "url": {
-          const url = interaction.options.getString("url");
+    switch (subcommand) {
+      case "url": {
+        const url = interaction.options.getString("url", true);
+        const placement = interaction.options.getInteger("placement") ?? GuildMusicPlayer.queue.length;
 
-          // #region Youtube
-          if (url.match(/youtu(be|.be)/)) {
-            if (
-              url.match(
-                /^(?!.*\?.*\bv=)(http(s)?:\/\/)?(((w){3}|music)\.)?youtube\.com\/.*\?.*\blist=.*$/
-              )
-            ) {
-              // #region 播放佇列
-              Logger.debug(`Fetching Playlist from: ${url}`);
-              const playlist = await Youtube.getPlaylist(url).catch(() => {
-                throw "ERR_PLAYLIST_NOT_EXIST";
-              });
-              Logger.debug(
-                `Fetching Videos from Playlist: ${playlist.title} ${chalk.gray(`(${playlist.id})`)}`
-              );
-              const videosArr = await playlist.getVideos().catch(() => {
-                throw "ERR_FETCH_PLAYLIST_VIDEO";
-              });
-              const metas = [];
-              let songs = [];
+        switch (getPlatform(url)) {
+          case Platform.Youtube: {
+            const res = parseUrl(url);
+              
+            const metadata: KamiMusicMetadata[] = [];
 
-              for (let i = 0; i < videosArr.length; i++) {
-                if (videosArr[i].raw.status.privacyStatus == "private") {
-                  continue;
-                } else {
-                  try {
-                    let video = interaction.client.apiCache.get(
-                      videosArr[i].id
-                    );
-
-                    if (!video || (video && !video?.full)) {
-                      Logger.debug(`Fetching ID: ${videosArr[i].id}`);
-                      video = await Youtube.getVideoByID(videosArr[i].id).catch(
-                        (e) => {
-                          console.error(e);
-                          throw "ERR_FETCH_VIDEO";
-                        }
-                      );
-
-                      // 不支援直播
-                      if (video.raw.snippet.liveBroadcastContent === "live") {
-                        throw "ERR_NOT_SUPPORTED@LIVESTREAM";
-                      }
-                    }
-
-                    video.playlist = playlist;
-                    const meta = new KamiMusicMetadata(
-                      video,
-                      interaction.member
-                    );
-                    const blocked = "";
-
-                    // if (!meta.blocked)
-                    metas.push(meta);
-                    // else blocked = "~~";
-
-                    songs.push(
-                      `${blocked}${i + 1}. [${escapeMarkdown(video.title.replace(/([[\]()])/g, "\\$1"))}](${video.shortURL})${blocked} ${blocked ? "地區限制" : ""}`
-                    );
-                  } catch (err) {
-                    return console.error(err);
-                  }
-                }
-              }
-
-              const position = await GuildMusicPlayer.addResource(
-                metas,
-                placement != undefined ? placement - 1 : placement
-              );
-
-              if (songs.length > 8) {
-                const total = songs.length;
-                songs = songs.slice(0, 8);
-                songs.push(`　...還有 ${total - songs.length} 項`);
-              }
-
-              embed = embed
-                .setThumbnail(playlist?.thumbnails?.high?.url)
-                .setDescription(
-                  `:musical_note: [${playlist.title}](${playlist.url}) 已加到播放佇列`
-                )
-                .addFields({ name: "已新增", value: songs.join("\n") })
-                .setFooter({
-                  text: `位置：#${position + 1}`,
-                  iconURL: interaction.member.displayAvatarURL(),
-                })
-                .setTimestamp();
-              // #endregion
-            } else if (
-              url.match(
-                /^(http(s)?:\/\/)?(((w){3}|music)\.)?youtu(be|.be)?(\.com)?\/.+/
-              )
-            ) {
-              // #region 影片
-              const query = url
-                .replace(/(>|<)/gi, "")
-                .split(/(vi\/|v=|\/v\/|youtu\.be\/|\/embed\/)/);
-              const videoId = query[2].split(/[^0-9a-z_-]/i)[0];
-              let video = interaction.client.apiCache.get(videoId);
-
-              if (!video || (video && !video?.full)) {
-                Logger.debug(`Fetching ID: ${videoId}`);
-                video = await Youtube.getVideoByID(videoId).catch((e) => {
-                  console.error(e);
-                  throw "ERR_FETCH_VIDEO";
-                });
-
-                // 不支援直播
-                if (video.raw.snippet.liveBroadcastContent === "live") {
-                  throw "ERR_NOT_SUPPORTED@LIVESTREAM";
-                }
-              }
-
-              const meta = new KamiMusicMetadata(video, interaction.member);
-              const position = await GuildMusicPlayer.addResource(
-                meta,
-                placement != undefined ? placement - 1 : placement
-              );
-
-              embed = embed
-                .setThumbnail(meta.thumbnail)
-                .setDescription(
-                  `:musical_note: [${meta.title}](${meta.url}) 已加到播放佇列`
-                )
-                .setFooter({
-                  text: `位置：#${position + 1}`,
-                  iconURL: interaction.member.displayAvatarURL(),
-                })
-                .setTimestamp();
-              // #endregion
-            } else {
-              throw { message: "ERR_INVALID_PARAMETER@URL" };
+            if (res.video) {
+              const video = await fetchVideo(res.video);
+              metadata.push(KamiMusicMetadata.youtube(video, this, interaction.member));
+              embed
+                .setThumbnail(metadata[0].thumbnail)
+                .setDescription(`:musical_note: [${video.title}](${video.url}) 已加到播放佇列`);
+            } else if (res.playlist) {
+              const playlist = await fetchPlaylist(res.playlist);
+              metadata.push(...playlist.videos.map(v => KamiMusicMetadata.youtube(v, this, interaction.member)));
+              embed
+                .setThumbnail(metadata[0].thumbnail)
+                .setDescription(`:musical_note: [${playlist.title}](${playlist.url}) 已加到播放佇列`);
             }
+
+            const position = await GuildMusicPlayer.addResource(metadata, placement);
+
+            embed
+              .setFooter({
+                text    : `位置：#${position + 1}`,
+                iconURL : interaction.member.displayAvatarURL(),
+              })
+              .setTimestamp();
+
+            break;
           }
-
-          // #endregion
-          break;
-        }
-
-        case "search": {
-          const videoId = interaction.options.getString("query");
-
-          let video = interaction.client.apiCache.get(videoId);
-
-          if (!video || (video && !video?.full)) {
-            Logger.debug(`Fetching ID: ${videoId}`);
-            video = await Youtube.getVideoByID(videoId).catch((e) => {
-              console.error(e);
-              throw "ERR_FETCH_VIDEO";
-            });
-
-            // 不支援直播
-            if (video.raw.snippet.liveBroadcastContent === "live") {
-              throw "ERR_NOT_SUPPORTED@LIVESTREAM";
-            }
+          
+          default: {
+            await replyError(interaction, "未知的連結。請輸入 Youtube 影片或播放清單連結");
+            return;
           }
-
-          const meta = new KamiMusicMetadata(video, interaction.member);
-          const position = await GuildMusicPlayer.addResource(meta, placement);
-
-          embed = embed
-            .setThumbnail(meta.thumbnail)
-            .setDescription(
-              `:musical_note: [${meta.title}](${meta.url}) 已加到播放佇列`
-            )
-            .setFooter({
-              text: `位置：#${position + 1}`,
-              iconURL: interaction.member.displayAvatarURL(),
-            })
-            .setTimestamp();
-          break;
         }
-
-        default:
-          break;
+          
+        break;
       }
 
-      await interaction.editReply({ embeds: [embed], ephemeral: true });
-    } catch (e) {
+      case "search": {
+        const id = interaction.options.getString("query", true);
+
+        let metadata: KamiMusicMetadata;
+
+        if (this.cache.has(id)) {
+          metadata = new KamiMusicMetadata({
+            ...this.cache.get(id)!,
+            member : interaction.member,
+          }, this);
+        } else {
+          const video = await fetchVideo(id);
+          metadata = KamiMusicMetadata.youtube(video, this, interaction.member);
+        }
+
+        const position = await GuildMusicPlayer.addResource(metadata, placement);
+
+        embed
+          .setThumbnail(metadata.thumbnail)
+          .setDescription(
+            `:musical_note: [${metadata.title}](${metadata.url}) 已加到播放佇列`
+          )
+          .setFooter({
+            text    : `位置：#${position + 1}`,
+            iconURL : interaction.member.displayAvatarURL(),
+          })
+          .setTimestamp();
+        break;
+      }
+
+      default:
+        break;
+    }
+
+    await interaction.editReply({
+      embeds  : [embed], 
+      options : {
+        ephemeral : true
+      }
+    });
+    /* } catch (e) {
       const errCase = {
-        ERR_INVAILD_PARAMETER: "沒有提供連結",
-        ERR_USER_NOT_IN_VOICE: "你必須在語音頻道內才能使用這個指令",
-        ERR_USER_NOT_IN_SAME_VOICE: "你和我在同一個語音頻道內才能使用這個指令",
-        ERR_PLAYER_LOCKED: "你沒有權限和這個播放器互動",
-        ERR_PLAYLIST_NOT_EXIST: "播放清單不存在或未公開",
-        ERR_FETCH_PLAYLIST_VIDEO: "獲取播放清單中的影片時發生錯誤",
-        ERR_FETCH_VIDEO: "獲取影片資訊時發生錯誤",
-        "ERR_NOT_SUPPORTED@LIVESTREAM": "不支援即時串流",
-        ERR_SEARCH_ERROR: "搜尋的時候發生錯誤",
-        ERR_SEARCH_NO_RESULT: "提供的關鍵字找不到任何結果，可以提供更多來查詢",
-        "ERR_INVALID_PARAMETER@URL":
+        ERR_INVAILD_PARAMETER          : "沒有提供連結",
+        ERR_USER_NOT_IN_VOICE          : "你必須在語音頻道內才能使用這個指令",
+        ERR_USER_NOT_IN_SAME_VOICE     : "你和我在同一個語音頻道內才能使用這個指令",
+        ERR_PLAYER_LOCKED              : "你沒有權限和這個播放器互動",
+        ERR_PLAYLIST_NOT_EXIST         : "播放清單不存在或未公開",
+        ERR_FETCH_PLAYLIST_VIDEO       : "獲取播放清單中的影片時發生錯誤",
+        ERR_FETCH_VIDEO                : "獲取影片資訊時發生錯誤",
+        "ERR_NOT_SUPPORTED@LIVESTREAM" : "不支援即時串流",
+        ERR_SEARCH_ERROR               : "搜尋的時候發生錯誤",
+        ERR_SEARCH_NO_RESULT           : "提供的關鍵字找不到任何結果，可以提供更多來查詢",
+        "ERR_INVALID_PARAMETER@URL" :
           "未知的連結。請輸入 Youtube 影片或播放清單連結",
       }[e.message];
 
       const embed = new EmbedBuilder()
-        .setColor(interaction.client.Color.Error)
-        .setTitle(`${interaction.client.EmbedIcon.Error} 錯誤`);
+        .setColor(Colors.Red)
+        .setTitle(`❌ 錯誤`);
 
       if (!errCase) {
         embed
           .setDescription(`發生了預料之外的錯誤：\`${e.message}\``)
-          .setFooter({ text: "ERR_UNCAUGHT_EXCEPTION" });
+          .setFooter({ text : "ERR_UNCAUGHT_EXCEPTION" });
         console.error(e);
       } else {
-        embed.setDescription(errCase).setFooter({ text: e.message });
+        embed.setDescription(errCase).setFooter({ text : e.message });
       }
 
       if (this.defer) {
@@ -333,7 +222,7 @@ export default {
         }
       }
 
-      await interaction.followUp({ embeds: [embed], ephemeral: true });
-    }
+      await interaction.followUp({ embeds : [embed], ephemeral : true });
+    } */
   },
 } satisfies Command;

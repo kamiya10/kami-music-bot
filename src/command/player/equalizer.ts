@@ -1,38 +1,27 @@
 import {
+  ActionRowBuilder,
+  Colors,
   EmbedBuilder,
   SlashCommandBuilder,
-  SlashCommandStringOption,
-  Colors,
-  ComponentType,
-  ActionRowBuilder,
   StringSelectMenuBuilder,
-  Guild,
   codeBlock,
-  ModalBuilder,
-  TextInputBuilder,
-  ButtonBuilder,
-  ButtonStyle,
 } from "discord.js";
-import { EqualizerPresets } from "../../class/KamiMusicPlayer";
+import { EuqalizerPresets } from "@/class/EqualizerGraph";
 import { Command } from "..";
 
 export default {
-  data: new SlashCommandBuilder()
+  data : new SlashCommandBuilder()
     .setName("equalizer")
     .setNameLocalization("zh-TW", "等化器")
     .setDescription("View or edit the equalizer.")
     .setDescriptionLocalization("zh-TW", "查看或編輯等化器。")
     .setDMPermission(false),
-  defer: true,
-  ephemeral: false,
-
-  /**
-   * @param {import("discord.js").ChatInputCommandInteraction} interaction
-   */
+  defer     : true,
+  ephemeral : false,
   async execute(interaction) {
     try {
       if (!interaction.member.voice.channel) {
-        throw { message: "ERR_USER_NOT_IN_VOICE" };
+        throw { message : "ERR_USER_NOT_IN_VOICE" };
       }
 
       /**
@@ -43,14 +32,14 @@ export default {
       );
 
       if (!GuildMusicPlayer) {
-        throw { message: "ERR_NO_PLAYER" };
+        throw { message : "ERR_NO_PLAYER" };
       }
 
       if (
         GuildMusicPlayer.locked &&
         GuildMusicPlayer.owner.id != interaction.member.id
       ) {
-        throw { message: "ERR_PLAYER_LOCKED" };
+        throw { message : "ERR_PLAYER_LOCKED" };
       }
 
       if (
@@ -62,8 +51,8 @@ export default {
       const embed = new EmbedBuilder()
         .setColor(interaction.client.Color.Info)
         .setAuthor({
-          name: `等化器 | ${interaction.guild.name}`,
-          iconURL: interaction.guild.iconURL(),
+          name    : `等化器 | ${interaction.guild.name}`,
+          iconURL : interaction.guild.iconURL(),
         })
         .setDescription(codeBlock(createAsciiChart(GuildMusicPlayer.equalizer)))
         .setTimestamp();
@@ -71,18 +60,18 @@ export default {
       const row = new ActionRowBuilder().addComponents(
         new StringSelectMenuBuilder().setCustomId("eqPreset").addOptions(
           ...Object.keys(EqualizerPresets).map((k) => ({
-            label: k,
-            value: k,
+            label : k,
+            value : k,
           }))
         )
       );
 
       const sent = await interaction.editReply({
-        embeds: [embed],
-        components: [row],
+        embeds     : [embed],
+        components : [row],
       });
 
-      const collector = sent.createMessageComponentCollector({ idle: 180_000 });
+      const collector = sent.createMessageComponentCollector({ idle : 180_000 });
       collector.on("collect", async (inter) => {
         const player = inter.client.players.get(interaction.guild.id);
 
@@ -91,12 +80,12 @@ export default {
             player.equalizer = EqualizerPresets[inter.values[0]];
 
             await inter.update({
-              embeds: [
+              embeds : [
                 embed.setDescription(
                   codeBlock(createAsciiChart(player.equalizer))
                 ),
               ],
-              components: [row],
+              components : [row],
             });
             break;
           }
@@ -107,25 +96,25 @@ export default {
       });
     } catch (e) {
       const errCase = {
-        ERR_USER_NOT_IN_VOICE: "你必須在語音頻道內才能使用這個指令",
-        ERR_USER_NOT_IN_SAME_VOICE: "你和我在同一個語音頻道內才能使用這個指令",
-        ERR_NO_PLAYER: "現在沒有在放音樂",
-        ERR_PLAYER_LOCKED: "你沒有權限和這個播放器互動",
-        ERR_FORMAT:
+        ERR_USER_NOT_IN_VOICE      : "你必須在語音頻道內才能使用這個指令",
+        ERR_USER_NOT_IN_SAME_VOICE : "你和我在同一個語音頻道內才能使用這個指令",
+        ERR_NO_PLAYER              : "現在沒有在放音樂",
+        ERR_PLAYER_LOCKED          : "你沒有權限和這個播放器互動",
+        ERR_FORMAT :
           "格式錯誤，必須是 `HH:MM:SS`, `h:m:s`, `MM:SS`, `m:s` 或 `s` 其中一種",
       }[e.message];
 
       const embed = new EmbedBuilder()
-        .setColor(interaction.client.Color.Error)
-        .setTitle(`${interaction.client.EmbedIcon.Error} 錯誤`);
+        .setColor(Colors.Red)
+        .setTitle(`❌ 錯誤`);
 
       if (!errCase) {
         embed
           .setDescription(`發生了預料之外的錯誤：\`${e.message}\``)
-          .setFooter({ text: "ERR_UNCAUGHT_EXCEPTION" });
+          .setFooter({ text : "ERR_UNCAUGHT_EXCEPTION" });
         console.error(e);
       } else {
-        embed.setDescription(errCase).setFooter({ text: e.message });
+        embed.setDescription(errCase).setFooter({ text : e.message });
       }
 
       if (this.defer) {
@@ -134,7 +123,7 @@ export default {
         }
       }
 
-      await interaction.followUp({ embeds: [embed], ephemeral: true });
+      await interaction.followUp({ embeds : [embed], ephemeral : true });
     }
   },
 } satisfies Command;

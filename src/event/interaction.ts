@@ -1,16 +1,14 @@
 import { Events } from "discord.js";
-import Logger from "@/coree/logger";
+import Logger from "@/core/logger";
 
 import type { KamiEventListener } from ".";
 
 export default {
-  name: Events.InteractionCreate,
+  name : Events.InteractionCreate,
   async on(interaction) {
     if (!interaction.isChatInputCommand()) return;
     if (interaction.isAutocomplete()) return;
-    if (!interaction.guildId) {
-      return;
-    }
+    if (!interaction.inCachedGuild()) return;
 
     const command = this.commands.get(interaction.commandName);
 
@@ -19,7 +17,7 @@ export default {
     try {
       if (command.defer) {
         await interaction.deferReply({
-          ephemeral: command.ephemeral,
+          ephemeral : command.ephemeral,
         });
       }
 
@@ -30,9 +28,9 @@ export default {
 
       if (command.defer) {
         await interaction.deleteReply().catch(() => void 0);
-        await interaction.followUp({ content: msg, ephemeral: true });
+        await interaction.followUp({ content : msg, ephemeral : true });
       } else {
-        await interaction.reply({ content: msg, ephemeral: true });
+        await interaction.reply({ content : msg, ephemeral : true });
       }
     }
   },

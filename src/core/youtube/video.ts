@@ -31,7 +31,7 @@ export interface APIVideo {
   }
 }
 
-export class Video {
+interface IVideo {
   id        : string;
   title     : string;
   thumbnail : Thumbnail;
@@ -45,19 +45,54 @@ export class Video {
     title : string;
   };
   raw : APIVideo;
+}
+
+export class Video implements IVideo {
+  id        : string;
+  title     : string;
+  thumbnail : Thumbnail;
+  duration  : Duration;
+  length    : number;
+  url       : string;
+  shortUrl  : string;
+  channel : {
+    id    : string;
+    title : string;
+  };
+  raw : APIVideo;
   
-  constructor(data: APIVideo) {
+  constructor(data: IVideo) {
     this.id = data.id;
-    this.title = data.snippet.title;
-    this.thumbnail = data.snippet.thumbnails.high ?? data.snippet.thumbnails.default;
-    this.duration = parse(data.contentDetails.duration);
-    this.length = toSeconds(this.duration) * 1000;
-    this.url = `https://youtube.com/watch?v=${this.id}`;
-    this.shortUrl = `https://youtu.be/${this.id}`;
-    this.channel = {
-      id    : data.snippet.channelId,
-      title : data.snippet.channelTitle,
-    }
-    this.raw = data;
+    this.title = data.title;
+    this.thumbnail = data.thumbnail;
+    this.duration = data.duration;
+    this.length = data.length;
+    this.url = data.url;
+    this.shortUrl = data.shortUrl;
+    this.channel = data.channel;
+    this.raw = data.raw;
+  }
+
+  static fromVideo(data: APIVideo) {
+    const id = data.id;
+    const title = data.snippet.title;
+    const thumbnail = data.snippet.thumbnails.high ?? data.snippet.thumbnails.default;
+    const duration = parse(data.contentDetails.duration);
+    const length = toSeconds(duration) * 1000;
+
+    return new Video({
+      id,
+      title,
+      thumbnail,
+      duration,
+      length,
+      url      : `https://youtube.com/watch?v=${data.id}`,
+      shortUrl : `https://youtu.be/${data.id}`,
+      channel  : {
+        id    : data.snippet.channelId,
+        title : data.snippet.channelTitle,
+      },
+      raw : data,
+    });
   }
 }
