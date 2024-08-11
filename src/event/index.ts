@@ -1,10 +1,10 @@
 import type { ClientEvents } from "discord.js";
 import type { KamiClient } from "../class/KamiClient";
 
-import autocomplete from "./autocomplete";
-import guildCreate from "./guildCreate";
-import interaction from "./interaction";
-import ready from "./ready";
+import autocomplete from "./client/autocomplete";
+import guildCreate from "./client/guildCreate";
+import interaction from "./client/interaction";
+import ready from "./client/ready";
 
 export interface KamiEventListener<Event extends keyof ClientEvents> {
   name: Event;

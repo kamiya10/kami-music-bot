@@ -97,4 +97,18 @@ export class KamiClient extends Client {
 
     spinner.succeed(`Loaded ${metafiles.length} entries from cache.`);
   }
+
+  async updateCommands() {
+    if (!this.isReady()) {
+      throw new Error("Client is not ready to update commands.");
+    }
+
+    const guilds = this.guilds.cache.filter(g=>g.commands.cache.size);
+    guilds.forEach(g => {
+      g.commands.set([]);
+    });
+
+    const command = this.commands.map(c=>c.data.toJSON());
+    await this.application.commands.set(command);
+  }
 }

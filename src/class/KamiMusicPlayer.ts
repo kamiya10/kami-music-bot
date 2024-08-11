@@ -235,7 +235,7 @@ export class KamiMusicPlayer {
                   this.next();
                 } else {
                   this._isFinished = true;
-                  this.updateNowplayingMessage(true);
+                  void this.updateNowplayingMessage(true);
                 }
 
                 break;
@@ -742,10 +742,6 @@ export class KamiMusicPlayer {
   }
 
   async buffer(index: number, force = false) {
-    if (this._isBuffering) {
-      return;
-    }
-
     const resource = this.queue[index];
 
     if (!resource) {
@@ -759,84 +755,70 @@ export class KamiMusicPlayer {
       return;
     }
 
-    let retryCount = 0;
-    this._isBuffering = true;
+    let stream: Readable;
 
-    const _buffer = () => new Promise<boolean>((resolve) => {
-      let stream: Readable;
+    switch (resource.platform) {
+      case Platform.Youtube: {
+        /* Proxy
+          let agent;
 
-      switch (resource.platform) {
-        case Platform.Youtube: {
-          /* Proxy
-            let agent;
+          if (resource.region.length)
+          if (resource.region.includes("TW")) {
+            console.log("Using proxy: JP");
+            const Agent = require("https-proxy-agent");
+            const proxy = "http://139.162.78.109:3128";
+            // const proxy = "http://140.227.59.167:3180";
+            agent = new Agent(proxy);
+          }
+        */
 
-            if (resource.region.length)
-            if (resource.region.includes("TW")) {
-              console.log("Using proxy: JP");
-              const Agent = require("https-proxy-agent");
-              const proxy = "http://139.162.78.109:3128";
-              // const proxy = "http://140.227.59.167:3180";
-              agent = new Agent(proxy);
-            }
-          */
-
-          stream = ytdl(resource.url, {
-            filter        : (format) => +format.contentLength > 0,
-            quality       : "highestaudio",
-            highWaterMark : 1 << 25,
-            // ...(agent && { requestOptions : { agent } }),
-          });
-          break;
-        }
-
-        default:
-          break;
+        stream = ytdl(resource.url, {
+          filter        : (format) => +format.contentLength > 0,
+          quality       : "highestaudio",
+          highWaterMark : 1 << 25,
+          // ...(agent && { requestOptions : { agent } }),
+        });
+        break;
       }
 
-      if (!stream) {
-        return resolve(false);
-      }
-
-      Logger.info(
-        `⏳ Buffering ${resource.title} ${chalk.gray(this.guild.name)}`
-      );
-
-      const writeStream = stream.pipe(createWriteStream(filePath));
-
-      writeStream.on("close",()=>{
-        console.log("close");
-      })
-
-      writeStream.on("finish", () => {
-        Logger.info(`✅ Buffered  ${resource.title} ${chalk.gray(this.guild.name)}`);
-
-        resource.cachePath = filePath;
-
-        resolve(false);
-      });
-    });
-
-    while (await _buffer()) {
-      retryCount++;
-      if (retryCount > 3) {
-        Logger.error(`Cannot buffer resource at index ${index}, retry count exceeded.`);
+      default: 
         return;
-      }
     }
+
+    Logger.info(
+      `⏳ Buffering ${resource.title} ${chalk.gray(this.guild.name)}`
+    );
+
+    const data = [];
+
+    stream.on("data", (chunk) => {
+      data.push(chunk);
+    })
+
+    stream.on("close",()=>{
+      console.log("close");
+    })
+
+    stream.on("finish", () => {
+      Logger.info(`✅ Buffered  ${resource.title} ${chalk.gray(this.guild.name)}`);
+
+      resource.cachePath = filePath;
+    });
   }
 
   /**
    * Play the next resource.
-   * @returns {KamiMusicMetadata} The resource to be played.
+   * @returns  The resource to be played.
    */
   next() {
     if (this.repeat == RepeatMode.RandomNoRepeat) {
-      if (this._randomQueue.length == 0) {
-        this._randomQueue = [...this.queue];
+      if (this._random.length == 0) {
+        this._random = [...this.queue];
       }
 
-      this._randomQueue = this._randomQueue.sort(() => 0.5 - Math.random());
-      const resource = this._randomQueue.shift();
+      this._random.sort(() => 0.5 - Math.random());
+
+      const resource = this._random.shift()!;
       this.currentIndex = this.queue.indexOf(resource);
     } else if (
       this.repeat == RepeatMode.Backward ||
@@ -847,13 +829,13 @@ export class KamiMusicPlayer {
       this.currentIndex += 1;
     }
 
-    this.play();
+    void this.play();
     return this.current;
   }
 
   /**
    * Play the previous resource.
-   * @returns {KamiMusicMetadata} The resource to be played.
+   * @returns  The resource to be played.
    */
   prev() {
     if (
@@ -865,7 +847,7 @@ export class KamiMusicPlayer {
       this.currentIndex -= 1;
     }
 
-    this.play();
+    void this.play();
     return this.current;
   }
 

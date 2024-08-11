@@ -3,7 +3,6 @@ import { inspect } from "bun";
 
 import type { KamiEventListener } from "@/event";
 
-
 export default {
   name : Events.InteractionCreate,
   on(interaction) {

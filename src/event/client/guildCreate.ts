@@ -3,7 +3,7 @@ import { Events } from "discord.js";
 import Logger from "@/core/logger";
 import chalk from "chalk";
 
-import type { KamiEventListener } from ".";
+import type { KamiEventListener } from "@/event";
 
 export default {
   name: Events.GuildCreate,

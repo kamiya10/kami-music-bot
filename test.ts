@@ -1,3 +1,1 @@
-import { fetchVideo } from "@/core/youtube/api";
-
-const data = await fetchVideo("saDmN2f3HI0");
+void new Promise((res,rej) => rej(new Error("test")));
