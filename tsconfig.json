@@ -17,6 +17,10 @@
     "outDir": "dist",
     "rootDir": "src",
     "paths": {
+      "#": ["./src/events"],
+      "#/*": ["./src/events/*"],
+      "&": ["./src/commands"],
+      "&/*": ["./src/commands/*"],
       "@/*": ["./src/*"],
       "~/*": ["./*"]
     },
@@ -33,5 +37,6 @@
     "noUnusedParameters": true,
     "noPropertyAccessFromIndexSignature": true,
     "forceConsistentCasingInFileNames": true
-  }
+  },
+  "include": ["./src/**/*"]
 }

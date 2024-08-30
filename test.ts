@@ -1,1 +1,0 @@
-void new Promise((res,rej) => rej(new Error("test")));

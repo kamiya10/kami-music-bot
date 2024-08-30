@@ -1,13 +1,10 @@
 import "dotenv/config";
 
-import { KamiClient, KamiIntents } from "./class/KamiClient";
+import { KamiClient } from "@/core/KamiClient";
+import { setConsoleTitle } from "@/utils/console";
 
-const client = new KamiClient({
-  intents : KamiIntents,
-});
+const client = new KamiClient();
 
-void client.login(process.env["KAMI_TOKEN"]);
+void client.login(process.env["DEV_TOKEN"]);
 
-process.stdout.write(
-  `${String.fromCharCode(27)}]0;Kami Music ${client.version}${String.fromCharCode(7)}`
-);
+setConsoleTitle(`Kami Music ${client.version}`);
