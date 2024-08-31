@@ -91,7 +91,7 @@ export const fetchPlaylistVideo = async (listId: string) => {
 };
 
 export const parseUrl = (url: string) => {
-  if (/[A-Za-z0-9_-]{7,12}/.test(url)) {
+  if (/^[A-Za-z0-9_-]{7,12}$/.test(url)) {
     return {
       video    : url,
       playlist : null,

@@ -1,13 +1,17 @@
 import { AudioPlayerStatus, StreamType, VoiceConnectionStatus, createAudioPlayer, createAudioResource, entersState, joinVoiceChannel } from "@discordjs/voice";
 import { FFmpeg } from "prism-media";
-import { createReadStream } from "fs";
+import { join } from "path";
 
 import Logger from "@/utils/logger";
+import cookies from "~/cookies.json";
+import ytdl from "@distube/ytdl-core";
 
 import type { AudioPlayer, AudioResource, PlayerSubscription, VoiceConnection } from "@discordjs/voice";
 import type { Guild, GuildMember, Message, TextBasedChannel, VoiceBasedChannel } from "discord.js";
-import type { KamiClient } from "./KamiClient";
-import type { KamiResource } from "./KamiResource";
+import type { KamiClient } from "@/core/KamiClient";
+import type { KamiResource } from "@/core/KamiResource";
+
+const agent = ytdl.createAgent(cookies as []);
 
 export enum RepeatMode {
   Forward             = 0,
@@ -147,11 +151,25 @@ export class KamiMusicPlayer {
     if (!resource) {
       return Logger.error(`Resource at index ${index} is not found`, this.queue, this);
     }
+    /* 
+    if (!resource.cache) {
+      if (!await this.buffer(index)) {
+        return this.forward();
+      }
+    }
 
-    const stream = createReadStream(resource.path, {
+    const stream = createReadStream(resource.cache!, {
       highWaterMark : 1 << 25,
-    });
+    }); */
     
+    const stream = ytdl(resource.url, {
+      agent,
+      filter        : (format) => +format.contentLength > 0,
+      quality       : "highestaudio",
+      highWaterMark : 1 << 25,
+      // ...(agent && { requestOptions : { agent } }),
+    });
+
     this._currentResource = createAudioResource(
       stream,
       {
@@ -160,6 +178,45 @@ export class KamiMusicPlayer {
         metadata     : resource,
       },
     );
+  }
+
+  buffer(index = this.currentIndex): Promise<boolean> {
+    return new Promise((resolve) => {
+      const resource = this.queue[index];
+      const cachePath = join(this.client.cacheDirectory, "audio", resource.id);
+
+      const data = [] as Array<Buffer>;
+
+      Logger.debug(`Start buffering resource ${resource}`);
+
+      const stream = ytdl(resource.url, {
+        agent,
+        filter        : (format) => +format.contentLength > 0,
+        quality       : "highestaudio",
+        highWaterMark : 1 << 25,
+      // ...(agent && { requestOptions : { agent } }),
+      });
+    
+      stream.on("data", (chunk: Buffer) => data.push(chunk));
+      
+      stream.on("end", () => {
+        Logger.debug(`Buffered resource ${resource} at ${cachePath}`, resource);
+        Bun.write(cachePath,data)
+          .then(() => {
+            resource.cache = cachePath;
+            resolve(true);
+          })
+          .catch((err) => {
+            Logger.error("Error while saving buffer", err, resource);
+            resolve(false);
+          });
+      });
+
+      stream.on("error", (err) => {
+        Logger.error("Error while buffering", err, resource);
+        resolve(false);
+      });
+    });
   }
 
   forward() {
@@ -243,8 +300,18 @@ export class KamiMusicPlayer {
     this.play(index);
   }
 
-  addResource(resource: KamiResource, index: number = this.queue.length) {
-    this.queue.splice(index, 0, resource);
+  addResource(resource: KamiResource | KamiResource[], index: number = this.queue.length) {
+    Logger.debug(`Adding player ${resource.length} resources at ${index}`, resource);
+
+    if (!Array.isArray(resource)) {
+      resource = [resource];
+    } 
+    
+    this.queue.splice(index, 0, ...resource);
+
+    if (this.player?.state.status == AudioPlayerStatus.Idle) {
+      this.play(index);
+    }
   }
 
   destroy() {

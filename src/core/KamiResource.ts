@@ -1,28 +1,41 @@
 import type { Video } from "@/api/youtube/video";
 
 interface KamiResourceOptions {
+  type: Platform;
+  id: string;
   title: string;
   length: number;
-  path: string;
+  url: string;
 }
 
 export class KamiResource {
+  type: Platform;
+  id: string;
   title: string;
   length: number;
-  path: string;
+  url: string;
+  cache: string | null = null;
   
   constructor(options: KamiResourceOptions) {
+    this.type = options.type;
+    this.id = options.id;
     this.title = options.title;
     this.length = options.length;
-    this.path = options.path;
+    this.url = options.url;
   }
 
-  static youtube(video: Video, path: string): KamiResource {
+  static youtube(video: Video): KamiResource {
     return new KamiResource({
+      type: Platform.YouTube,
+      id: video.id,
       title: video.title,
       length: video.length,
-      path: path,
+      url: video.shortUrl,
     });
+  }
+
+  toString() {
+    return `${this.title} (${this.id})`;
   }
 }
 

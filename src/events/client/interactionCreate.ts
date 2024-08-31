@@ -32,10 +32,11 @@ export default {
       .then((result) => {
         switch (result.type) {
           case ExecutionResultType.SingleSuccess: {
+            const options = {...result.payload};
             if (command.defer) {
-              void interaction.editReply(result.payload).catch(e => void e);
+              void interaction.editReply(options).catch(e => void e);
             } else {
-              void interaction.reply(result.payload).catch(e => void e);
+              void interaction.reply(options).catch(e => void e);
             }
           }
         }

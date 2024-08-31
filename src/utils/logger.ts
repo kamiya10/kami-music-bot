@@ -21,7 +21,7 @@ const pad = (prefix: string) => {
 };
 
 export default class Logger {
-  static info(message: string) {
+  static info(message:string) {
     const time = getCurrentTime();
     console.log(`${c.gray(time)} ${c.blueBright(pad("Info"))} ${c.white(message)}`);
   }
@@ -29,11 +29,16 @@ export default class Logger {
   static error(message: string, ...args: unknown[]) {
     const time = getCurrentTime();
     console.error(`${c.gray(time)} ${c.red(pad("Error"))} ${c.redBright(message)}`);
-    console.error(...args);
+    if (args.length) {
+      console.error(...args);
+    }
   }
   
-  static debug(message: string) {
+  static debug(message: string, ...args: unknown[]) {
     const time = getCurrentTime();
-    console.log(`${c.gray(time)} ${c.cyan.italic(pad("Debug"))} ${c.gray.italic(message)}`);
+    console.debug(`${c.gray(time)} ${c.cyan.italic(pad("Debug"))} ${c.gray.italic(message)}`);
+    if (args.length) {
+      console.debug(...args);
+    }
   }
 };

@@ -3,15 +3,13 @@ import { KamiResource, Platform } from "@/core/KamiResource";
 import { fetchPlaylist, fetchVideo, parseUrl } from "@/api/youtube";
 import { ExecutionResultType } from "&";
 import { KamiMusicPlayer } from "@/core/KamiMusicPlayer";
-import { createWriteStream } from "fs";
-import { join } from "path";
 
 import SlashCommandRejectionError from "@/errors/SlashCommandRejectionError";
-import ytdl from "@distube/ytdl-core";
 
 import type { KamiCommand, SlashCommandResult } from "&";
 import type { ChatInputCommandInteraction } from "discord.js";
 import type { KamiClient } from "@/core/KamiClient";
+import Logger from "@/utils/logger";
 
 async function handleYoutubeResource(
   this: KamiClient,
@@ -21,20 +19,13 @@ async function handleYoutubeResource(
   before?: number,
 ): Promise<SlashCommandResult> {
   const ids = parseUrl(input);
+  Logger.debug(`Resource is `, ids);
   
   if (ids.video) {
     const video = await fetchVideo(ids.video);
+    Logger.debug(`Fetch ${ids.video}`, video);
 
-    const cachePath = join(this.cacheDirectory, "audio", video.id);
-
-    ytdl(video.url, {
-      filter        : (format) => +format.contentLength > 0,
-      quality       : "highestaudio",
-      highWaterMark : 1 << 25,
-      // ...(agent && { requestOptions : { agent } }),
-    }).pipe(createWriteStream(cachePath) as unknown as NodeJS.WritableStream);
-
-    player.addResource(KamiResource.youtube(video, cachePath), before);
+    player.addResource(KamiResource.youtube(video), before);
 
     return {
       type: ExecutionResultType.SingleSuccess,
@@ -55,6 +46,9 @@ async function handleYoutubeResource(
 
   if (ids.playlist) {
     const playlist = await fetchPlaylist(ids.playlist);
+
+    const resources = playlist.videos.map(v => KamiResource.youtube(v));
+    player.addResource(resources, before);
 
     return {
       type: ExecutionResultType.SingleSuccess,
@@ -87,9 +81,9 @@ export default {
           .setDescription("The Watch URL/Video ID/Playlist URL/Playlist ID of the resource")
           .setRequired(true))))
     .setDMPermission(false),
-  defer: false,
+  defer: true,
   ephemeral: true,
-  async execute(interaction) {
+  execute(interaction) {
     if (!interaction.inCachedGuild()) {
       throw new SlashCommandRejectionError({
         content: "這個指令只能在伺服器中使用",
@@ -138,15 +132,8 @@ export default {
       case Platform.YouTube: {
         const input = interaction.options.getString("input", true);
 
-        return await handleYoutubeResource.call(this, interaction, player, input);
+        return handleYoutubeResource.call(this, interaction, player, input);
       }
     }
-
-    return Promise.resolve({
-      type: ExecutionResultType.SingleSuccess,
-      payload: {
-        content: isMemberVoiceSameAsPlayerVoice ? `🔄️ ${voice}` : `📥 ${voice}`,
-      },
-    });
   },
 } as KamiCommand;
