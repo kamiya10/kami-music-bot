@@ -8,7 +8,7 @@ import events from "#";
 import ora from "ora";
 
 import type { ClientOptions } from "discord.js";
-import type { KamiCommand } from "&";
+import type { KamiCommand } from "&/types";
 import type { KamiMusicPlayer } from "@/core/KamiMusicPlayer";
 
 export class KamiClient extends Client {

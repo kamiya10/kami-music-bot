@@ -1,5 +1,5 @@
 import { Events } from "discord.js";
-import { ExecutionResultType } from "&";
+import { ExecutionResultType } from "&/types";
 
 import SlashCommandRejectionError from "@/errors/SlashCommandRejectionError";
 import logger from "@/utils/logger";

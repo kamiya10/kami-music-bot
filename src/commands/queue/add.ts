@@ -1,12 +1,12 @@
 import { Colors, EmbedBuilder, SlashCommandBuilder, SlashCommandStringOption, SlashCommandSubcommandBuilder, SlashCommandSubcommandGroupBuilder, hyperlink } from "discord.js";
 import { KamiResource, Platform } from "@/core/KamiResource";
 import { fetchPlaylist, fetchVideo, parseUrl } from "@/api/youtube";
-import { ExecutionResultType } from "&";
+import { ExecutionResultType } from "&/types";
 import { KamiMusicPlayer } from "@/core/KamiMusicPlayer";
 
 import SlashCommandRejectionError from "@/errors/SlashCommandRejectionError";
 
-import type { KamiCommand, SlashCommandResult } from "&";
+import type { KamiCommand, SlashCommandResult } from "&/types";
 import type { ChatInputCommandInteraction } from "discord.js";
 import type { KamiClient } from "@/core/KamiClient";
 import Logger from "@/utils/logger";

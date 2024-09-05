@@ -1,9 +1,10 @@
+import { ExecutionResultType } from "&/types";
+import { KamiMusicPlayer } from "@/core/KamiMusicPlayer";
 import { SlashCommandBuilder } from "discord.js";
 
 import SlashCommandRejectionError from "@/errors/SlashCommandRejectionError";
 
-import { ExecutionResultType, type KamiCommand } from "&";
-import { KamiMusicPlayer } from "@/core/KamiMusicPlayer";
+import type { KamiCommand } from "&/types";
 
 export default {
   data: new SlashCommandBuilder()
