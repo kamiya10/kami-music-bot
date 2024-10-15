@@ -1,9 +1,11 @@
 import { AudioPlayerStatus, StreamType, VoiceConnectionStatus, createAudioPlayer, createAudioResource, entersState, joinVoiceChannel } from "@discordjs/voice";
-import { FFmpeg } from "prism-media";
+import { createReadStream, existsSync, writeFileSync } from "fs";
 import { join } from "path";
+import { pipeline } from "stream";
 
 import Logger from "@/utils/logger";
 import cookies from "~/cookies.json";
+import prism from "prism-media";
 import ytdl from "@distube/ytdl-core";
 
 import type { AudioPlayer, AudioResource, PlayerSubscription, VoiceConnection } from "@discordjs/voice";
@@ -44,7 +46,7 @@ export class KamiMusicPlayer {
   destroyed = false;
   
   _random = [] as Array<KamiResource>;
-  _transcoder: FFmpeg | null = null;
+  _transcoder: prism.FFmpeg | null = null;
   _currentResource: AudioResource<KamiResource> | null = null;
 
   constructor(
@@ -64,7 +66,7 @@ export class KamiMusicPlayer {
 
     this.subscription = this.connection?.subscribe(this.player);
 
-    this.player.on(AudioPlayerStatus.Idle,   (oldState) => {
+    this.player.on(AudioPlayerStatus.Idle, (oldState) => {
       this._currentResource = null;
       /* 
         if (this.preference.updateVoiceStatus) {
@@ -145,45 +147,78 @@ export class KamiMusicPlayer {
   }
  */
 
-  play(index = this.currentIndex) {
+  async play(index = this.currentIndex) {
     const resource = this.queue[index];
 
     if (!resource) {
       return Logger.error(`Resource at index ${index} is not found`, this.queue, this);
     }
-    /* 
+
+    if (!resource.cache) {
+      await this.buffer(resource);
+    }
+
+    /*
     if (!resource.cache) {
       if (!await this.buffer(index)) {
         return this.forward();
       }
     }
-
+    */
+    
     const stream = createReadStream(resource.cache!, {
       highWaterMark : 1 << 25,
-    }); */
-    
+    });
+
+    /* 
     const stream = ytdl(resource.url, {
       agent,
-      filter        : (format) => +format.contentLength > 0,
+      filter        : (format) => {
+        console.log(format);
+        return +format.contentLength > 0;
+      },
       quality       : "highestaudio",
       highWaterMark : 1 << 25,
       // ...(agent && { requestOptions : { agent } }),
-    });
+    }); */
 
-    this._currentResource = createAudioResource(
-      stream,
+    const transcoderArgs = [
+      "-analyzeduration", "0",
+      "-loglevel", "0",
+      "-f", "s16le",
+      "-ar", "48000",
+      "-ac", "2",
+      // ...(seek != null ? ["-ss", formatTime(~~(seek / 1000))] : []),
+      // "-af", `firequalizer=gain_entry='${Object.keys(this.equalizer).map(k => `entry(${k},${this.equalizer[k]})`).join(";")}',dynaudnorm=n=0:c=1`,
+      // "-af", `bass=g=${this.audiofilter.bass}`,
+    ];
+          
+    const transcoder = new prism.FFmpeg({ args: transcoderArgs });
+
+    const audioResource = createAudioResource(
+      // @ts-expect-error type conversion between node and web always fucked up
+      pipeline(stream, transcoder, () => void 0),
       {
         inputType    : StreamType.Raw,
         inlineVolume : true,
         metadata     : resource,
       },
     );
+
+    this._currentResource = audioResource;
+    console.log(audioResource);
+
+    this.player?.play(audioResource);
   }
 
-  buffer(index = this.currentIndex): Promise<boolean> {
-    return new Promise((resolve) => {
-      const resource = this.queue[index];
+  buffer(resource: KamiResource): Promise<void> {
+    return new Promise((resolve, reject) => {
       const cachePath = join(this.client.cacheDirectory, "audio", resource.id);
+
+      if (existsSync(cachePath)) {
+        resource.cache = cachePath;
+        return resolve();
+      }
 
       const data = [] as Array<Buffer>;
 
@@ -197,35 +232,43 @@ export class KamiMusicPlayer {
       // ...(agent && { requestOptions : { agent } }),
       });
     
-      stream.on("data", (chunk: Buffer) => data.push(chunk));
-      
-      stream.on("end", () => {
+      stream.on("data", (chunk: Buffer) => {
+        
+        data.push(chunk);
+        console.log(chunk);
+      });
+
+      stream.on("pause", () => {
+        console.log("pause");
+      });
+
+      stream.on("error", (err) => {
+        console.log("error", err);
+      });
+
+      stream.on("finish", () => {
+        
+        console.log("finish");
         Logger.debug(`Buffered resource ${resource} at ${cachePath}`, resource);
-        Bun.write(cachePath,data)
-          .then(() => {
-            resource.cache = cachePath;
-            resolve(true);
-          })
-          .catch((err) => {
-            Logger.error("Error while saving buffer", err, resource);
-            resolve(false);
-          });
+
+        writeFileSync(cachePath, Buffer.concat(data));
+        
+        resource.cache = cachePath;
+        return resolve();
       });
 
       stream.on("error", (err) => {
         Logger.error("Error while buffering", err, resource);
-        resolve(false);
+        return reject(new Error("Error while buffering"));
       });
     });
   }
 
   forward() {
-    let index = this.currentIndex;
-
     switch (this.repeat) {
       case RepeatMode.Forward: {
-        if (index < this.queue.length - 1) {
-          index++;
+        if (this.currentIndex < this.queue.length - 1) {
+          this.currentIndex++;
         } else {
           /* //? TODO 
             this._isFinished = true;
@@ -238,10 +281,10 @@ export class KamiMusicPlayer {
       }
 
       case RepeatMode.RepeatQueue: {
-        if (index < this.queue.length - 1) {
-          index++;
+        if (this.currentIndex < this.queue.length - 1) {
+          this.currentIndex++;
         } else {
-          index = 0;
+          this.currentIndex = 0;
         }
         break;
       }
@@ -251,7 +294,7 @@ export class KamiMusicPlayer {
       }
 
       case RepeatMode.Random: {
-        index = Math.floor(
+        this.currentIndex = Math.floor(
           Math.random() * this.queue.length,
         );
         break;
@@ -266,13 +309,13 @@ export class KamiMusicPlayer {
           () => 0.5 - Math.random(),
         );
         const resource = this._random.shift();
-        index = this.queue.indexOf(resource!);
+        this.currentIndex = this.queue.indexOf(resource!);
         break;
       }
 
       case RepeatMode.Backward: {
-        if (index > 0) {
-          index--;
+        if (this.currentIndex > 0) {
+          this.currentIndex--;
         } else {
           /* //? TODO 
             this._isFinished = true;
@@ -285,10 +328,10 @@ export class KamiMusicPlayer {
       }
 
       case RepeatMode.BackwardRepeatQueue: {
-        if (index > 0) {
-          index--;
+        if (this.currentIndex > 0) {
+          this.currentIndex--;
         } else {
-          index = this.queue.length - 1;
+          this.currentIndex = this.queue.length - 1;
         }
         break;
       }
@@ -297,7 +340,7 @@ export class KamiMusicPlayer {
         break;
     }
 
-    this.play(index);
+    void this.play(this.currentIndex);
   }
 
   addResource(resource: KamiResource | KamiResource[], index: number = this.queue.length) {
@@ -310,7 +353,7 @@ export class KamiMusicPlayer {
     this.queue.splice(index, 0, ...resource);
 
     if (this.player?.state.status == AudioPlayerStatus.Idle) {
-      this.play(index);
+      void this.play(index);
     }
   }
 

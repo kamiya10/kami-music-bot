@@ -1,6 +1,6 @@
 import { Client, Collection, GatewayIntentBits } from "discord.js";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { join, resolve } from "path";
-import { mkdirSync } from "fs";
 import { version } from "~/package.json";
 
 import commands from "&";
@@ -10,6 +10,7 @@ import ora from "ora";
 import type { ClientOptions } from "discord.js";
 import type { KamiCommand } from "&/types";
 import type { KamiMusicPlayer } from "@/core/KamiMusicPlayer";
+import { createHash } from "crypto";
 
 export class KamiClient extends Client {
   cacheDirectory = resolve(".cache");
@@ -60,12 +61,12 @@ export class KamiClient extends Client {
   }
 
   async updateCommands() {
-    const lockfile = Bun.file(join(this.cacheDirectory, "commands.lock"));
+    const lockfilePath = join(this.cacheDirectory, "commands.lock");
     
     const data = commands.map(c => c.data.toJSON());
-    const hash = new Bun.CryptoHasher("sha256").update(JSON.stringify(data)).digest("hex");
+    const hash = createHash("sha256").update(JSON.stringify(data)).digest("hex");
 
-    if (await lockfile.exists() && await lockfile.text() == hash) return;
+    if (existsSync(lockfilePath) && readFileSync(lockfilePath, { encoding: 'utf-8' }) == hash) return;
 
     const spinner = ora("Updating commands...");
 
@@ -78,7 +79,7 @@ export class KamiClient extends Client {
 
     await guild.commands.set(data);
     
-    await Bun.write(lockfile, hash);
+    writeFileSync(lockfilePath, hash, { encoding: 'utf-8' });
     spinner.succeed(`Updated slash commands.`);
   }
 }

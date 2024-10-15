@@ -25,7 +25,7 @@ async function handleYoutubeResource(
     const video = await fetchVideo(ids.video);
     Logger.debug(`Fetch ${ids.video}`, video);
 
-    player.addResource(KamiResource.youtube(video), before);
+    player.addResource(KamiResource.youtube(this, video), before);
 
     return {
       type: ExecutionResultType.SingleSuccess,
@@ -47,7 +47,7 @@ async function handleYoutubeResource(
   if (ids.playlist) {
     const playlist = await fetchPlaylist(ids.playlist);
 
-    const resources = playlist.videos.map(v => KamiResource.youtube(v));
+    const resources = playlist.videos.map(v => KamiResource.youtube(this, v));
     player.addResource(resources, before);
 
     return {
