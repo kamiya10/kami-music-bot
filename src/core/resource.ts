@@ -12,6 +12,8 @@ interface KamiResourceOptions {
   url: string;
 }
 
+const titleCleanupRegex = /(^(?:【|「|\(|\[|（).*?(?:】|\)|\]|）))|((?:【|\(|\[|（).*?(?:】|」|\)|\]|）)$)/gi;
+
 export class KamiResource {
   type: Platform;
   id: string;
@@ -23,7 +25,7 @@ export class KamiResource {
   constructor(client: KamiClient, options: KamiResourceOptions) {
     this.type = options.type;
     this.id = options.id;
-    this.title = options.title;
+    this.title = options.title.replaceAll(titleCleanupRegex, '').trim();
     this.length = options.length;
     this.url = options.url;
 
