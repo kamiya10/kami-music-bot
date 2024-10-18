@@ -210,9 +210,9 @@ export class KamiMusicPlayer {
     this._currentResource = audioResource;
     this.player?.play(audioResource);
 
-    this.updateVoiceStatus().catch(logError);
+    this.updateVoiceStatus(resource).catch(logError);
 
-    Logger.debug(`Playing ${resource} at index ${this.currentIndex} in ${this.guild}`);
+    Logger.debug(`Playing ${resource} at index ${index} in ${this.guild}`);
   }
 
   async buffer(resource: KamiResource): Promise<boolean> {
@@ -333,7 +333,8 @@ export class KamiMusicPlayer {
     this.queue.splice(index, 0, ...resource);
 
     if (this.player?.state.status == AudioPlayerStatus.Idle) {
-      void this.play(index);
+      this.currentIndex = this.queue.indexOf(resource[0]);
+      void this.play();
     }
   }
 
