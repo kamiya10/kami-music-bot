@@ -1,10 +1,8 @@
-import { Colors, EmbedBuilder, SlashCommandIntegerOption, SlashCommandStringOption, SlashCommandSubcommandBuilder, hyperlink } from "discord.js";
+import { Colors, EmbedBuilder, SlashCommandIntegerOption, SlashCommandStringOption, SlashCommandSubcommandBuilder, hyperlink, unorderedList } from "discord.js";
 import { fetchPlaylist, fetchVideo, parseUrl } from "@/api/youtube";
 import { KamiMusicPlayer } from "@/core/player";
 import { KamiResource } from "@/core/resource";
 import { KamiSubcommand } from "@/core/command";
-
-import Logger from "@/utils/logger";
 
 const inputOption = new SlashCommandStringOption()
   .setName("input")
@@ -71,31 +69,56 @@ export default new KamiSubcommand({
         iconURL : interaction.guild.iconURL()!,
       });
       
-    if (ids.video) {
-      const video = await fetchVideo(ids.video);
-      Logger.debug(`Fetch ${ids.video}`, video);
+    try {
+      parseVideo: if (ids.video) {
+        const video = await fetchVideo(ids.video);
+      
+        if (!video.duration) {
+          embed
+            .setColor(Colors.Red)
+            .setDescription('❌ 無效的 YouTube 連結（影片未公開或尚未上映）');
+          break parseVideo;
+        }
+      
+        const resource = KamiResource.youtube(this, video);
+        player.addResource(resource, before);
 
-      player.addResource(KamiResource.youtube(this, video), before);
+        embed
+          .setDescription(`✅ ${hyperlink(resource.title, resource.url)} 已加到播放佇列`)
+          .setThumbnail(video.thumbnail.url);
+      }
+      else if (ids.playlist) {
+        const playlist = await fetchPlaylist(ids.playlist);
 
-      embed
-        .setDescription(`🎵 ${hyperlink(video.title, video.url)} 已加到播放佇列`)
-        .setThumbnail(video.thumbnail.url);
-    }
-    else if (ids.playlist) {
-      const playlist = await fetchPlaylist(ids.playlist);
+        const resources = playlist.videos
+          .filter(v => v.duration)
+          .map(v => KamiResource.youtube(this, v));
+        
+        player.addResource(resources, before);
 
-      const resources = playlist.videos.map(v => KamiResource.youtube(this, v));
-      player.addResource(resources, before);
+        const description: string[] = resources
+          .slice(0,5)
+          .map(v => hyperlink(v.title,v.url));
 
-      embed
-        .setTitle(playlist.title)
-        .setURL(playlist.url)
-        .setThumbnail(playlist.thumbnail.url);
-    }
-    else {
+        if (description.length > 5) {
+          description.push(`...還有 ${description.length - 5} 個項目`);
+        }
+
+        embed
+          .setTitle(playlist.title)
+          .setURL(playlist.url)
+          .setDescription(`✅ 已將 ${resources.length} 個項目新增至佇列\n${unorderedList(description)}`)
+          .setThumbnail(playlist.thumbnail.url);
+      }
+      else {
+        embed
+          .setColor(Colors.Red)
+          .setDescription('❌ 無效的 YouTube 連結');
+      }
+    } catch (error) {
       embed
         .setColor(Colors.Red)
-        .setDescription('❌ 無效的 YouTube 連結');
+        .setDescription(`❌ 解析影片時發生錯誤：${error}`);
     }
 
     await interaction.editReply({

@@ -8,7 +8,7 @@ interface KamiResourceOptions {
   type: Platform;
   id: string;
   title: string;
-  length: number;
+  length: number | null;
   url: string;
 }
 
@@ -18,7 +18,7 @@ export class KamiResource {
   type: Platform;
   id: string;
   title: string;
-  length: number;
+  length: number | null;
   url: string;
   cache: string | null = null;
   

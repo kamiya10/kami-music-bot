@@ -29,7 +29,7 @@ export interface APIVideo {
     defaultAudioLanguage : string;
   },
   contentDetails: {
-    duration : string;
+    duration ?: string;
   }
 }
 
@@ -37,9 +37,9 @@ interface IVideo {
   id        : string;
   title     : string;
   thumbnail : Thumbnail;
-  duration  : Duration;
+  duration  : Duration | null;
   /** Duration in miliseconds */
-  length    : number;
+  length    : number | null;
   url       : string;
   shortUrl  : string;
   channel : {
@@ -53,8 +53,8 @@ export class Video implements IVideo {
   id        : string;
   title     : string;
   thumbnail : Thumbnail;
-  duration  : Duration;
-  length    : number;
+  duration  : Duration | null;
+  length    : number | null;
   url       : string;
   shortUrl  : string;
   channel : {
@@ -76,11 +76,13 @@ export class Video implements IVideo {
   }
 
   static fromVideo(data: APIVideo) {
+    console.log(data);
+
     const id = data.id;
     const title = data.snippet.title;
     const thumbnail = data.snippet.thumbnails.high ?? data.snippet.thumbnails.default;
-    const duration = parse(data.contentDetails.duration);
-    const length = toSeconds(duration) * 1000;
+    const duration = data.contentDetails.duration ? parse(data.contentDetails.duration) : null;
+    const length = duration ? toSeconds(duration) * 1000 : null;
 
     return new Video({
       id,

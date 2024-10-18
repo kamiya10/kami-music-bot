@@ -243,7 +243,7 @@ export class KamiMusicPlayer {
       writeFileSync(cachePath, new Uint8Array(data));
       resource.cache = cachePath;
       
-      Logger.debug(`Buffered resource ${resource} at ${cachePath}`, resource);
+      Logger.debug(`Buffered resource ${resource} at ${cachePath}`);
       return true;
     } catch (error) {
       Logger.error("Error while buffering", error, resource);
@@ -328,11 +328,9 @@ export class KamiMusicPlayer {
   }
 
   addResource(resource: KamiResource | KamiResource[], index: number = this.queue.length) {
-    Logger.debug(`Adding player ${resource.length} resources at ${index}`, resource);
-
     if (!Array.isArray(resource)) {
       resource = [resource];
-    } 
+    }
     
     this.queue.splice(index, 0, ...resource);
 
