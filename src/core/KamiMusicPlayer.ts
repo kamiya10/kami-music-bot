@@ -14,6 +14,7 @@ import type { KamiClient } from "@/core/KamiClient";
 import type { KamiResource } from "@/core/KamiResource";
 
 const agent = ytdl.createAgent(cookies as []);
+const GlobalVolumeModifier = 0.25;
 
 export enum RepeatMode {
   Forward             = 0,
@@ -44,6 +45,14 @@ export class KamiMusicPlayer {
   stopped = false;
   locked = false;
   destroyed = false;
+  
+  _volume = 1;
+  public get volume() {
+    return this._volume * GlobalVolumeModifier;
+  }
+  public set volume(v) {
+    this._volume = v;
+  }
   
   _random = [] as Array<KamiResource>;
   _transcoder: prism.FFmpeg | null = null;
@@ -204,24 +213,23 @@ export class KamiMusicPlayer {
         metadata     : resource,
       },
     );
+    
+    audioResource.volume!.setVolume(this.volume);
 
     this._currentResource = audioResource;
-    console.log(audioResource);
 
     this.player?.play(audioResource);
   }
 
-  buffer(resource: KamiResource): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const cachePath = join(this.client.cacheDirectory, "audio", resource.id);
+  async buffer(resource: KamiResource): Promise<void> {
+    const cachePath = join(this.client.cacheDirectory, "audio", resource.id);
 
-      if (existsSync(cachePath)) {
-        resource.cache = cachePath;
-        return resolve();
-      }
+    if (existsSync(cachePath)) {
+      resource.cache = cachePath;
+      return;
+    }
 
-      const data = [] as Array<Buffer>;
-
+    try {
       Logger.debug(`Start buffering resource ${resource}`);
 
       const stream = ytdl(resource.url, {
@@ -231,37 +239,17 @@ export class KamiMusicPlayer {
         highWaterMark : 1 << 25,
       // ...(agent && { requestOptions : { agent } }),
       });
-    
-      stream.on("data", (chunk: Buffer) => {
-        
-        data.push(chunk);
-        console.log(chunk);
-      });
 
-      stream.on("pause", () => {
-        console.log("pause");
-      });
-
-      stream.on("error", (err) => {
-        console.log("error", err);
-      });
-
-      stream.on("finish", () => {
-        
-        console.log("finish");
-        Logger.debug(`Buffered resource ${resource} at ${cachePath}`, resource);
-
-        writeFileSync(cachePath, Buffer.concat(data));
-        
-        resource.cache = cachePath;
-        return resolve();
-      });
-
-      stream.on("error", (err) => {
-        Logger.error("Error while buffering", err, resource);
-        return reject(new Error("Error while buffering"));
-      });
-    });
+      const data = await new Response(stream).arrayBuffer();
+      
+      writeFileSync(cachePath, new Uint8Array(data));
+      resource.cache = cachePath;
+      
+      Logger.debug(`Buffered resource ${resource} at ${cachePath}`, resource);
+    } catch (error) {
+      Logger.error("Error while buffering", error, resource);
+      throw new Error("Error while buffering");
+    }
   }
 
   forward() {
