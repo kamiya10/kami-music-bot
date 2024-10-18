@@ -104,6 +104,10 @@ export class KamiMusicPlayer {
     Logger.debug(`Created audio player for guild ${this.guild}`);
   }
 
+  get isPlaying() {
+    return this.player?.state.status == AudioPlayerStatus.Playing;
+  }
+
   connect(channel: VoiceBasedChannel = this.voice) {
     this.connection?.destroy();
 

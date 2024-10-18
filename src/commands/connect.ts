@@ -5,7 +5,7 @@ import { SlashCommandBuilder } from "discord.js";
 export default new KamiCommand({
   builder: new SlashCommandBuilder()
     .setName("connect")
-    .setDescription("Connect to the voice channel you currently in"),
+    .setDescription("Connect to the voice channel you currently in."),
   async execute(interaction) {
     await interaction.deferReply({ ephemeral: true });
 
