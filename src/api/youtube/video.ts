@@ -76,8 +76,6 @@ export class Video implements IVideo {
   }
 
   static fromVideo(data: APIVideo) {
-    console.log(data);
-
     const id = data.id;
     const title = data.snippet.title;
     const thumbnail = data.snippet.thumbnails.high ?? data.snippet.thumbnails.default;

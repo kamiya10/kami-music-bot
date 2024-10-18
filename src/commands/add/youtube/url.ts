@@ -97,11 +97,11 @@ export default new KamiSubcommand({
         player.addResource(resources, before);
 
         const description: string[] = resources
-          .slice(0,5)
+          .slice(0, 5)
           .map(v => hyperlink(v.title,v.url));
 
-        if (description.length > 5) {
-          description.push(`...還有 ${description.length - 5} 個項目`);
+        if (resources.length > 5) {
+          description.push(`...還有 ${resources.length - 5} 個項目`);
         }
 
         embed
