@@ -10,8 +10,9 @@ import ytdl from "@distube/ytdl-core";
 
 import type { AudioPlayer, AudioResource, PlayerSubscription, VoiceConnection } from "@discordjs/voice";
 import type { Guild, GuildMember, Message, TextBasedChannel, VoiceBasedChannel } from "discord.js";
-import type { KamiClient } from "@/core/KamiClient";
-import type { KamiResource } from "@/core/KamiResource";
+import type { KamiClient } from "@/core/client";
+import type { KamiResource } from "@/core/resource";
+import { logError } from "@/utils/callback";
 
 const agent = ytdl.createAgent(cookies as []);
 const GlobalVolumeModifier = 0.25;
@@ -166,14 +167,6 @@ export class KamiMusicPlayer {
     if (!resource.cache) {
       await this.buffer(resource);
     }
-
-    /*
-    if (!resource.cache) {
-      if (!await this.buffer(index)) {
-        return this.forward();
-      }
-    }
-    */
     
     const stream = createReadStream(resource.cache!, {
       highWaterMark : 1 << 25,
@@ -201,11 +194,10 @@ export class KamiMusicPlayer {
       // "-af", `firequalizer=gain_entry='${Object.keys(this.equalizer).map(k => `entry(${k},${this.equalizer[k]})`).join(";")}',dynaudnorm=n=0:c=1`,
       // "-af", `bass=g=${this.audiofilter.bass}`,
     ];
-          
     const transcoder = new prism.FFmpeg({ args: transcoderArgs });
 
     const audioResource = createAudioResource(
-      // @ts-expect-error type conversion between node and web always fucked up
+      // @ts-expect-error type conversion between node and web standard always fucked up
       pipeline(stream, transcoder, () => void 0),
       {
         inputType    : StreamType.Raw,
@@ -213,20 +205,22 @@ export class KamiMusicPlayer {
         metadata     : resource,
       },
     );
-    
     audioResource.volume!.setVolume(this.volume);
 
     this._currentResource = audioResource;
-
     this.player?.play(audioResource);
+
+    this.updateVoiceStatus().catch(logError);
+
+    Logger.debug(`Playing ${resource} at index ${this.currentIndex} in ${this.guild}`);
   }
 
-  async buffer(resource: KamiResource): Promise<void> {
-    const cachePath = join(this.client.cacheDirectory, "audio", resource.id);
+  async buffer(resource: KamiResource): Promise<boolean> {
+    const cachePath = join(this.client.cacheFolderPath, "audio", resource.id);
 
     if (existsSync(cachePath)) {
       resource.cache = cachePath;
-      return;
+      return true;
     }
 
     try {
@@ -246,9 +240,10 @@ export class KamiMusicPlayer {
       resource.cache = cachePath;
       
       Logger.debug(`Buffered resource ${resource} at ${cachePath}`, resource);
+      return true;
     } catch (error) {
       Logger.error("Error while buffering", error, resource);
-      throw new Error("Error while buffering");
+      return false;
     }
   }
 
@@ -323,9 +318,6 @@ export class KamiMusicPlayer {
         }
         break;
       }
-
-      default:
-        break;
     }
 
     void this.play(this.currentIndex);
@@ -343,6 +335,20 @@ export class KamiMusicPlayer {
     if (this.player?.state.status == AudioPlayerStatus.Idle) {
       void this.play(index);
     }
+  }
+
+  async updateVoiceStatus(resource?: KamiResource) {
+    const statusText = resource ? `🎵 ${resource.title}` : '';
+
+    await this.client.rest
+      .put(
+        `/channels/${this.voice.id}/voice-status`,
+        {
+          body: {
+            status: statusText,
+          },
+        })
+      .catch(logError);
   }
 
   destroy() {

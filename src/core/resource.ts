@@ -1,7 +1,7 @@
 import { existsSync } from 'fs';
 import { join } from 'path';
 
-import type { KamiClient } from "./KamiClient";
+import type { KamiClient } from "./client";
 import type { Video } from "@/api/youtube/video";
 
 interface KamiResourceOptions {
@@ -27,7 +27,7 @@ export class KamiResource {
     this.length = options.length;
     this.url = options.url;
 
-    const cachePath = join(client.cacheDirectory, "audio", options.id);
+    const cachePath = join(client.cacheFolderPath, "audio", options.id);
 
     if (existsSync(cachePath)) {
       this.cache = cachePath;

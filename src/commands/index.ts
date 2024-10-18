@@ -1,10 +1,7 @@
-import type { KamiCommand } from "./types";
+import type { KamiCommand } from "@/core/command";
 
-// player
-import connect from "@/commands/player/connect";
-
-// queue
-import add from "@/commands/queue/add";
+import add from "&/add";
+import connect from "&/connect";
 
 
 export default [

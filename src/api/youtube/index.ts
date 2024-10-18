@@ -20,7 +20,7 @@ interface APIResponse<T> {
   items : T[];
 }
 
-export const fetchVideo = async(id: string) => {
+export const fetchVideo = async (id: string) => {
   const parms = new URLSearchParams({
     key  : process.env["YOUTUBE_TOKEN"] ?? "",
     part : "contentDetails,snippet",
@@ -91,24 +91,32 @@ export const fetchPlaylistVideo = async (listId: string) => {
 };
 
 export const parseUrl = (url: string) => {
-  if (/^[A-Za-z0-9_-]{7,12}$/.test(url)) {
-    return {
-      video    : url,
-      playlist : null,
-    };
-  }
+  try {
+    
+    if (/^[A-Za-z0-9_-]{7,12}$/.test(url)) {
+      return {
+        video    : url,
+        playlist : null,
+      };
+    }
 
-  const u = new URL(url);
+    const u = new URL(url);
   
-  if (u.hostname.endsWith("youtu.be")) {
+    if (u.hostname.endsWith("youtu.be")) {
+      return {
+        video    : u.pathname.slice(1),
+        playlist : u.searchParams.get("list"),
+      };
+    }
+  
     return {
-      video    : u.pathname.slice(1),
+      video    : u.searchParams.get("v"),
       playlist : u.searchParams.get("list"),
     };
+  } catch (_) {
+    return {
+      video: null,
+      playlist: null,
+    };
   }
-  
-  return {
-    video    : u.searchParams.get("v"),
-    playlist : u.searchParams.get("list"),
-  };
 };
