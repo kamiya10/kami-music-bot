@@ -2,6 +2,7 @@ import { AudioPlayerStatus, StreamType, VoiceConnectionStatus, createAudioPlayer
 import { Colors, EmbedBuilder, MessageFlags } from 'discord.js';
 import { createReadStream, existsSync, writeFileSync } from 'fs';
 import { join } from 'path';
+import { logError } from '@/utils/callback';
 import { pipeline } from 'stream';
 
 import Logger from '@/utils/logger';
@@ -13,7 +14,6 @@ import type { AudioPlayer, AudioResource, PlayerSubscription, VoiceConnection } 
 import type { Guild, GuildMember, GuildTextBasedChannel, Message, VoiceBasedChannel } from 'discord.js';
 import type { KamiClient } from '@/core/client';
 import type { KamiResource } from '@/core/resource';
-import { logError } from '@/utils/callback';
 
 const agent = ytdl.createAgent(cookies as []);
 const GlobalVolumeModifier = 0.25;
@@ -203,7 +203,6 @@ export class KamiMusicPlayer {
     const transcoder = new prism.FFmpeg({ args: transcoderArgs });
 
     const audioResource = createAudioResource(
-      // @ts-expect-error type conversion between node and web standard always fucked up
       pipeline(stream, transcoder, () => void 0),
       {
         inputType: StreamType.Raw,
