@@ -345,10 +345,11 @@ export class KamiMusicPlayer {
 
   clearResources() {
     const removed = this.queue.splice(0, this.queue.length);
+    this.currentIndex = 0;
+    this._currentResource = null;
 
     if (this.isPlaying) {
       this.player?.stop();
-      this._currentResource = null;
     }
 
     return removed;
