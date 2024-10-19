@@ -9,7 +9,11 @@ export default new KamiCommand({
   async execute(interaction) {
     await interaction.deferReply({ ephemeral: true });
 
-    const embed = new EmbedBuilder();
+    const embed = new EmbedBuilder()
+      .setAuthor({
+        name: `正在播放 | ${interaction.guild.name}`,
+        iconURL: interaction.guild.iconURL() ?? undefined,
+      });
 
     const edit = () => interaction.editReply({
       embeds: [embed],
@@ -20,7 +24,7 @@ export default new KamiCommand({
     if (!player) {
       embed
         .setColor(Colors.Red)
-        .setDescription('❌ 目前沒有播放器');
+        .setDescription('❌ 沒有播放器');
 
       await edit();
       return;

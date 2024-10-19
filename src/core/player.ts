@@ -215,8 +215,8 @@ export class KamiMusicPlayer {
     this._currentResource = audioResource;
     this.player?.play(audioResource);
 
-    this.updateVoiceStatus(resource).catch(logError);
     this.updateMessage(resource).catch(logError);
+    this.updateVoiceStatus(resource).catch(logError);
 
     Logger.debug(`Playing ${resource} at index ${index} in ${this.guild}`);
   }
@@ -261,10 +261,8 @@ export class KamiMusicPlayer {
           this.currentIndex++;
         }
         else {
-          /* //? TODO
-            this._isFinished = true;
-           */
           void this.updateMessage();
+          void this.updateVoiceStatus();
           return;
         }
 
@@ -310,10 +308,8 @@ export class KamiMusicPlayer {
           this.currentIndex--;
         }
         else {
-          /* //? TODO
-            this._isFinished = true;
-           */
           void this.updateMessage();
+          void this.updateVoiceStatus();
           return;
         }
 
@@ -345,6 +341,17 @@ export class KamiMusicPlayer {
       this.currentIndex = this.queue.indexOf(resource[0]);
       void this.play();
     }
+  }
+
+  clearResources() {
+    const removed = this.queue.splice(0, this.queue.length);
+
+    if (this.isPlaying) {
+      this.player?.stop();
+      this._currentResource = null;
+    }
+
+    return removed;
   }
 
   async updateVoiceStatus(resource?: KamiResource) {

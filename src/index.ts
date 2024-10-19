@@ -12,3 +12,9 @@ void client.login(
 );
 
 setConsoleTitle(`Kami Music ${client.version}`);
+
+process.on('beforeExit', () => {
+  for (const player of client.players.values()) {
+    player.destroy();
+  }
+});
