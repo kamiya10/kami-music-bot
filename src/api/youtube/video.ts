@@ -1,68 +1,69 @@
-import { parse, toSeconds } from "iso8601-duration";
+import { parse, toSeconds } from 'iso8601-duration';
 
-import type {  Duration } from "iso8601-duration";
-import type { Thumbnail } from "./thumbnail";
+import type { Duration } from 'iso8601-duration';
+import type { Thumbnail } from './thumbnail';
 
 export interface APIVideo {
-  kind    : "youtube#video";
-  etag    : string;
-  id      : string;
-  snippet : {
-    publishedAt : string;
-    channelId   : string;
-    title       : string;
-    description : string;
-    thumbnails  : {
-      default     : Thumbnail;
-      medium      : Thumbnail;
-      high        : Thumbnail;
-      standard  ? : Thumbnail;
-      maxres    ? : Thumbnail;
-    },
-    channelTitle         : string;
-    categoryId           : string;
-    liveBroadcastContent : string;
+  kind: 'youtube#video';
+  etag: string;
+  id: string;
+  snippet: {
+    publishedAt: string;
+    channelId: string;
+    title: string;
+    description: string;
+    thumbnails: {
+      default: Thumbnail;
+      medium: Thumbnail;
+      high: Thumbnail;
+      standard?: Thumbnail;
+      maxres?: Thumbnail;
+    };
+    channelTitle: string;
+    categoryId: string;
+    liveBroadcastContent: string;
     localized: {
-      title       : string;
-      description : string;
-    },
-    defaultAudioLanguage : string;
-  },
+      title: string;
+      description: string;
+    };
+    defaultAudioLanguage: string;
+  };
   contentDetails: {
-    duration ?: string;
-  }
+    duration?: string;
+  };
 }
 
 interface IVideo {
-  id        : string;
-  title     : string;
-  thumbnail : Thumbnail;
-  duration  : Duration | null;
+  id: string;
+  title: string;
+  thumbnail: Thumbnail;
+  duration: Duration | null;
   /** Duration in miliseconds */
-  length    : number | null;
-  url       : string;
-  shortUrl  : string;
-  channel : {
-    id    : string;
-    title : string;
+  length: number | null;
+  url: string;
+  shortUrl: string;
+  channel: {
+    id: string;
+    title: string;
   };
-  raw : APIVideo;
+  raw: APIVideo;
 }
 
 export class Video implements IVideo {
-  id        : string;
-  title     : string;
-  thumbnail : Thumbnail;
-  duration  : Duration | null;
-  length    : number | null;
-  url       : string;
-  shortUrl  : string;
-  channel : {
-    id    : string;
-    title : string;
+  id: string;
+  title: string;
+  thumbnail: Thumbnail;
+  duration: Duration | null;
+  length: number | null;
+  url: string;
+  shortUrl: string;
+  channel: {
+    id: string;
+    title: string;
   };
-  raw : APIVideo;
-  
+
+  raw: APIVideo;
+
   constructor(data: IVideo) {
     this.id = data.id;
     this.title = data.title;
@@ -88,13 +89,13 @@ export class Video implements IVideo {
       thumbnail,
       duration,
       length,
-      url      : `https://youtube.com/watch?v=${data.id}`,
-      shortUrl : `https://youtu.be/${data.id}`,
-      channel  : {
-        id    : data.snippet.channelId,
-        title : data.snippet.channelTitle,
+      url: `https://youtube.com/watch?v=${data.id}`,
+      shortUrl: `https://youtu.be/${data.id}`,
+      channel: {
+        id: data.snippet.channelId,
+        title: data.snippet.channelTitle,
       },
-      raw : data,
+      raw: data,
     });
   }
 }

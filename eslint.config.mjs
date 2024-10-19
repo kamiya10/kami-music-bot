@@ -1,53 +1,34 @@
-import typescriptEslint from "@typescript-eslint/eslint-plugin";
+import ts from "typescript-eslint";
 import stylistic from "@stylistic/eslint-plugin";
 import globals from "globals";
 import tsParser from "@typescript-eslint/parser";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 import js from "@eslint/js";
-import { FlatCompat } from "@eslint/eslintrc";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-  recommendedConfig: js.configs.recommended,
-  allConfig: js.configs.all,
-});
-
-export default [
+export default ts.config(
   {
     ignores: ["**/*.cjs", "types/*", "eslint.config.mjs", "rollup.config.mjs"],
   },
-  ...compat.extends(
-    "eslint:recommended",
-    "plugin:@typescript-eslint/recommended-type-checked",
-    "prettier"
-  ),
+  js.configs.recommended,
+  ...ts.configs.recommendedTypeChecked,
+  ...ts.configs.stylisticTypeChecked,
+  stylistic.configs.customize({
+    arrowParens: true,
+    indent: 2,
+    semi: true,
+  }),
   {
-    plugins: {
-      "@typescript-eslint": typescriptEslint,
-      "@stylistic": stylistic,
-    },
-
     languageOptions: {
-      globals: {
-        ...globals.node,
-      },
-
-      parser: tsParser,
-      ecmaVersion: "latest",
-      sourceType: "commonjs",
-
       parserOptions: {
-        project: true,
-        tsconfigRootDir: "src",
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
       },
     },
-
+  },
+  {
     rules: {
       "@stylistic/arrow-spacing": ["warn"],
-      "@stylistic/comma-dangle": ["warn", "always-multiline"],
+      "@stylistic/comma-dangle": ["warn"],
+      "@stylistic/comma-spacing": ["warn"],
       "@stylistic/indent": [
         "warn",
         2,
@@ -55,9 +36,10 @@ export default [
           SwitchCase: 1,
         },
       ],
+      "@stylistic/key-spacing": ["warn"],
       "@stylistic/object-curly-newline": ["warn"],
       "@stylistic/space-infix-ops": ["warn"],
-      "@stylistic/semi": ["warn", "always"],
+      "@stylistic/semi": ["warn"],
 
       "sort-imports": [
         "warn",
@@ -81,5 +63,4 @@ export default [
         }
       ]
     },
-  },
-];
+  });

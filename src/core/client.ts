@@ -1,17 +1,17 @@
-import { Client, Collection, GatewayIntentBits } from "discord.js";
-import { existsSync, readFileSync } from "fs";
-import { createHash } from "crypto";
-import { resolve } from "path";
-import { safeWriteFileSync } from "@/utils/fs";
-import { version } from "~/package.json";
+import { Client, Collection, GatewayIntentBits } from 'discord.js';
+import { existsSync, readFileSync } from 'fs';
+import { createHash } from 'crypto';
+import { resolve } from 'path';
+import { safeWriteFileSync } from '@/utils/fs';
+import { version } from '~/package.json';
 
-import Logger from "@/utils/logger";
-import commands from "&";
-import events from "#";
+import Logger from '@/utils/logger';
+import commands from '&';
+import events from '#';
 
-import type { ClientOptions } from "discord.js";
-import type { KamiCommand } from "@/core/command";
-import type { KamiMusicPlayer } from "@/core/player";
+import type { ClientOptions } from 'discord.js';
+import type { KamiCommand } from '@/core/command';
+import type { KamiMusicPlayer } from '@/core/player';
 
 export class KamiClient extends Client {
   cacheFolderPath = resolve(process.env['CACHE_FOLDER'] ?? '.cache');
@@ -21,7 +21,7 @@ export class KamiClient extends Client {
 
   constructor(options?: ClientOptions) {
     super({
-      intents : [
+      intents: [
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildVoiceStates,
       ],
@@ -32,7 +32,7 @@ export class KamiClient extends Client {
       this.commands.set(command.builder.name, command);
     }
     Logger.debug(`Loaded ${this.commands.size} commands`);
-    
+
     for (const event of events) {
       const on = event.on;
       if (on) {
@@ -71,7 +71,7 @@ export class KamiClient extends Client {
         await guild.commands.set(data);
         return;
       }
-      
+
       if (existsSync(filePath)) {
         if (!force && readFileSync(filePath, { encoding: 'utf8' }) == hash) return;
       }

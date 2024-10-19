@@ -1,37 +1,37 @@
-import { Colors, EmbedBuilder, SlashCommandIntegerOption, SlashCommandStringOption, SlashCommandSubcommandBuilder, hyperlink, unorderedList } from "discord.js";
-import { fetchPlaylist, fetchVideo, parseUrl } from "@/api/youtube";
-import { KamiMusicPlayer } from "@/core/player";
-import { KamiResource } from "@/core/resource";
-import { KamiSubcommand } from "@/core/command";
+import { Colors, EmbedBuilder, SlashCommandIntegerOption, SlashCommandStringOption, SlashCommandSubcommandBuilder, hyperlink, unorderedList } from 'discord.js';
+import { fetchPlaylist, fetchVideo, parseUrl } from '@/api/youtube';
+import { KamiMusicPlayer } from '@/core/player';
+import { KamiResource } from '@/core/resource';
+import { KamiSubcommand } from '@/core/command';
 
 const inputOption = new SlashCommandStringOption()
-  .setName("input")
-  .setDescription("The Watch URL/Video ID/Playlist URL/Playlist ID of the resource")
+  .setName('input')
+  .setDescription('The Watch URL/Video ID/Playlist URL/Playlist ID of the resource')
   .setRequired(true);
 
 const beforeOption = new SlashCommandIntegerOption()
-  .setName("before")
-  .setDescription("Put this resource before. (Insert at first: 1, leave empty to insert at last)")
+  .setName('before')
+  .setDescription('Put this resource before. (Insert at first: 1, leave empty to insert at last)')
   .setMinValue(1);
 
 export default new KamiSubcommand({
   builder: new SlashCommandSubcommandBuilder()
-    .setName("url")
-    .setDescription("Add videos from YouTube with url")
+    .setName('url')
+    .setDescription('Add videos from YouTube with url')
     .addStringOption(inputOption)
     .addIntegerOption(beforeOption),
   async execute(interaction) {
     await interaction.deferReply({ ephemeral: true });
 
-    const guild = interaction.guild;    
+    const guild = interaction.guild;
     const member = interaction.member;
-    
+
     const text = interaction.channel;
     const voice = interaction.member.voice.channel;
 
     if (!voice || !text) {
       await interaction.editReply({
-        content: "你需要在語音頻道內才能使用這個指令",
+        content: '你需要在語音頻道內才能使用這個指令',
       });
       return;
     }
@@ -53,34 +53,34 @@ export default new KamiSubcommand({
 
     if (!isMemberPlayerOwner && !isMemberVoiceSameAsPlayerVoice) {
       await interaction.editReply({
-        content: "你沒有權限和這個播放器互動",
+        content: '你沒有權限和這個播放器互動',
       });
       return;
     }
 
-    const input = interaction.options.getString("input", true);
-    const before = interaction.options.getInteger("before") ?? undefined;
+    const input = interaction.options.getString('input', true);
+    const before = interaction.options.getInteger('before') ?? undefined;
 
     const ids = parseUrl(input);
     const embed = new EmbedBuilder()
       .setColor(Colors.Green)
       .setAuthor({
-        name    : `新增 | ${interaction.guild.name}`,
-        iconURL : interaction.guild.iconURL()!,
+        name: `新增 | ${interaction.guild.name}`,
+        iconURL: interaction.guild.iconURL()!,
       });
-      
+
     try {
       parseVideo: if (ids.video) {
         const video = await fetchVideo(ids.video);
-      
+
         if (!video.duration) {
           embed
             .setColor(Colors.Red)
             .setDescription('❌ 無效的 YouTube 連結（影片未公開或尚未上映）');
           break parseVideo;
         }
-      
-        const resource = KamiResource.youtube(this, video);
+
+        const resource = KamiResource.youtube(this, video).setMember(interaction.member);
         player.addResource(resource, before);
 
         embed
@@ -91,14 +91,14 @@ export default new KamiSubcommand({
         const playlist = await fetchPlaylist(ids.playlist);
 
         const resources = playlist.videos
-          .filter(v => v.duration)
-          .map(v => KamiResource.youtube(this, v));
-        
+          .filter((v) => v.duration)
+          .map((v) => KamiResource.youtube(this, v).setMember(interaction.member));
+
         player.addResource(resources, before);
 
         const description: string[] = resources
           .slice(0, 5)
-          .map(v => hyperlink(v.title,v.url));
+          .map((v) => hyperlink(v.title, v.url));
 
         if (resources.length > 5) {
           description.push(`...還有 ${resources.length - 5} 個項目`);
@@ -115,7 +115,8 @@ export default new KamiSubcommand({
           .setColor(Colors.Red)
           .setDescription('❌ 無效的 YouTube 連結');
       }
-    } catch (error) {
+    }
+    catch (error) {
       embed
         .setColor(Colors.Red)
         .setDescription(`❌ 解析影片時發生錯誤：${error}`);

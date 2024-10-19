@@ -1,13 +1,13 @@
 interface IThumbnail {
-  url    : string;
-  width  : number;
-  height : number;
+  url: string;
+  width: number;
+  height: number;
 }
 
 export class Thumbnail implements IThumbnail {
-  url    : string;
-  width  : number;
-  height : number;
+  url: string;
+  width: number;
+  height: number;
 
   constructor(data: IThumbnail) {
     this.url = data.url;

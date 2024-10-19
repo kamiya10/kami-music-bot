@@ -1,6 +1,6 @@
-import { KamiSubcommandGroup } from "@/core/command";
+import { KamiSubcommandGroup } from '@/core/command';
 
-import url from "./youtube/url";
+import url from './youtube/url';
 
 export default new KamiSubcommandGroup({
   name: 'youtube',

@@ -1,10 +1,10 @@
-import { Colors, EmbedBuilder, SlashCommandBuilder, bold, hyperlink, orderedList } from "discord.js";
-import { KamiCommand } from "@/core/command";
+import { Colors, EmbedBuilder, SlashCommandBuilder, bold, hyperlink, orderedList } from 'discord.js';
+import { KamiCommand } from '@/core/command';
 
 export default new KamiCommand({
   builder: new SlashCommandBuilder()
-    .setName("queue")
-    .setDescription("Display the current player's queue."),
+    .setName('queue')
+    .setDescription('Display the current player\'s queue.'),
   async execute(interaction) {
     await interaction.deferReply({ ephemeral: true });
 
@@ -12,21 +12,21 @@ export default new KamiCommand({
 
     if (!player) {
       void interaction.editReply({
-        content: "目前沒有在播放音樂",
-      }); 
+        content: '目前沒有在播放音樂',
+      });
       return;
     }
-    
+
     const embed = new EmbedBuilder()
       .setColor(Colors.Blue)
       .setAuthor({
-        name    : `播放佇列 | ${interaction.guild.name}`,
-        iconURL : interaction.guild.iconURL()!,
+        name: `播放佇列 | ${interaction.guild.name}`,
+        iconURL: interaction.guild.iconURL()!,
       })
       .setFooter({
         text: `${player?.queue.length} 個項目`,
       });
-      
+
     const description = [];
 
     for (let index = 0, n = player.queue.length; index < n && index < 20; index++) {
@@ -41,7 +41,7 @@ export default new KamiCommand({
     }
 
     if (!description.length) {
-      embed.setDescription("-# 目前沒有任何項目，使用 `/add` 來新增項目*");
+      embed.setDescription('-# 目前沒有任何項目，使用 `/add` 來新增項目*');
     }
     else {
       embed.setDescription(orderedList(description));

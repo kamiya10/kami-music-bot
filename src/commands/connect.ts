@@ -1,23 +1,23 @@
-import { KamiCommand } from "@/core/command";
-import { KamiMusicPlayer } from "@/core/player";
-import { SlashCommandBuilder } from "discord.js";
+import { KamiCommand } from '@/core/command';
+import { KamiMusicPlayer } from '@/core/player';
+import { SlashCommandBuilder } from 'discord.js';
 
 export default new KamiCommand({
   builder: new SlashCommandBuilder()
-    .setName("connect")
-    .setDescription("Connect to the voice channel you currently in."),
+    .setName('connect')
+    .setDescription('Connect to the voice channel you currently in.'),
   async execute(interaction) {
     await interaction.deferReply({ ephemeral: true });
 
-    const guild = interaction.guild;    
+    const guild = interaction.guild;
     const member = interaction.member;
-    
+
     const text = interaction.channel;
     const voice = interaction.member.voice.channel;
 
     if (!voice || !text) {
       void interaction.editReply({
-        content: "你需要在語音頻道內才能使用這個指令",
+        content: '你需要在語音頻道內才能使用這個指令',
       });
       return;
     }
@@ -26,7 +26,7 @@ export default new KamiCommand({
 
     if (!player) {
       this.players.set(
-        guild.id, 
+        guild.id,
         new KamiMusicPlayer(
           this,
           member,
@@ -46,12 +46,11 @@ export default new KamiCommand({
 
     if (!isMemberPlayerOwner && !isMemberVoiceSameAsPlayerVoice) {
       void interaction.editReply({
-        content: "你沒有權限和這個播放器互動",
+        content: '你沒有權限和這個播放器互動',
       });
       return;
     }
 
-    
     player.connect(voice);
 
     await interaction.editReply({

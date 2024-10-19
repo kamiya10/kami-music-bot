@@ -1,7 +1,7 @@
-import "dotenv/config";
+import 'dotenv/config';
 
-import { KamiClient } from "@/core/client";
-import { setConsoleTitle } from "@/utils/console";
+import { KamiClient } from '@/core/client';
+import { setConsoleTitle } from '@/utils/console';
 
 process.env.NODE_ENV ??= 'development';
 

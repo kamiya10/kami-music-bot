@@ -44,13 +44,13 @@ export class KamiCommand {
     this.onModalSubmit = options.onModalSubmit;
     this.onSelectMenu = options.onSelectMenu;
 
-    if (options.groups){
+    if (options.groups) {
       for (const group of options.groups) {
         this.builder.addSubcommandGroup(group.builder);
       }
     }
 
-    if (options.subcommands){
+    if (options.subcommands) {
       for (const subcommand of options.subcommands) {
         this.builder.addSubcommand(subcommand.builder);
       }
@@ -79,7 +79,7 @@ export class KamiSubcommand {
 export class KamiSubcommandGroup {
   builder: SlashCommandSubcommandGroupBuilder;
   subcommands = new Collection<string, KamiSubcommand>();
-  
+
   constructor(options: KamiSubcommandGroupOptions) {
     this.builder = new SlashCommandSubcommandGroupBuilder()
       .setName(options.name)
@@ -104,21 +104,21 @@ export class KamiSubcommandGroup {
     if (!command?.onAutocomplete) throw new Error(`Subcommand ${this.builder.name} → ${name} not found`);
     return command.onAutocomplete.call(client, interaction);
   };
-  
+
   onButton(client: KamiClient, interaction: ButtonInteraction<'cached'>, id: string) {
     const [commandName, buttonId] = id.split(/:(.*)/s);
     const command = this.subcommands.get(commandName);
     if (!command?.onButton) return;
     command.onButton.call(client, interaction, buttonId);
   };
-  
+
   onModalSubmit(client: KamiClient, interaction: ModalSubmitInteraction<'cached'>, id: string) {
     const [commandName, modalId] = id.split(/:(.*)/s);
     const command = this.subcommands.get(commandName);
     if (!command?.onModalSubmit) return;
     command.onModalSubmit.call(client, interaction, modalId);
   };
-  
+
   onSelectMenu(client: KamiClient, interaction: AnySelectMenuInteraction<'cached'>, id: string) {
     const [commandName, menuId] = id.split(/:(.*)/s);
     const command = this.subcommands.get(commandName);

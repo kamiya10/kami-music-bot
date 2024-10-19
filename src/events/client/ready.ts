@@ -1,7 +1,7 @@
 import { EventHandler } from '@/core/event';
 import { Events } from 'discord.js';
 
-import Logger from "@/utils/logger";
+import Logger from '@/utils/logger';
 
 export default new EventHandler({
   event: Events.ClientReady,
