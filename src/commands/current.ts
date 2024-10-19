@@ -58,12 +58,12 @@ export default new KamiCommand({
       .setDescription(playback)
       .setFields(
         {
-          name: '#️⃣ 編號　　',
+          name: '#️⃣ 編號　　​',
           value: `${player.currentIndex + 1}`,
           inline: true,
         },
         {
-          name: '⌛ 長度　　',
+          name: '⌛ 長度　　​',
           value: resource.metadata.getLength(),
           inline: true,
         },

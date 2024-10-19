@@ -477,12 +477,12 @@ export class KamiMusicPlayer {
         .setDescription('使用 /add 來添加項目')
         .setFields(
           {
-            name: '#️⃣ 編號　　',
+            name: '#️⃣ 編號　　​',
             value: `${this.currentIndex + 1}`,
             inline: true,
           },
           {
-            name: '⌛ 長度　　',
+            name: '⌛ 長度　　​',
             value: resource.getLength(),
             inline: true,
           },
