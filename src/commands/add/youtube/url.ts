@@ -29,10 +29,22 @@ export default new KamiSubcommand({
     const text = interaction.channel;
     const voice = interaction.member.voice.channel;
 
-    if (!voice || !text) {
-      await interaction.editReply({
-        content: '你需要在語音頻道內才能使用這個指令',
+    const embed = new EmbedBuilder()
+      .setAuthor({
+        name: `新增 | ${interaction.guild.name}`,
+        iconURL: interaction.guild.iconURL()!,
       });
+
+    const edit = () => interaction.editReply({
+      embeds: [embed],
+    });
+
+    if (!voice || !text) {
+      embed
+        .setColor(Colors.Red)
+        .setDescription('❌ 你需要在語音頻道內才能使用這個指令');
+
+      await edit();
       return;
     }
 
@@ -48,13 +60,14 @@ export default new KamiSubcommand({
       this.players.set(guild.id, player);
     }
 
-    const isMemberPlayerOwner = player.locked && player.owner.id == member.id;
-    const isMemberVoiceSameAsPlayerVoice = player.voice.id == voice.id;
+    const inSameVoiceChannel = player.voice.id == voice.id;
 
-    if (!isMemberPlayerOwner && !isMemberVoiceSameAsPlayerVoice) {
-      await interaction.editReply({
-        content: '你沒有權限和這個播放器互動',
-      });
+    if (!player.canInteract(interaction.member) && !inSameVoiceChannel) {
+      embed
+        .setColor(Colors.Red)
+        .setDescription('❌ 你沒有權限和這個播放器互動');
+
+      await edit();
       return;
     }
 
@@ -62,28 +75,34 @@ export default new KamiSubcommand({
     const before = interaction.options.getInteger('before') ?? undefined;
 
     const ids = parseUrl(input);
-    const embed = new EmbedBuilder()
-      .setColor(Colors.Green)
-      .setAuthor({
-        name: `新增 | ${interaction.guild.name}`,
-        iconURL: interaction.guild.iconURL()!,
-      });
+
+    if (ids.playlist == null && ids.video == null) {
+      embed
+        .setColor(Colors.Red)
+        .setDescription('❌ 無效的 YouTube 連結');
+
+      await edit();
+      return;
+    }
 
     try {
-      parseVideo: if (ids.video) {
+      if (ids.video) {
         const video = await fetchVideo(ids.video);
 
         if (!video.duration) {
           embed
             .setColor(Colors.Red)
             .setDescription('❌ 無效的 YouTube 連結（影片未公開或尚未上映）');
-          break parseVideo;
+
+          await edit();
+          return;
         }
 
         const resource = KamiResource.youtube(this, video).setMember(interaction.member);
         player.addResource(resource, before);
 
         embed
+          .setColor(Colors.Green)
           .setDescription(`✅ ${hyperlink(resource.title, resource.url)} 已加到播放佇列`)
           .setThumbnail(video.thumbnail.url);
       }
@@ -105,15 +124,11 @@ export default new KamiSubcommand({
         }
 
         embed
+          .setColor(Colors.Green)
           .setTitle(playlist.title)
           .setURL(playlist.url)
           .setDescription(`✅ 已將 ${resources.length} 個項目新增至佇列\n${unorderedList(description)}`)
           .setThumbnail(playlist.thumbnail.url);
-      }
-      else {
-        embed
-          .setColor(Colors.Red)
-          .setDescription('❌ 無效的 YouTube 連結');
       }
     }
     catch (error) {
