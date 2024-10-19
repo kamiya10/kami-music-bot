@@ -164,6 +164,11 @@ export class KamiMusicPlayer {
  */
 
   async play(index = this.currentIndex) {
+    if (this.isPlaying) {
+      this.player?.stop();
+      this._currentResource = null;
+    }
+
     const resource = this.queue[index];
 
     if (!resource) {
@@ -328,6 +333,7 @@ export class KamiMusicPlayer {
     }
 
     void this.play(this.currentIndex);
+    return this.queue[this.currentIndex];
   }
 
   addResource(resource: KamiResource | KamiResource[], index: number = this.queue.length) {
@@ -417,6 +423,10 @@ export class KamiMusicPlayer {
         fetchReply: true,
       },
     });
+  }
+
+  canInteract(member: GuildMember) {
+    return !this.locked || this.owner.id == member.id;
   }
 
   destroy() {
