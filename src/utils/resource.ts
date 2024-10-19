@@ -31,13 +31,13 @@ export const progress = (percentage: number) => {
   }
   else if (middle == 9) {
     parts[0] = Emoji.ProgressStartFilled;
-    parts.fill(Emoji.ProgressFilled, 1, 8);
-    parts[middle] = Emoji.ProgressEndFilled;
+    parts.fill(Emoji.ProgressFilled, 1, 9);
+    parts[middle] = Emoji.ProgressEndMiddle;
   }
   else {
     parts[0] = Emoji.ProgressStartFilled;
     if (middle > 1) {
-      parts.fill(Emoji.ProgressFilled, 1, middle - 1);
+      parts.fill(Emoji.ProgressFilled, 1, middle);
     }
     parts[middle] = Emoji.ProgressMiddle;
   }
