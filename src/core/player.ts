@@ -29,6 +29,17 @@ export enum RepeatMode {
   BackwardRepeatQueue = 7,
 };
 
+export const RepeatModeName = {
+  [RepeatMode.Forward]: '不重複',
+  [RepeatMode.RepeatQueue]: '循環',
+  [RepeatMode.RepeatCurrent]: '單曲重複',
+  [RepeatMode.Random]: '隨機',
+  [RepeatMode.RandomNoRepeat]: '隨機（不重複）',
+  [RepeatMode.TrueRandom]: '真隨機',
+  [RepeatMode.Backward]: '倒序播放',
+  [RepeatMode.BackwardRepeatQueue]: '倒序循環',
+} as Readonly<Record<RepeatMode, string>>;
+
 export class KamiMusicPlayer {
   client: KamiClient;
   owner: GuildMember;
@@ -336,14 +347,84 @@ export class KamiMusicPlayer {
     return this.queue[this.currentIndex];
   }
 
+  backward() {
+    switch (this.repeat) {
+      case RepeatMode.Forward: {
+        if (this.currentIndex > 0) {
+          this.currentIndex--;
+        }
+        else {
+          void this.updateMessage();
+          void this.updateVoiceStatus();
+          return;
+        }
+
+        break;
+      }
+
+      case RepeatMode.RepeatQueue: {
+        if (this.currentIndex > 0) {
+          this.currentIndex--;
+        }
+        else {
+          this.currentIndex = this.queue.length - 1;
+        }
+        break;
+      }
+
+      case RepeatMode.RepeatCurrent: {
+        break;
+      }
+
+      case RepeatMode.Random: {
+        break;
+      }
+
+      case RepeatMode.RandomNoRepeat: {
+        break;
+      }
+
+      case RepeatMode.Backward: {
+        if (this.currentIndex < this.queue.length - 1) {
+          this.currentIndex++;
+        }
+        else {
+          void this.updateMessage();
+          void this.updateVoiceStatus();
+          return;
+        }
+
+        break;
+      }
+
+      case RepeatMode.BackwardRepeatQueue: {
+        if (this.currentIndex < this.queue.length - 1) {
+          this.currentIndex++;
+        }
+        else {
+          this.currentIndex = 0;
+        }
+        break;
+      }
+    }
+
+    void this.play(this.currentIndex);
+    return this.queue[this.currentIndex];
+  }
+
   addResource(resource: KamiResource | KamiResource[], index: number = this.queue.length) {
+    const current = this.queue[this.currentIndex];
+
     if (!Array.isArray(resource)) {
       resource = [resource];
     }
 
     this.queue.splice(index, 0, ...resource);
 
-    if (this.player?.state.status == AudioPlayerStatus.Idle) {
+    if (this.isPlaying && this._currentResource) {
+      this.currentIndex = this.queue.indexOf(current);
+    }
+    else {
       this.currentIndex = this.queue.indexOf(resource[0]);
       void this.play();
     }
@@ -396,13 +477,18 @@ export class KamiMusicPlayer {
         .setDescription('使用 /add 來添加項目')
         .setFields(
           {
-            name: '#️⃣ 編號',
+            name: '#️⃣ 編號　　',
             value: `${this.currentIndex + 1}`,
             inline: true,
           },
           {
-            name: '⌛ 長度',
+            name: '⌛ 長度　　',
             value: resource.getLength(),
+            inline: true,
+          },
+          {
+            name: '🔁 循環模式',
+            value: RepeatModeName[this.repeat],
             inline: true,
           },
         )

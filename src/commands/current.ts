@@ -1,6 +1,7 @@
 import { Colors, EmbedBuilder, SlashCommandBuilder, inlineCode } from 'discord.js';
 import { formatDuration, progress } from '@/utils/resource';
 import { KamiCommand } from '@/core/command';
+import { RepeatModeName } from '@/core/player';
 
 export default new KamiCommand({
   builder: new SlashCommandBuilder()
@@ -54,7 +55,24 @@ export default new KamiCommand({
       .setTitle(resource.metadata.title)
       .setURL(resource.metadata.url)
       .setThumbnail(resource.metadata.thumbnail)
-      .setDescription(playback);
+      .setDescription(playback)
+      .setFields(
+        {
+          name: '#️⃣ 編號　　',
+          value: `${player.currentIndex + 1}`,
+          inline: true,
+        },
+        {
+          name: '⌛ 長度　　',
+          value: resource.metadata.getLength(),
+          inline: true,
+        },
+        {
+          name: '🔁 循環模式',
+          value: RepeatModeName[player.repeat],
+          inline: true,
+        },
+      );
 
     await edit();
   },

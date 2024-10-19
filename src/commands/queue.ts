@@ -33,7 +33,7 @@ export default new KamiCommand({
       const resource = player.queue[index];
       const item = hyperlink(resource.title.slice(0, 40), resource.url);
       if (index == player.currentIndex && player.isPlaying) {
-        description.push(bold(item));
+        description.push(bold(`🎵 ${item}`));
       }
       else {
         description.push(item);
