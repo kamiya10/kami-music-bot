@@ -90,6 +90,10 @@ export class KamiMusicPlayer {
     this.subscription = this.connection?.subscribe(this.player);
 
     this.player.on(AudioPlayerStatus.Idle, (oldState) => {
+      if (this._transcoder) {
+        this._transcoder.destroy();
+        this._transcoder = null;
+      }
       this._currentResource = null;
       /*
         if (this.preference.updateVoiceStatus) {
@@ -216,10 +220,10 @@ export class KamiMusicPlayer {
       // "-af", `firequalizer=gain_entry='${Object.keys(this.equalizer).map(k => `entry(${k},${this.equalizer[k]})`).join(";")}',dynaudnorm=n=0:c=1`,
       // "-af", `bass=g=${this.audiofilter.bass}`,
     ];
-    const transcoder = new prism.FFmpeg({ args: transcoderArgs });
+    this._transcoder = new prism.FFmpeg({ args: transcoderArgs });
 
     const audioResource = createAudioResource(
-      pipeline(stream, transcoder, () => void 0),
+      pipeline(stream, this._transcoder, () => void 0),
       {
         inputType: StreamType.Raw,
         inlineVolume: true,
