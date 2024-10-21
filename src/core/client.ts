@@ -59,16 +59,18 @@ export class KamiClient extends Client {
       const filePath = resolve(this.cacheFolderPath, 'commands.cache');
 
       if (process.env.NODE_ENV == 'development') {
-        const devGuildId = process.env['DEV_GUILD_ID'];
-        if (!devGuildId) return;
+        const devGuildId = process.env['DEV_GUILD_ID']?.split(',');
+        if (!devGuildId || !devGuildId.length) return;
 
-        const guild = this.guilds.cache.get(devGuildId);
-        if (!guild) return;
+        for (const id of devGuildId) {
+          const guild = this.guilds.cache.get(id);
+          if (!guild) return;
 
-        Logger.debug(
-          `Updating commands in ${guild.name}. (DEV_GUILD_ID=${devGuildId})`,
-        );
-        await guild.commands.set(data);
+          Logger.debug(
+            `Updating commands in ${guild.name} (${id}). (DEV_GUILD_ID=${devGuildId})`,
+          );
+          await guild.commands.set(data);
+        }
         return;
       }
 
