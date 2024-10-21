@@ -156,17 +156,17 @@ export function getLyricsAtTime(timestamp: number, lyrics: KamiLyric[]): {
   const isEnd = timestamp >= lyrics.at(-1)!.to;
 
   const prev = inInterlude ? lyrics[currentIndex] : lyrics[currentIndex - 1];
+  const next = lyrics[currentIndex + 1];
   const current = inInterlude
     ? {
-      from: prev.from,
-      to: prev.to,
+      from: prev.to,
+      to: next.from,
       line: parseRubyText('♪'),
       translation: '',
     }
     : isEnd
       ? lyrics.at(-1)!
       : lyrics[currentIndex];
-  const next = lyrics[currentIndex + 1];
 
   if (isStart) {
     return {
