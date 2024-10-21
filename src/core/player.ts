@@ -1,6 +1,8 @@
 import { AudioPlayerStatus, StreamType, VoiceConnectionStatus, createAudioPlayer, createAudioResource, entersState, joinVoiceChannel } from '@discordjs/voice';
-import { Colors, EmbedBuilder, MessageFlags, quote } from 'discord.js';
+import { Colors, EmbedBuilder, MessageFlags, inlineCode } from 'discord.js';
 import { createReadStream, existsSync, writeFileSync } from 'fs';
+import { formatDuration, getLyricsAtTime, progress } from '@/utils/resource';
+import { formatLines } from '@/utils/string';
 import { join } from 'path';
 import { logError } from '@/utils/callback';
 import { pipeline } from 'stream';
@@ -12,10 +14,8 @@ import ytdl from '@distube/ytdl-core';
 
 import type { AudioPlayer, AudioResource, PlayerSubscription, VoiceConnection } from '@discordjs/voice';
 import type { Guild, GuildMember, GuildTextBasedChannel, Message, VoiceBasedChannel } from 'discord.js';
-import type { KamiClient } from '@/core/client';
 import type { KamiLyric, KamiResource } from '@/core/resource';
-import { getLyricsAtTime } from '@/utils/resource';
-import { formatRubyText } from '@/utils/string';
+import type { KamiClient } from '@/core/client';
 
 const agent = ytdl.createAgent(cookies as []);
 const GlobalVolumeModifier = 0.25;
@@ -513,15 +513,31 @@ export class KamiMusicPlayer {
         });
 
       if (resource.metadata && this._currentResource) {
+        const playback = resource.length
+          ? [
+            inlineCode(formatDuration(this._currentResource.playbackDuration)),
+            progress((this._currentResource.playbackDuration / resource.length) * 100),
+            inlineCode(resource.getLength()),
+          ].join(' ')
+          : 'LIVE';
+
+        embed.setDescription(playback)
+          .setFooter({
+            text: `由 ${resource.member?.displayName} 添加 | 使用 /add 來添加項目`,
+            iconURL: resource.member?.displayAvatarURL(),
+          });
+
         const lyrics = getLyricsAtTime(this._currentResource.playbackDuration, resource.metadata.lyrics);
+
+        const showRuby = resource.metadata.hasRuby;
+        const showTranslation = resource.metadata.script != 'zh';
+
+        const prev = formatLines(lyrics.prev, false, showRuby, showTranslation);
+        const current = formatLines(lyrics.current, true, showRuby, showTranslation);
+        const next = formatLines(lyrics.next, false, showRuby, showTranslation);
+
         content = [
-          lyrics.prev
-            ? `${formatRubyText(lyrics.prev.line)}\n${lyrics.prev.translation ? quote(lyrics.prev.translation) : '​'}`
-            : '\n\n',
-          `${formatRubyText(lyrics.current.line, true)}\n${lyrics.current.translation ? quote(lyrics.current.translation) : '​'}`,
-          lyrics.next
-            ? `${formatRubyText(lyrics.next.line)}\n${lyrics.next.translation ? quote(lyrics.next.translation) : '​'}`
-            : '\n\n',
+          prev, current, next,
         ].join('\n-# ​\n');
       }
     }

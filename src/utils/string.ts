@@ -1,4 +1,7 @@
-import { bold as b } from 'discord.js';
+/* eslint-disable no-irregular-whitespace */
+import { bold as b, quote, subtext } from 'discord.js';
+
+import type { KamiLyric } from '@/core/resource';
 
 export interface RubyText {
   text: string;
@@ -86,7 +89,7 @@ function calculateTextLength(text: string) {
   return spaceCount;
 }
 
-export function formatRubyText(data: RubyText[], bold = false): string {
+export function formatRubyText(data: RubyText[]) {
   let rubyLine = '';
   let textLine = '';
 
@@ -133,17 +136,18 @@ export function formatRubyText(data: RubyText[], bold = false): string {
   rubyLine = rubyLine.trimEnd();
   textLine = textLine.trimEnd();
 
-  if (bold) {
-    if (rubyLine.length > 0) {
-      rubyLine = b(rubyLine);
-    }
-    if (textLine.length > 0) {
-      textLine = b(textLine);
-    }
-  }
+  return {
+    ruby: `​${rubyLine}`,
+    text: `​${textLine}`,
+  };
+}
 
-  // eslint-disable-next-line no-irregular-whitespace
-  return `-# ​${rubyLine}\n​${textLine}`;
+export function joinText(data: RubyText[], bold = false) {
+  const text = data.map((r) => r.text).join('');
+  if (bold) {
+    return b(text);
+  }
+  return text;
 }
 
 export function findInclude(target: string, array: string[]) {
@@ -152,4 +156,36 @@ export function findInclude(target: string, array: string[]) {
     if (target.includes(a[i])) return array[i];
   }
   return null;
+}
+
+export function formatLines(lyrics?: KamiLyric, bold = false, showRuby = true, showTranslation = true) {
+  if (!lyrics) return '\n\n';
+
+  const lines = [];
+
+  if (showRuby) {
+    const r = formatRubyText(lyrics.line);
+
+    if (bold) {
+      r.ruby = b(r.ruby);
+      r.text = b(r.text);
+    }
+
+    lines.push(subtext(r.ruby));
+    lines.push(r.text);
+  }
+  else {
+    lines.push(joinText(lyrics.line));
+  }
+
+  if (showTranslation) {
+    if (lyrics.translation != '') {
+      lines.push(quote(`​${lyrics.translation}`));
+    }
+    else {
+      lines.push(`​`);
+    }
+  }
+
+  return lines.join('\n');
 }

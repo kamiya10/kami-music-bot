@@ -52,6 +52,7 @@ export interface KamiMetadata {
   source: string;
   tags: string[];
   lyrics: KamiLyric[];
+  hasRuby: boolean;
 }
 
 interface KamiResourceOptions {
