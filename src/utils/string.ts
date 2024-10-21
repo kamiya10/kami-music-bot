@@ -75,7 +75,7 @@ function calculateTextLength(text: string) {
   let spaceCount = 0;
 
   for (const char of text) {
-    if (/\p{Script=Han}|\p{Script=Katakana}|\p{Script=Hiragana}/u.test(char)) {
+    if (/\p{Script=Han}|\p{Script=Katakana}|\p{Script=Hiragana}|[︐-｝￢-￥　]/u.test(char)) {
       spaceCount += 1;
     }
     else {
