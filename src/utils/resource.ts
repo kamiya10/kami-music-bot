@@ -74,24 +74,62 @@ export const formatDuration = (miliseconds: number) => {
   return parts.join(':');
 };
 
-export function getMetadata(target: string): KamiMetadata | null {
+const metadataTree = (() => {
   const assetsPath = resolve('src', 'assets', 'metadata');
+  const metadata: Record<string, string[]> = {};
+  for (const artist of readdirSync(assetsPath)) {
+    const artistPath = resolve(assetsPath, artist);
+    metadata[artist] = readdirSync(artistPath).map((v) => v.split('.')[0]);
+  }
+  return metadata;
+})();
+const artists = Object.keys(metadataTree);
 
-  const artist = findInclude(target, readdirSync(assetsPath));
-  if (!artist) return null;
+export function getMetadata(target: string): KamiMetadata | null {
+  let path: string | null = null;
 
-  const artistPath = resolve(assetsPath, artist);
+  const artist = findInclude(target, artists);
 
-  const title = findInclude(target, readdirSync(artistPath));
-  if (!title) return null;
+  if (artist) {
+    const title = findInclude(target, metadataTree[artist]);
+    if (title) {
+      path = resolve('src', 'assets', 'metadata', artist, `${title}.json`);
+    }
+  }
+  else {
+    for (let i = 0, n = artists.length; i < n; i++) {
+      const a = artists[i];
+      const titles = metadataTree[a];
+      const t = findInclude(target, titles);
+      if (t) {
+        path = resolve('src', 'assets', 'metadata', a, `${t}.json`);
+      }
+    }
+  }
+
+  if (!path) return null;
 
   try {
-    const metadataPath = resolve(artistPath, title);
-    const { $schema: _, ...metadata } = JSON.parse(readFileSync(metadataPath, 'utf-8')) as KamiMetadataJson;
+    const { $schema: _, ...metadata } = JSON.parse(readFileSync(path, 'utf-8')) as KamiMetadataJson;
+    let hasRuby = false;
+
+    const lyrics = metadata.lyrics.map((v) => {
+      const line = parseRubyText(v.line);
+
+      for (const block of line) {
+        if (block.ruby) {
+          hasRuby = true;
+          break;
+        }
+      }
+
+      return { ...v, line };
+    });
 
     return {
       ...metadata,
-      lyrics: metadata.lyrics.map((v) => ({ ...v, line: parseRubyText(v.line) })),
+      lyrics,
+      hasRuby,
     };
   }
   catch (_) {
