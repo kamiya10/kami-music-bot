@@ -1,5 +1,5 @@
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Colors, EmbedBuilder, MessageFlags, inlineCode } from 'discord.js';
 import { AudioPlayerStatus, StreamType, VoiceConnectionStatus, createAudioPlayer, createAudioResource, entersState, joinVoiceChannel } from '@discordjs/voice';
-import { Colors, EmbedBuilder, MessageFlags, inlineCode } from 'discord.js';
 import { createReadStream, existsSync, writeFileSync } from 'fs';
 import { formatDuration, getLyricsAtTime, progress } from '@/utils/resource';
 import { formatLines } from '@/utils/string';
@@ -19,6 +19,63 @@ import type { KamiClient } from '@/core/client';
 
 const agent = ytdl.createAgent(cookies as []);
 const GlobalVolumeModifier = 0.25;
+
+const PlayerControls = (player: KamiMusicPlayer, status?: AudioPlayerStatus) => new ActionRowBuilder<ButtonBuilder>()
+  .setComponents(
+    new ButtonBuilder()
+      .setCustomId('player:control-prev')
+      .setEmoji('⏮️')
+      .setDisabled(player.currentIndex <= 0)
+      .setStyle(ButtonStyle.Secondary),
+    status == AudioPlayerStatus.Paused
+      ? new ButtonBuilder()
+        .setCustomId('player:control-resume')
+        .setEmoji('▶️')
+        .setStyle(ButtonStyle.Secondary)
+      : new ButtonBuilder()
+        .setCustomId('player:control-pause')
+        .setEmoji('⏸️')
+        .setDisabled(!player._currentResource)
+        .setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder()
+      .setCustomId('player:control-next')
+      .setEmoji('⏭️')
+      .setDisabled(player.currentIndex >= player.queue.length - 1)
+      .setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder()
+      .setCustomId('player:control-remove')
+      .setEmoji('🚮')
+      .setDisabled(!player.queue[player.currentIndex])
+      .setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder()
+      .setCustomId('player:control-destroy')
+      .setEmoji('🚪')
+      .setStyle(ButtonStyle.Secondary),
+  );
+
+const LyricsOffsetControl = new ActionRowBuilder<ButtonBuilder>()
+  .setComponents(
+    new ButtonBuilder()
+      .setCustomId('player:offset-1s')
+      .setLabel('-1s')
+      .setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder()
+      .setCustomId('player:offset-250ms')
+      .setLabel('-250ms')
+      .setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder()
+      .setCustomId('player:offset-reset')
+      .setLabel('🔄️')
+      .setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder()
+      .setCustomId('player:offset+250ms')
+      .setLabel('+250ms')
+      .setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder()
+      .setCustomId('player:offset+1s')
+      .setLabel('+1s')
+      .setStyle(ButtonStyle.Secondary),
+  );
 
 export enum RepeatMode {
   Forward = 0,
@@ -56,7 +113,6 @@ export class KamiMusicPlayer {
   queue = [] as KamiResource[];
   currentIndex = 0;
   repeat = RepeatMode.Forward;
-  paused = false;
   stopped = false;
   locked = false;
   destroyed = false;
@@ -75,10 +131,18 @@ export class KamiMusicPlayer {
   _currentResource: AudioResource<KamiResource> | null = null;
 
   _currentLyrics: KamiLyric | null = null;
+  _lyricsOffset = 0;
   _lyricsTimer = setInterval(() => {
     if (!this._currentResource?.metadata?.metadata) return;
-    const { current } = getLyricsAtTime(this._currentResource.playbackDuration, this._currentResource.metadata.metadata.lyrics);
+    const metadata = this._currentResource.metadata.metadata;
+
+    const { current } = getLyricsAtTime(
+      this._currentResource.playbackDuration + this._lyricsOffset,
+      metadata.lyrics,
+    );
+
     if (current.from == this._currentLyrics?.from) return;
+
     this._currentLyrics = current;
     void this.updateMessage(this._currentResource.metadata, true);
   }, 100);
@@ -136,6 +200,10 @@ export class KamiMusicPlayer {
     return this.player?.state.status == AudioPlayerStatus.Playing;
   }
 
+  get paused() {
+    return this.player?.state.status == AudioPlayerStatus.Paused || this.player?.state.status == AudioPlayerStatus.AutoPaused;
+  }
+
   connect(channel: VoiceBasedChannel = this.voice) {
     this.connection?.destroy();
 
@@ -191,8 +259,7 @@ export class KamiMusicPlayer {
 
   async play(index = this.currentIndex) {
     if (this.isPlaying) {
-      this.player?.stop();
-      this._currentResource = null;
+      this.stop();
     }
 
     const resource = this.queue[index];
@@ -291,6 +358,7 @@ export class KamiMusicPlayer {
           this.currentIndex++;
         }
         else {
+          this.stop();
           void this.updateMessage();
           void this.updateVoiceStatus();
           return;
@@ -338,6 +406,7 @@ export class KamiMusicPlayer {
           this.currentIndex--;
         }
         else {
+          this.stop();
           void this.updateMessage();
           void this.updateVoiceStatus();
           return;
@@ -368,6 +437,7 @@ export class KamiMusicPlayer {
           this.currentIndex--;
         }
         else {
+          this.stop();
           void this.updateMessage();
           void this.updateVoiceStatus();
           return;
@@ -403,6 +473,7 @@ export class KamiMusicPlayer {
           this.currentIndex++;
         }
         else {
+          this.stop();
           void this.updateMessage();
           void this.updateVoiceStatus();
           return;
@@ -426,6 +497,12 @@ export class KamiMusicPlayer {
     return this.queue[this.currentIndex];
   }
 
+  stop() {
+    this._transcoder?.destroy();
+    this.player?.stop();
+    this._currentResource = null;
+  }
+
   addResource(resource: KamiResource | KamiResource[], index: number = this.queue.length) {
     const current = this.queue[this.currentIndex];
 
@@ -437,11 +514,41 @@ export class KamiMusicPlayer {
 
     if (this.isPlaying && this._currentResource) {
       this.currentIndex = this.queue.indexOf(current);
+      void this.updateMessage(this._currentResource.metadata, true);
     }
     else {
       this.currentIndex = this.queue.indexOf(resource[0]);
       void this.play();
     }
+  }
+
+  removeResource(index: number) {
+    const resource = this.queue[index];
+    if (!resource) return;
+
+    let shouldPlay = false;
+
+    if (index == this.currentIndex) {
+      this.stop();
+      shouldPlay = true;
+    }
+
+    if (index < this.currentIndex) {
+      this.currentIndex--;
+    }
+
+    const removed = this.queue.splice(index, 1)[0];
+
+    if (this.currentIndex >= this.queue.length) {
+      this.currentIndex = this.queue.length - 1;
+      shouldPlay = false;
+    }
+
+    if (shouldPlay) {
+      void this.play();
+    }
+
+    return removed;
   }
 
   clearResources() {
@@ -478,11 +585,15 @@ export class KamiMusicPlayer {
         iconURL: this.guild.iconURL() ?? undefined,
       })
       .setTimestamp();
+    const components = [];
+
     let content = '';
 
     if (!resource) {
       embed
         .setDescription('目前沒有在播放任何東西，使用 /add 來添加項目');
+
+      components.push(PlayerControls(this, this.player?.state.status));
     }
     else {
       embed
@@ -512,6 +623,8 @@ export class KamiMusicPlayer {
           iconURL: resource.member?.displayAvatarURL(),
         });
 
+      components.push(PlayerControls(this, this.player?.state.status));
+
       if (resource.metadata && this._currentResource) {
         const playback = resource.length
           ? [
@@ -527,7 +640,10 @@ export class KamiMusicPlayer {
             iconURL: resource.member?.displayAvatarURL(),
           });
 
-        const lyrics = getLyricsAtTime(this._currentResource.playbackDuration, resource.metadata.lyrics);
+        const lyrics = getLyricsAtTime(
+          this._currentResource.playbackDuration + this._lyricsOffset,
+          resource.metadata.lyrics,
+        );
 
         const showRuby = resource.metadata.hasRuby;
         const showTranslation = resource.metadata.script != 'zh';
@@ -539,6 +655,8 @@ export class KamiMusicPlayer {
         content = [
           prev, current, next,
         ].join('\n-# ​\n');
+
+        components.push(LyricsOffsetControl);
       }
     }
 
@@ -547,6 +665,7 @@ export class KamiMusicPlayer {
       await this.message.edit({
         content,
         embeds: [embed],
+        components,
       });
       return;
     }
@@ -558,6 +677,7 @@ export class KamiMusicPlayer {
     this.message = await this.text.send({
       content,
       embeds: [embed],
+      components,
       flags: MessageFlags.SuppressNotifications,
       options: {
         fetchReply: true,
@@ -574,6 +694,7 @@ export class KamiMusicPlayer {
       void this.message.delete().catch(logError);
     }
 
+    clearInterval(this._lyricsTimer);
     this.subscription?.unsubscribe();
     this.connection.destroy();
     this.client.players.delete(this.guild.id);

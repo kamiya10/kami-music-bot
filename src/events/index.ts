@@ -1,9 +1,11 @@
 import type { EventHandler } from '@/core/event';
 
-import interactionCreate from '#/client/onCommand';
+import onCommand from '#/client/onCommand';
+import player from '#/client/player';
 import ready from '#/client/ready';
 
 export default [
+  onCommand,
+  player,
   ready,
-  interactionCreate,
 ] as EventHandler[];

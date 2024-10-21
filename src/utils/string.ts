@@ -175,7 +175,12 @@ export function formatLines(lyrics?: KamiLyric, bold = false, showRuby = true, s
     lines.push(r.text);
   }
   else {
-    lines.push(joinText(lyrics.line));
+    if (bold) {
+      lines.push(b(joinText(lyrics.line)));
+    }
+    else {
+      lines.push(joinText(lyrics.line));
+    }
   }
 
   if (showTranslation) {
