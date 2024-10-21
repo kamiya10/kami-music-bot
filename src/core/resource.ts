@@ -1,10 +1,58 @@
-import { cleanupTitle, formatDuration } from '@/utils/resource';
+import { cleanupTitle, formatDuration, getMetadata } from '@/utils/resource';
 import { existsSync } from 'fs';
 import { join } from 'path';
 
 import type { GuildMember } from 'discord.js';
 import type { KamiClient } from './client';
+import type { RubyText } from '@/utils/string';
 import type { Video } from '@/api/youtube/video';
+
+export interface KamiLyric {
+  from: number;
+  to: number;
+  line: RubyText[];
+  translation: string;
+}
+
+export interface KamiMetadataJson {
+  $schema: string;
+  title: string;
+  album: string;
+  cover: string;
+  artist: string[];
+  composer: string[];
+  arranger: string[];
+  lyricist: string[];
+  diskNo: number;
+  trackNo: number;
+  year: number;
+  script: string;
+  source: string;
+  tags: string[];
+  lyrics: {
+    from: number;
+    to: number;
+    line: string;
+    translation: string;
+  }[];
+}
+
+export interface KamiMetadata {
+  title: string;
+  album: string;
+  cover: string;
+  artist: string[];
+  composer: string[];
+  arranger: string[];
+  lyricist: string[];
+  diskNo: number;
+  trackNo: number;
+  year: number;
+  script: string;
+  source: string;
+  tags: string[];
+  lyrics: KamiLyric[];
+}
 
 interface KamiResourceOptions {
   type: Platform;
@@ -23,6 +71,7 @@ export class KamiResource {
   url: string;
   thumbnail: string;
   cache: string | null = null;
+  metadata: KamiMetadata | null = null;
   member?: GuildMember;
 
   constructor(client: KamiClient, options: KamiResourceOptions) {
@@ -38,6 +87,8 @@ export class KamiResource {
     if (existsSync(cachePath)) {
       this.cache = cachePath;
     }
+
+    this.metadata = getMetadata(options.title);
   }
 
   setMember(member: GuildMember) {

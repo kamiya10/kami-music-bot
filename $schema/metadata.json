@@ -1,0 +1,98 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Generated schema for Root",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "album": {
+      "type": "string"
+    },
+    "cover": {
+      "type": "string"
+    },
+    "artist": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "composer": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "arranger": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "lyricist": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "diskNo": {
+      "type": "number"
+    },
+    "trackNo": {
+      "type": "number"
+    },
+    "year": {
+      "type": "number"
+    },
+    "script": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "lyrics": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "number"
+          },
+          "to": {
+            "type": "number"
+          },
+          "line": {
+            "type": "string"
+          },
+          "translation": {
+            "type": "string"
+          }
+        },
+        "required": ["from", "to", "line", "translation"]
+      }
+    }
+  },
+  "required": [
+    "title",
+    "album",
+    "cover",
+    "artist",
+    "composer",
+    "arranger",
+    "lyricist",
+    "diskNo",
+    "trackNo",
+    "year",
+    "script",
+    "source",
+    "tags",
+    "lyrics"
+  ]
+}

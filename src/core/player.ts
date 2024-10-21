@@ -1,5 +1,5 @@
 import { AudioPlayerStatus, StreamType, VoiceConnectionStatus, createAudioPlayer, createAudioResource, entersState, joinVoiceChannel } from '@discordjs/voice';
-import { Colors, EmbedBuilder, MessageFlags } from 'discord.js';
+import { Colors, EmbedBuilder, MessageFlags, quote } from 'discord.js';
 import { createReadStream, existsSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { logError } from '@/utils/callback';
@@ -13,7 +13,9 @@ import ytdl from '@distube/ytdl-core';
 import type { AudioPlayer, AudioResource, PlayerSubscription, VoiceConnection } from '@discordjs/voice';
 import type { Guild, GuildMember, GuildTextBasedChannel, Message, VoiceBasedChannel } from 'discord.js';
 import type { KamiClient } from '@/core/client';
-import type { KamiResource } from '@/core/resource';
+import type { KamiLyric, KamiResource } from '@/core/resource';
+import { getLyricsAtTime } from '@/utils/resource';
+import { formatRubyText } from '@/utils/string';
 
 const agent = ytdl.createAgent(cookies as []);
 const GlobalVolumeModifier = 0.25;
@@ -71,6 +73,15 @@ export class KamiMusicPlayer {
   _random = [] as KamiResource[];
   _transcoder: prism.FFmpeg | null = null;
   _currentResource: AudioResource<KamiResource> | null = null;
+
+  _currentLyrics: KamiLyric | null = null;
+  _lyricsTimer = setInterval(() => {
+    if (!this._currentResource?.metadata?.metadata) return;
+    const { current } = getLyricsAtTime(this._currentResource.playbackDuration, this._currentResource.metadata.metadata.lyrics);
+    if (current.from == this._currentLyrics?.from) return;
+    this._currentLyrics = current;
+    void this.updateMessage(this._currentResource.metadata, true);
+  }, 100);
 
   constructor(
     client: KamiClient,
@@ -193,7 +204,6 @@ export class KamiMusicPlayer {
     if (!resource.cache) {
       await this.buffer(resource);
     }
-
     const stream = createReadStream(resource.cache!, {
       highWaterMark: 1 << 25,
     });
@@ -460,7 +470,7 @@ export class KamiMusicPlayer {
       .catch(logError);
   }
 
-  async updateMessage(resource?: KamiResource) {
+  async updateMessage(resource?: KamiResource, edit = false) {
     const embed = new EmbedBuilder()
       .setColor(Colors.Blue)
       .setAuthor({
@@ -468,6 +478,7 @@ export class KamiMusicPlayer {
         iconURL: this.guild.iconURL() ?? undefined,
       })
       .setTimestamp();
+    let content = '';
 
     if (!resource) {
       embed
@@ -500,13 +511,36 @@ export class KamiMusicPlayer {
           text: `由 ${resource.member?.displayName} 添加`,
           iconURL: resource.member?.displayAvatarURL(),
         });
+
+      if (resource.metadata && this._currentResource) {
+        const lyrics = getLyricsAtTime(this._currentResource.playbackDuration, resource.metadata.lyrics);
+        content = [
+          lyrics.prev
+            ? `${formatRubyText(lyrics.prev.line)}\n${lyrics.prev.translation ? quote(lyrics.prev.translation) : '​'}`
+            : '\n\n',
+          `${formatRubyText(lyrics.current.line, true)}\n${lyrics.current.translation ? quote(lyrics.current.translation) : '​'}`,
+          lyrics.next
+            ? `${formatRubyText(lyrics.next.line)}\n${lyrics.next.translation ? quote(lyrics.next.translation) : '​'}`
+            : '\n\n',
+        ].join('\n-# ​\n');
+      }
     }
 
-    if (this.message) {
+    if (edit) {
+      if (!this.message) return;
+      await this.message.edit({
+        content,
+        embeds: [embed],
+      });
+      return;
+    }
+
+    if (this.message && !edit) {
       await this.message.delete().catch(logError);
     }
 
     this.message = await this.text.send({
+      content,
       embeds: [embed],
       flags: MessageFlags.SuppressNotifications,
       options: {
