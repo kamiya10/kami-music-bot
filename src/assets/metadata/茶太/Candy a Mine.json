@@ -1,0 +1,341 @@
+{
+  "$schema": "../../../../$schema/metadata.json",
+  "title": "Candy a Mine",
+  "album": "しゅがてん！ -sugarfull tempering- オリジナルサウンドトラック",
+  "cover": "Qm1QLrV",
+  "artist": ["茶太"],
+  "producer": ["BURTON"],
+  "vocals": ["茶太"],
+  "composer": ["佐久間きらら"],
+  "arranger": ["佐久間きらら"],
+  "lyricist": ["永原さくら"],
+  "diskNo": 1,
+  "trackNo": 1,
+  "year": 2017,
+  "script": "ja",
+  "source": "Recette",
+  "tags": [
+    "shugaten",
+    "chata",
+    "opening",
+    "recette",
+    "japanese",
+    "game",
+    "visual",
+    "novel"
+  ],
+  "lyrics": [
+    {
+      "from": 1210,
+      "to": 5340,
+      "line": "Candy a Mine きらきらひかってる",
+      "translation": "Candy a Mine 閃閃發亮耀眼無比"
+    },
+    {
+      "from": 5340,
+      "to": 9990,
+      "line": "Candy a Mine たからものだね",
+      "translation": "Candy a Mine 是我的寶物呢"
+    },
+    {
+      "from": 9990,
+      "to": 14090,
+      "line": "ダイヤモンドが{降}(ふ)る {不思議}(ふしぎ)な{夜}(よる)に",
+      "translation": "宛如鑽石從天而降般 不可思議的夜晚裡"
+    },
+    {
+      "from": 14090,
+      "to": 18500,
+      "line": "リボンほどいた{物語}(ものがたり)",
+      "translation": "將蝴蝶結鬆開故事即將開始"
+    },
+    {
+      "from": 18500,
+      "to": 26710,
+      "line": "So sweet sugarfull!",
+      "translation": ""
+    },
+    {
+      "from": 26710,
+      "to": 35790,
+      "line": "So sweet tempering!",
+      "translation": ""
+    },
+    {
+      "from": 35790,
+      "to": 39840,
+      "line": "{膨}(ふく)らんでくシフォンな{想}(おも)い",
+      "translation": "宛如戚風蛋糕般漸漸膨脹的心意"
+    },
+    {
+      "from": 39840,
+      "to": 44040,
+      "line": "しあわせ{色}(いろ)なら OK",
+      "translation": "若一切都是幸福的色彩的話 OK"
+    },
+    {
+      "from": 44040,
+      "to": 52270,
+      "line": "{初}(はじ)めての{恋}(こい) {上手}(じょうず)にできてるかな",
+      "translation": "第一次的戀愛 是否能平安的度過呢"
+    },
+    {
+      "from": 52270,
+      "to": 56440,
+      "line": "{焼}(や)き{上}(あ)がり{告}(つ)げる{香}(かお)り",
+      "translation": "烤好的香味散發了出來"
+    },
+    {
+      "from": 56440,
+      "to": 60560,
+      "line": "ミトン{越}(ご)しのハイタッチ",
+      "translation": "帶著手套高興地擊掌"
+    },
+    {
+      "from": 60560,
+      "to": 68860,
+      "line": "{予想}(よそう)もできない{味}(あじ)に{今日}(きょう)は{出逢}(であ)えそう",
+      "translation": "感覺那無法想像的味道就能在今天完成了呢"
+    },
+    {
+      "from": 68860,
+      "to": 77080,
+      "line": "わくわくするような{未来}(みらい)の{一歩目}(いっぽめ)",
+      "translation": "邁向這興奮不已未來的第一步"
+    },
+    {
+      "from": 77080,
+      "to": 85920,
+      "line": "きみと{手}(て)を{伸}(の)ばすオーブンの{先}(さき)...",
+      "translation": "與你一起將手伸向那烤箱的開關…"
+    },
+    {
+      "from": 85920,
+      "to": 90220,
+      "line": "Candy a Mine ふわふわねむってる",
+      "translation": "Candy a Mine 輕飄飄地熟睡著呢"
+    },
+    {
+      "from": 90220,
+      "to": 94740,
+      "line": "Candy a Mine ゆめは{∞}(むげん)だね",
+      "translation": "Candy a Mine 夢想是無限大的"
+    },
+    {
+      "from": 94740,
+      "to": 98940,
+      "line": "おなか{空}(す)かせた ハミング{響}(ひび)く",
+      "translation": "讓身體空腹 肚子低聲作響著"
+    },
+    {
+      "from": 98940,
+      "to": 102500,
+      "line": "{扉}(とびら)あけて",
+      "translation": "打開那扇門扉吧"
+    },
+    {
+      "from": 102500,
+      "to": 106710,
+      "line": "Candy a Mine ふらふらしちゃっても",
+      "translation": "Candy a Mine 就算搖搖晃晃的"
+    },
+    {
+      "from": 106710,
+      "to": 111320,
+      "line": "Candy a Mine きみがいるよね",
+      "translation": "Candy a Mine 你也會在我身邊呢"
+    },
+    {
+      "from": 111320,
+      "to": 115480,
+      "line": "{妖精}(ようせい)がくれた {淡}(あわ)いときめき",
+      "translation": "妖精帶來這淡淡的小刺激"
+    },
+    {
+      "from": 115480,
+      "to": 119870,
+      "line": "リボン{結}(むす)んで {届}(とど)けるよ",
+      "translation": "由蝴蝶結緊繫的心意 一定會傳達到的"
+    },
+    {
+      "from": 119870,
+      "to": 128160,
+      "line": "So sweet sugarfull!",
+      "translation": ""
+    },
+    {
+      "from": 128160,
+      "to": 134360,
+      "line": "So sweet tempering!",
+      "translation": ""
+    },
+    {
+      "from": 137210,
+      "to": 141330,
+      "line": "ひだまりでテーブルを{囲}(かこ)もう",
+      "translation": "向日葵們將餐桌給包圍起來"
+    },
+    {
+      "from": 141330,
+      "to": 145410,
+      "line": "{紅茶}(こうちゃ)の{準備}(じゅんび)も OK",
+      "translation": "紅茶也準備 OK"
+    },
+    {
+      "from": 145410,
+      "to": 153770,
+      "line": "お{揃}(そろ)いカトラリー {奇跡}(きせき)だって{起}(お)こせそう",
+      "translation": "湊成一對的餐具 感覺連奇蹟都能引發呢"
+    },
+    {
+      "from": 153770,
+      "to": 161920,
+      "line": "ありがとうみんな {大好}(だいす)きいっぱい",
+      "translation": "謝謝大家 我最喜歡你們了"
+    },
+    {
+      "from": 161920,
+      "to": 170800,
+      "line": "きみと{手}(て)を{伸}(の)ばすケーキに{込}(こ)めて...",
+      "translation": "與你一起將手伸向那美味的蛋糕…"
+    },
+    {
+      "from": 170800,
+      "to": 174940,
+      "line": "Candy a Mine ほわほわうかんでる",
+      "translation": "Candy a Mine 輕飄飄地浮在空中"
+    },
+    {
+      "from": 174940,
+      "to": 179640,
+      "line": "Candy a Mine ひかりといっしょに",
+      "translation": "Candy a Mine 與光芒一起"
+    },
+    {
+      "from": 179640,
+      "to": 183760,
+      "line": "{冒険}(ぼうけん)にでよう {迷子}(まいご)になったら",
+      "translation": "出發去冒險吧 就算中途迷惘了"
+    },
+    {
+      "from": 183760,
+      "to": 187340,
+      "line": "ほら{見上}(みあ)げて",
+      "translation": "你看 只要抬起頭來"
+    },
+    {
+      "from": 187340,
+      "to": 191560,
+      "line": "Candy a Mine ほかほかのぼってく",
+      "translation": "Candy a Mine 乘著那暖呼呼風兒"
+    },
+    {
+      "from": 191560,
+      "to": 196190,
+      "line": "Candy a Mine あったかいくもが",
+      "translation": "Candy a Mine 與溫暖的雲朵一起"
+    },
+    {
+      "from": 196190,
+      "to": 200310,
+      "line": "{教}(おし)えてくれる {大切}(たいせつ)な{場所}(ばしょ)",
+      "translation": "是你告訴了我 這最重要的場所"
+    },
+    {
+      "from": 200310,
+      "to": 206810,
+      "line": "いつもきみを {待}(ま)ってるよ",
+      "translation": "無論何時我都會等著你的"
+    },
+    {
+      "from": 222040,
+      "to": 225900,
+      "line": "クリームにキスしたら",
+      "translation": "如果親吻了純白奶油的話"
+    },
+    {
+      "from": 225900,
+      "to": 230310,
+      "line": "ビター{気分}(きぶん)に bye bye",
+      "translation": "苦澀的心情都會 bye bye"
+    },
+    {
+      "from": 230310,
+      "to": 239040,
+      "line": "ひとくちの{魔法}(まほう) かけてみて",
+      "translation": "試著施上這小小的魔法吧"
+    },
+    {
+      "from": 239040,
+      "to": 243250,
+      "line": "Candy a Mine ふわふわねむってる",
+      "translation": "Candy a Mine 輕飄飄地熟睡著呢"
+    },
+    {
+      "from": 243250,
+      "to": 247860,
+      "line": "Candy a Mine ゆめは{∞}(むげん)だね",
+      "translation": "Candy a Mine 夢想是無限大的"
+    },
+    {
+      "from": 247860,
+      "to": 252020,
+      "line": "もっと{見}(み)たいよ おいしい{笑顔}(えがお)",
+      "translation": "想繼續看著 你那美好的笑容"
+    },
+    {
+      "from": 252020,
+      "to": 255640,
+      "line": "{扉}(とびら)あけて",
+      "translation": "打開那扇門扉吧"
+    },
+    {
+      "from": 255640,
+      "to": 259830,
+      "line": "Candy a Mine ふらふらしちゃっても",
+      "translation": "Candy a Mine 就算搖搖晃晃的"
+    },
+    {
+      "from": 259830,
+      "to": 264450,
+      "line": "Candy a Mine きみがいるよね",
+      "translation": "Candy a Mine 你也會在我身邊呢"
+    },
+    {
+      "from": 264450,
+      "to": 268470,
+      "line": "わたしを{待}(ま)ってた {特別}(とくべつ)な{場所}(ばしょ)",
+      "translation": "等待著我的 那特別的場所"
+    },
+    {
+      "from": 268470,
+      "to": 272750,
+      "line": "{甘}(あま)い{香}(かお)りの {向}(む)こうはきっと",
+      "translation": "散發甜甜香味的另一端肯定是"
+    },
+    {
+      "from": 272750,
+      "to": 276880,
+      "line": "ダイヤモンド{降}(ふ)る {奇跡}(きせき)の{明日}(あした)",
+      "translation": "宛如鑽石從天而降般 奇蹟似的明天"
+    },
+    {
+      "from": 276880,
+      "to": 281280,
+      "line": "{手}(て)を{結}(むす)んだら {逢}(あ)いにゆこう",
+      "translation": "牽緊雙手之後 一起去尋找吧"
+    },
+    {
+      "from": 281280,
+      "to": 289520,
+      "line": "So sweet sugarfull!",
+      "translation": ""
+    },
+    {
+      "from": 289520,
+      "to": 295740,
+      "line": "So sweet tempering!",
+      "translation": ""
+    }
+  ]
+}

@@ -1,0 +1,222 @@
+{
+  "$schema": "../../../../$schema/metadata.json",
+  "title": "Waiting for Love",
+  "album": "Stories",
+  "cover": "HcdTspP",
+  "artist": ["Avicii", "Simon Aldred"],
+  "producer": [
+    "Salem Al Fakir",
+    "Tim Bergling",
+    "Vincent Pontare",
+    "Martijn Garritsen"
+  ],
+  "vocals": ["Simon Aldred"],
+  "composer": ["Avicii"],
+  "arranger": ["Avicii"],
+  "lyricist": [
+    "Salem Al Fakir",
+    "Simon Aldred",
+    "Vincent Pontare",
+    "Martijn Garritsen",
+    "Tim Bergling"
+  ],
+  "diskNo": 1,
+  "trackNo": 1,
+  "year": 2015,
+  "script": "en",
+  "source": "Stories",
+  "tags": [
+    "avicii",
+    "dance",
+    "electronic",
+    "pop",
+    "progressive",
+    "house",
+    "dubstep",
+    "festival",
+    "rock",
+    "english"
+  ],
+  "lyrics": [
+    {
+      "from": 10850,
+      "to": 14150,
+      "line": "Where there's a will, there's a way, kind of beautiful",
+      "translation": "「有志者，事竟成」聽起來多美好"
+    },
+    {
+      "from": 14350,
+      "to": 17650,
+      "line": "And every night has its day, so magical",
+      "translation": "每個黑夜都會迎來黎明 多麼奇妙"
+    },
+    {
+      "from": 17850,
+      "to": 21850,
+      "line": "And if there's love in this life, there's no obstacle",
+      "translation": "若此生有愛 就能克服任何阻礙"
+    },
+    {
+      "from": 22050,
+      "to": 25550,
+      "line": "That can't be defeated",
+      "translation": "從此無堅不摧"
+    },
+    {
+      "from": 25750,
+      "to": 28950,
+      "line": "For every tyrant a tear for the vulnerable",
+      "translation": "為暴政下的弱勢 獻上一滴淚水"
+    },
+    {
+      "from": 29150,
+      "to": 32650,
+      "line": "In every lost soul the bones of a miracle",
+      "translation": "每個迷失的靈魂裡 都蘊藏奇蹟"
+    },
+    {
+      "from": 32850,
+      "to": 36550,
+      "line": "For every dreamer a dream we're unstoppable",
+      "translation": "為每個夢想家獻上美夢成真，我們勢不可擋"
+    },
+    {
+      "from": 36750,
+      "to": 40950,
+      "line": "With something to believe in",
+      "translation": "只要我們有堅定的信念"
+    },
+    {
+      "from": 41150,
+      "to": 43950,
+      "line": "Monday left me broken",
+      "translation": "星期一 我被命運摧殘殆盡"
+    },
+    {
+      "from": 44150,
+      "to": 47550,
+      "line": "Tuesday I was through with hoping",
+      "translation": "星期二 我陷入了絕望的深淵"
+    },
+    {
+      "from": 47750,
+      "to": 51150,
+      "line": "Wednesday my empty arms were open",
+      "translation": "星期三 我向你敞開一無所有的雙臂"
+    },
+    {
+      "from": 51350,
+      "to": 55850,
+      "line": "Thursday waiting for love, waiting for love",
+      "translation": "星期四 我等著心愛的你歸來，等愛歸來"
+    },
+    {
+      "from": 56050,
+      "to": 58850,
+      "line": "Thank the stars it's Friday",
+      "translation": "感謝上天讓我熬到了星期五"
+    },
+    {
+      "from": 59050,
+      "to": 62350,
+      "line": "I'm burning like a fire gone wild on Saturday",
+      "translation": "星期六 我心狂野 就像燃燒炙烈的火焰"
+    },
+    {
+      "from": 62550,
+      "to": 66150,
+      "line": "Guess I won't be coming to church on Sunday",
+      "translation": "星期天 我猜我早已 無心上教堂"
+    },
+    {
+      "from": 66350,
+      "to": 70550,
+      "line": "I'll be waiting for love, waiting for love",
+      "translation": "我正全心全意等待著心愛的你歸來，"
+    },
+    {
+      "from": 70750,
+      "to": 78750,
+      "line": "To come around",
+      "translation": "重回我身邊。"
+    },
+    {
+      "from": 123150,
+      "to": 126450,
+      "line": "We are one of a kind irreplaceable",
+      "translation": "我們都是獨一無二 無法取代"
+    },
+    {
+      "from": 126650,
+      "to": 130250,
+      "line": "How did I get so blind and so cynical",
+      "translation": "我怎會變得如此 盲目又憤世嫉俗呢"
+    },
+    {
+      "from": 130450,
+      "to": 134150,
+      "line": "If there's love in this life we're unstoppable",
+      "translation": "若此生有愛 我們就能克服任何障礙"
+    },
+    {
+      "from": 134350,
+      "to": 138350,
+      "line": "No we can't be defeated",
+      "translation": "從此無堅不摧"
+    },
+    {
+      "from": 138550,
+      "to": 141350,
+      "line": "Monday left me broken",
+      "translation": "星期一 我被命運摧殘殆盡"
+    },
+    {
+      "from": 141550,
+      "to": 144850,
+      "line": "Tuesday I was through with hoping",
+      "translation": "星期二 我陷入了絕望的深淵"
+    },
+    {
+      "from": 145050,
+      "to": 148550,
+      "line": "Wednesday my empty arms were open",
+      "translation": "星期三 我向你敞開一無所有的雙臂"
+    },
+    {
+      "from": 148750,
+      "to": 153550,
+      "line": "Thursday waiting for love, waiting for love",
+      "translation": "星期四 我等著心愛的你歸來，等愛歸來"
+    },
+    {
+      "from": 153750,
+      "to": 156150,
+      "line": "Thank the stars it's Friday",
+      "translation": "感謝上天讓我熬到了星期五"
+    },
+    {
+      "from": 156350,
+      "to": 159750,
+      "line": "I'm burning like a fire gone wild on Saturday",
+      "translation": "星期六 我心狂野 就像燃燒炙烈的火焰"
+    },
+    {
+      "from": 159950,
+      "to": 163450,
+      "line": "Guess I won't be coming to church on Sunday",
+      "translation": "星期天 我猜我早已 無心上教堂"
+    },
+    {
+      "from": 163650,
+      "to": 167950,
+      "line": "I'll be waiting for love, waiting for love",
+      "translation": "我正全心全意等待著心愛的你歸來，"
+    },
+    {
+      "from": 168150,
+      "to": 173150,
+      "line": "To come around",
+      "translation": "重回我身邊。"
+    }
+  ]
+}
