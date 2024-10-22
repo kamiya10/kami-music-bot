@@ -1,9 +1,10 @@
-import { type AnySelectMenuInteraction, type ApplicationCommandOptionChoiceData, type AutocompleteInteraction, type Awaitable, type ButtonInteraction, type ChatInputCommandInteraction, Collection, type ModalSubmitInteraction, type SharedSlashCommand, type SlashCommandBuilder, type SlashCommandSubcommandBuilder, SlashCommandSubcommandGroupBuilder } from 'discord.js';
+import { Collection, SlashCommandSubcommandGroupBuilder } from 'discord.js';
+import type { AnySelectMenuInteraction, AutocompleteInteraction, Awaitable, ButtonInteraction, ChatInputCommandInteraction, ModalSubmitInteraction, SharedSlashCommand, SlashCommandBuilder, SlashCommandSubcommandBuilder } from 'discord.js';
 import type { KamiClient } from '@/core/client';
 
 interface KamiCommandHandlers {
   execute: (this: KamiClient, interaction: ChatInputCommandInteraction<'cached'>) => Awaitable<void>;
-  onAutocomplete?: (this: KamiClient, interaction: AutocompleteInteraction<'cached'>) => Awaitable<readonly ApplicationCommandOptionChoiceData[]>;
+  onAutocomplete?: (this: KamiClient, interaction: AutocompleteInteraction<'cached'>) => Awaitable<void>;
   onButton?: (this: KamiClient, interaction: ButtonInteraction<'cached'>, buttonId: string) => Awaitable<void>;
   onModalSubmit?: (this: KamiClient, interaction: ModalSubmitInteraction<'cached'>, modalId: string) => Awaitable<void>;
   onSelectMenu?: (this: KamiClient, interaction: AnySelectMenuInteraction<'cached'>, menuId: string) => Awaitable<void>;
@@ -28,7 +29,7 @@ export interface KamiSubcommandGroupOptions {
 export class KamiCommand {
   builder: SharedSlashCommand & SlashCommandBuilder;
   execute: (this: KamiClient, interaction: ChatInputCommandInteraction<'cached'>) => Awaitable<void>;
-  onAutocomplete?: (this: KamiClient, interaction: AutocompleteInteraction<'cached'>) => Awaitable<readonly ApplicationCommandOptionChoiceData[]>;
+  onAutocomplete?: (this: KamiClient, interaction: AutocompleteInteraction<'cached'>) => Awaitable<void>;
   onButton?: (this: KamiClient, interaction: ButtonInteraction<'cached'>, buttonId: string) => Awaitable<void>;
   onModalSubmit?: (this: KamiClient, interaction: ModalSubmitInteraction<'cached'>, modalId: string) => Awaitable<void>;
   onSelectMenu?: (this: KamiClient, interaction: AnySelectMenuInteraction<'cached'>, menuId: string) => Awaitable<void>;
@@ -61,7 +62,7 @@ export class KamiCommand {
 export class KamiSubcommand {
   builder: SlashCommandSubcommandBuilder;
   execute: (this: KamiClient, interaction: ChatInputCommandInteraction<'cached'>) => Awaitable<void>;
-  onAutocomplete?: (this: KamiClient, interaction: AutocompleteInteraction<'cached'>) => Awaitable<readonly ApplicationCommandOptionChoiceData[]>;
+  onAutocomplete?: (this: KamiClient, interaction: AutocompleteInteraction<'cached'>) => Awaitable<void>;
   onButton?: (this: KamiClient, interaction: ButtonInteraction<'cached'>, buttonId: string) => Awaitable<void>;
   onModalSubmit?: (this: KamiClient, interaction: ModalSubmitInteraction<'cached'>, modalId: string) => Awaitable<void>;
   onSelectMenu?: (this: KamiClient, interaction: AnySelectMenuInteraction<'cached'>, menuId: string) => Awaitable<void>;
@@ -98,11 +99,11 @@ export class KamiSubcommandGroup {
     command.execute.call(client, interaction);
   };
 
-  onAutocomplete(client: KamiClient, interaction: AutocompleteInteraction<'cached'>): Awaitable<readonly ApplicationCommandOptionChoiceData[]> {
+  onAutocomplete(client: KamiClient, interaction: AutocompleteInteraction<'cached'>) {
     const name = interaction.options.getSubcommand();
     const command = this.subcommands.get(name);
     if (!command?.onAutocomplete) throw new Error(`Subcommand ${this.builder.name} → ${name} not found`);
-    return command.onAutocomplete.call(client, interaction);
+    command.onAutocomplete.call(client, interaction);
   };
 
   onButton(client: KamiClient, interaction: ButtonInteraction<'cached'>, id: string) {

@@ -15,4 +15,12 @@ export default new KamiCommand({
         break;
     }
   },
+  onAutocomplete(interaction) {
+    const group = interaction.options.getSubcommandGroup();
+    switch (group) {
+      case 'youtube':
+        youtube.onAutocomplete(this, interaction);
+        break;
+    }
+  },
 });

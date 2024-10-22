@@ -1,4 +1,4 @@
-import type { Thumbnail } from './thumbnail';
+import type { APIThumbnail, Thumbnail } from './thumbnail';
 import type { Video } from './video';
 
 export interface APIPlaylist {
@@ -11,11 +11,11 @@ export interface APIPlaylist {
     title: string;
     description: string;
     thumbnails: {
-      default: Thumbnail;
-      medium: Thumbnail;
-      high: Thumbnail;
-      standard?: Thumbnail;
-      maxres?: Thumbnail;
+      default: APIThumbnail;
+      medium: APIThumbnail;
+      high: APIThumbnail;
+      standard?: APIThumbnail;
+      maxres?: APIThumbnail;
     };
     channelTitle: string;
     defaultLanguage: string;
@@ -36,11 +36,11 @@ export interface APIPlaylistItem {
     title: string;
     description: string;
     thumbnails: {
-      default: Thumbnail;
-      medium: Thumbnail;
-      high: Thumbnail;
-      standard?: Thumbnail;
-      maxres?: Thumbnail;
+      default: APIThumbnail;
+      medium: APIThumbnail;
+      high: APIThumbnail;
+      standard?: APIThumbnail;
+      maxres?: APIThumbnail;
     };
     channelTitle: string;
     videoOwnerChannelTitle: string;

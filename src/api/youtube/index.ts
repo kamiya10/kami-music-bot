@@ -1,7 +1,10 @@
 import { Playlist } from './playlist';
+import { SearchResult } from './search';
 import { Video } from './video';
+import { YouTubeFetchError } from './error';
 
 import type { APIPlaylist, APIPlaylistItem } from './playlist';
+import type { APISearchResult } from './search';
 import type { APIVideo } from './video';
 
 enum APIListKind {
@@ -20,58 +23,66 @@ interface APIResponse<T> {
   items: T[];
 }
 
-export const fetchVideo = async (id: string) => {
-  const parms = new URLSearchParams({
+const get = async <T = object>(endpoint: string, query: Record<string, string>) => {
+  const param = new URLSearchParams({
     key: process.env['YOUTUBE_TOKEN'] ?? '',
-    part: 'contentDetails,snippet',
-    id,
+    ...query,
   });
 
-  const response = await fetch(`https://www.googleapis.com/youtube/v3/videos?${parms.toString()}`);
-  const data = await response.json() as APIResponse<APIVideo>;
+  const url = `https://www.googleapis.com/youtube/v3${endpoint}?${param.toString()}`;
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new YouTubeFetchError(response);
+  }
+
+  return await response.json() as APIResponse<T>;
+};
+
+export const fetchVideo = async (id: string) => {
+  const query = {
+    part: 'contentDetails,snippet',
+    id,
+  };
+
+  const data = await get<APIVideo>(`/videos`, query);
 
   return Video.fromVideo(data.items[0]);
 };
 
 export const fetchVideos = async (id: string[]) => {
-  const parms = new URLSearchParams({
-    key: process.env['YOUTUBE_TOKEN'] ?? '',
+  const query = {
     part: 'contentDetails,snippet',
     id: id.join(),
     maxResults: id.length.toString(),
-  });
+  };
 
-  const response = await fetch(`https://www.googleapis.com/youtube/v3/videos?${parms.toString()}`);
-  const data = await response.json() as APIResponse<APIVideo>;
+  const data = await get<APIVideo>(`/videos`, query);
 
   return data.items.map((v) => Video.fromVideo(v));
 };
 
 export const fetchPlaylist = async (listId: string) => {
-  const parms = new URLSearchParams({
-    key: process.env['YOUTUBE_TOKEN'] ?? '',
+  const query = {
     part: 'id,snippet',
     id: listId,
-  });
+  };
 
-  const response = await fetch(`https://www.googleapis.com/youtube/v3/playlists?${parms.toString()}`);
+  const data = await get<APIPlaylist>(`/playlists`, query);
 
-  const data = await response.json() as APIResponse<APIPlaylist>;
   const videos = await fetchPlaylistVideo(listId);
 
   return new Playlist(data.items[0], videos);
 };
 
 export const fetchPlaylistVideo = async (listId: string) => {
-  const parms = new URLSearchParams({
-    key: process.env['YOUTUBE_TOKEN'] ?? '',
+  const query = {
     part: 'id,snippet,contentDetails',
     playlistId: listId,
     maxResults: '50',
-  });
+  };
 
-  const response = await fetch(`https://www.googleapis.com/youtube/v3/playlistItems?${parms.toString()}`);
-  const data = await response.json() as APIResponse<APIPlaylistItem>;
+  const data = await get<APIPlaylistItem>(`/playlistItems`, query);
 
   const items = data.items;
   const groups = [];
@@ -88,6 +99,19 @@ export const fetchPlaylistVideo = async (listId: string) => {
   }
 
   return videos;
+};
+
+export const searchVideo = async (keyword: string) => {
+  const query = {
+    part: 'snippet',
+    type: 'video',
+    q: keyword,
+    maxResults: '25',
+  };
+
+  const data = await get<APISearchResult>('/search', query);
+
+  return data.items.map((v) => new SearchResult(v));
 };
 
 export const parseUrl = (url: string) => {

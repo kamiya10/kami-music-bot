@@ -1,7 +1,7 @@
 import { parse, toSeconds } from 'iso8601-duration';
 
+import type { APIThumbnail, Thumbnail } from './thumbnail';
 import type { Duration } from 'iso8601-duration';
-import type { Thumbnail } from './thumbnail';
 
 export interface APIVideo {
   kind: 'youtube#video';
@@ -13,11 +13,11 @@ export interface APIVideo {
     title: string;
     description: string;
     thumbnails: {
-      default: Thumbnail;
-      medium: Thumbnail;
-      high: Thumbnail;
-      standard?: Thumbnail;
-      maxres?: Thumbnail;
+      default: APIThumbnail;
+      medium: APIThumbnail;
+      high: APIThumbnail;
+      standard?: APIThumbnail;
+      maxres?: APIThumbnail;
     };
     channelTitle: string;
     categoryId: string;

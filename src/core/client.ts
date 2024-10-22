@@ -60,7 +60,7 @@ export class KamiClient extends Client {
 
       if (process.env.NODE_ENV == 'development') {
         const devGuildId = process.env['DEV_GUILD_ID']?.split(',');
-        if (!devGuildId || !devGuildId.length) return;
+        if (!devGuildId?.length) return;
 
         for (const id of devGuildId) {
           const guild = this.guilds.cache.get(id);
