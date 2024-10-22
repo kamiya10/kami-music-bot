@@ -1,5 +1,7 @@
 import { Collection, SlashCommandSubcommandGroupBuilder } from 'discord.js';
-import type { AnySelectMenuInteraction, AutocompleteInteraction, Awaitable, ButtonInteraction, ChatInputCommandInteraction, ModalSubmitInteraction, SharedSlashCommand, SlashCommandBuilder, SlashCommandSubcommandBuilder } from 'discord.js';
+import { SlashCommandBuilder } from 'discord.js';
+
+import type { AnySelectMenuInteraction, AutocompleteInteraction, Awaitable, ButtonInteraction, ChatInputCommandInteraction, ModalSubmitInteraction, SharedSlashCommand, SlashCommandSubcommandBuilder } from 'discord.js';
 import type { KamiClient } from '@/core/client';
 
 interface KamiCommandHandlers {
@@ -11,7 +13,7 @@ interface KamiCommandHandlers {
 }
 
 export interface KamiCommandOptions extends KamiCommandHandlers {
-  builder: SharedSlashCommand & SlashCommandBuilder;
+  builder: SharedSlashCommand | SlashCommandBuilder;
   groups?: KamiSubcommandGroup[];
   subcommands?: KamiSubcommand[];
 }
@@ -27,7 +29,7 @@ export interface KamiSubcommandGroupOptions {
 }
 
 export class KamiCommand {
-  builder: SharedSlashCommand & SlashCommandBuilder;
+  builder: SharedSlashCommand | SlashCommandBuilder;
   execute: (this: KamiClient, interaction: ChatInputCommandInteraction<'cached'>) => Awaitable<void>;
   onAutocomplete?: (this: KamiClient, interaction: AutocompleteInteraction<'cached'>) => Awaitable<void>;
   onButton?: (this: KamiClient, interaction: ButtonInteraction<'cached'>, buttonId: string) => Awaitable<void>;
@@ -45,15 +47,17 @@ export class KamiCommand {
     this.onModalSubmit = options.onModalSubmit;
     this.onSelectMenu = options.onSelectMenu;
 
-    if (options.groups) {
-      for (const group of options.groups) {
-        this.builder.addSubcommandGroup(group.builder);
+    if (this.builder instanceof SlashCommandBuilder) {
+      if (options.groups) {
+        for (const group of options.groups) {
+          this.builder?.addSubcommandGroup(group.builder);
+        }
       }
-    }
 
-    if (options.subcommands) {
-      for (const subcommand of options.subcommands) {
-        this.builder.addSubcommand(subcommand.builder);
+      if (options.subcommands) {
+        for (const subcommand of options.subcommands) {
+          this.builder?.addSubcommand(subcommand.builder);
+        }
       }
     }
   }

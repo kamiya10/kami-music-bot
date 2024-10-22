@@ -6,6 +6,7 @@ import connect from '&/connect';
 import current from '&/current';
 import next from '&/next';
 import queue from '&/queue';
+import repeat from '&/repeat';
 
 export default [
   add,
@@ -14,4 +15,5 @@ export default [
   current,
   next,
   queue,
+  repeat,
 ] as KamiCommand[];

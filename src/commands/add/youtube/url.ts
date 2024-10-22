@@ -62,7 +62,7 @@ export default new KamiSubcommand({
 
     const inSameVoiceChannel = player.voice.id == voice.id;
 
-    if (!player.canInteract(interaction.member) && !inSameVoiceChannel) {
+    if (!player.canInteract(interaction.member) || !inSameVoiceChannel) {
       embed
         .setColor(Colors.Red)
         .setDescription('❌ 你沒有權限和這個播放器互動');
