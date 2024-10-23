@@ -29,6 +29,15 @@ export default new KamiCommand({
       return;
     }
 
+    if (!player.canInteract(interaction.member)) {
+      embed
+        .setColor(Colors.Red)
+        .setDescription('❌ 你沒有權限和這個播放器互動');
+
+      await edit();
+      return;
+    }
+
     const count = player.clearResources().length;
 
     embed
