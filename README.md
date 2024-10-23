@@ -12,9 +12,9 @@
 ### 指令
 
 - [ ] `/add`
-  - [ ] youtube
+  - [x] youtube
     - [x] `/add youtube url`
-    - [ ] `/add youtube search`
+    - [x] `/add youtube search`
   - [ ] soundcloud
     - [ ] `/add soudcloud url`
     - [ ] `/add soudcloud search`
@@ -29,7 +29,7 @@
 - [ ] `/prev`
 - [x] `/queue`
 - [ ] `/remove`
-- [ ] `/repeat`
+- [x] `/repeat`
 - [ ] `/volume`
 
 ### 功能
