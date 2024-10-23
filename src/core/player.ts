@@ -460,12 +460,10 @@ export class KamiMusicPlayer {
         break;
       }
 
-      case RepeatMode.Random: {
-        break;
-      }
-
-      case RepeatMode.RandomNoRepeat: {
-        break;
+      case RepeatMode.Random:
+      case RepeatMode.RandomNoRepeat:
+      case RepeatMode.TrueRandom: {
+        return;
       }
 
       case RepeatMode.Backward: {

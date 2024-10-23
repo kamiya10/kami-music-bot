@@ -26,7 +26,7 @@
 - [ ] `/lock`
 - [x] `/next`
 - [ ] `/player`
-- [ ] `/prev`
+- [x] `/prev`
 - [x] `/queue`
 - [ ] `/remove`
 - [x] `/repeat`
