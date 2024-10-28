@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Colors, EmbedBuilder, MessageFlags, inlineCode } from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Colors, DiscordjsErrorCodes, EmbedBuilder, MessageFlags, inlineCode } from 'discord.js';
 import { AudioPlayerStatus, StreamType, VoiceConnectionStatus, createAudioPlayer, createAudioResource, entersState, joinVoiceChannel } from '@discordjs/voice';
 import { createReadStream, existsSync, writeFileSync } from 'fs';
 import { formatDuration, getLyricsAtTime, progress } from '@/utils/resource';
@@ -13,7 +13,7 @@ import prism from 'prism-media';
 import ytdl from '@distube/ytdl-core';
 
 import type { AudioPlayer, AudioResource, PlayerSubscription, VoiceConnection } from '@discordjs/voice';
-import type { Guild, GuildMember, GuildTextBasedChannel, Message, VoiceBasedChannel } from 'discord.js';
+import type { DiscordAPIError, Guild, GuildMember, GuildTextBasedChannel, Message, VoiceBasedChannel } from 'discord.js';
 import type { KamiLyric, KamiResource } from '@/core/resource';
 import type { KamiClient } from '@/core/client';
 
@@ -664,6 +664,10 @@ export class KamiMusicPlayer {
         content,
         embeds: [embed],
         components,
+      }).catch((e: DiscordAPIError) => {
+        if (e.code == 10008) {
+          this.message = null;
+        };
       });
       return;
     }

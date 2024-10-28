@@ -41,9 +41,6 @@ export default new EventHandler({
         case 'offset+1s':
           player._lyricsOffset += 1000;
           break;
-
-        default:
-          return;
       }
     }
 
@@ -71,12 +68,10 @@ export default new EventHandler({
             ephemeral: true,
           });
           return;
-
-        default:
-          return;
       }
     }
 
+    await interaction.update({});
     await player.updateMessage(player._currentResource?.metadata, true);
   },
 });
