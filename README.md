@@ -9,6 +9,8 @@
 > 這隻機器人是 Kami Bot 的音樂分支  
 > 如果你在找 Kami Bot 的話可以在 [kamiya10/kami-bot](https://github.com/kamiya10/kami-bot) 找到他
 
+![preview](.github/preview.png)
+
 ### 指令
 
 - [ ] `/add`
