@@ -1,6 +1,36 @@
 import { Colors, EmbedBuilder, SlashCommandBuilder, bold, hyperlink, orderedList } from 'discord.js';
 import { KamiCommand } from '@/core/command';
 
+const range = (length: number, middle_index: number): [number, number] => {
+  let n: number;
+  let m: number;
+
+  if (length <= 20) {
+    n = 0;
+    m = length;
+  }
+  else {
+    n = middle_index - 10;
+
+    if (n < 0) {
+      n = 0;
+    }
+
+    m = n + 20;
+
+    if (m > length) {
+      m = length;
+      n = m - 20;
+
+      if (n < 0) {
+        n = 0;
+      }
+    }
+  }
+
+  return [n, m];
+};
+
 export default new KamiCommand({
   builder: new SlashCommandBuilder()
     .setName('queue')
@@ -29,7 +59,9 @@ export default new KamiCommand({
 
     const description = [];
 
-    for (let index = 0, n = player.queue.length; index < n && index < 20; index++) {
+    const [from, to] = range(player.queue.length, player.currentIndex);
+
+    for (let index = from; index < to; index++) {
       const resource = player.queue[index];
       const item = hyperlink(resource.title.slice(0, 40), resource.url);
       if (index == player.currentIndex && player.isPlaying) {
@@ -44,7 +76,7 @@ export default new KamiCommand({
       embed.setDescription('-# 目前沒有任何項目，使用 `/add` 來新增項目*');
     }
     else {
-      embed.setDescription(orderedList(description));
+      embed.setDescription(orderedList(description, from + 1));
     }
 
     await interaction.editReply({
