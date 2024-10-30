@@ -56,7 +56,7 @@ export default new KamiCommand({
       return;
     }
 
-    const resource = await player.play(index);
+    const resource = await player.play(index - 1);
 
     if (!resource) {
       embed
