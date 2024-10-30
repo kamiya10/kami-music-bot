@@ -3,7 +3,7 @@ import { fetchVideo, searchVideo } from '@/api/youtube';
 import { KamiMusicPlayer } from '@/core/player';
 import { KamiResource } from '@/core/resource';
 import { KamiSubcommand } from '@/core/command';
-import { logError } from "@/utils/callback";
+import { logError } from '@/utils/callback';
 
 const inputOption = new SlashCommandStringOption()
   .setName('video')
@@ -66,7 +66,7 @@ export default new KamiSubcommand({
 
     const inSameVoiceChannel = player.voice.id == voice.id;
 
-    if (!player.canInteract(interaction.member) && !inSameVoiceChannel) {
+    if (!player.canInteract(interaction.member) || !inSameVoiceChannel) {
       embed
         .setColor(Colors.Red)
         .setDescription('❌ 你沒有權限和這個播放器互動');
@@ -79,25 +79,24 @@ export default new KamiSubcommand({
     const before = interaction.options.getInteger('before') ?? undefined;
 
     try {
-        const video = await fetchVideo(videoId);
+      const video = await fetchVideo(videoId);
 
-        if (!video.duration) {
-          embed
-            .setColor(Colors.Red)
-            .setDescription('❌ 無效的 YouTube 影片（未公開或尚未上映）');
-
-          await edit();
-          return;
-        }
-
-        const resource = KamiResource.youtube(this, video).setMember(interaction.member);
-        player.addResource(resource, before);
-
+      if (!video.duration) {
         embed
-          .setColor(Colors.Green)
-          .setDescription(`✅ ${hyperlink(resource.title, resource.url)} 已加到播放佇列`)
-          .setThumbnail(video.thumbnail.url);
-      
+          .setColor(Colors.Red)
+          .setDescription('❌ 無效的 YouTube 影片（未公開或尚未上映）');
+
+        await edit();
+        return;
+      }
+
+      const resource = KamiResource.youtube(this, video).setMember(interaction.member);
+      player.addResource(resource, before);
+
+      embed
+        .setColor(Colors.Green)
+        .setDescription(`✅ ${hyperlink(resource.title, resource.url)} 已加到播放佇列`)
+        .setThumbnail(video.thumbnail.url);
     }
     catch (error) {
       embed
@@ -111,27 +110,27 @@ export default new KamiSubcommand({
   },
   onAutocomplete(interaction) {
     const keyword = interaction.options.getFocused();
-      
+
     const respond = async () => {
       const result = await searchVideo(keyword).catch(logError) ?? [];
 
       const choice = result.map((v) => ({
         name: v.title,
-        value:v.id,
-      }))
+        value: v.id,
+      }));
 
       await interaction.respond(choice).catch(logError);
       cache.delete(interaction.guild.id);
     };
 
-      if (cache.has(interaction.guild.id)) {
-        clearTimeout(cache.get(interaction.guild.id));
-        cache.delete(interaction.guild.id);
-      }
-      
-      cache.set(
-        interaction.guild.id,
-        setTimeout(respond, 1_500),
-      );
+    if (cache.has(interaction.guild.id)) {
+      clearTimeout(cache.get(interaction.guild.id));
+      cache.delete(interaction.guild.id);
+    }
+
+    cache.set(
+      interaction.guild.id,
+      setTimeout(() => void respond(), 1_500),
+    );
   },
 });
