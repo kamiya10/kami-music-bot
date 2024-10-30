@@ -25,6 +25,7 @@
 - [x] `/connect`
 - [x] `/current`
 - [ ] `/equalizer`
+- [x] `/jump`
 - [ ] `/lock`
 - [x] `/next`
 - [ ] `/player`

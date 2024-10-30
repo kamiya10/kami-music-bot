@@ -262,15 +262,19 @@ export class KamiMusicPlayer {
       this.stop();
     }
 
+    this.currentIndex = index;
+
     const resource = this.queue[index];
 
     if (!resource) {
-      return Logger.error(`Resource at index ${index} is not found`, this.queue, this);
+      Logger.error(`Resource at index ${index} is not found`, this.queue.map((v, i) => `${i}. ${v}`).join('\n'));
+      return;
     }
 
     if (!resource.cache) {
       await this.buffer(resource);
     }
+
     const stream = createReadStream(resource.cache!, {
       highWaterMark: 1 << 25,
     });
@@ -316,6 +320,8 @@ export class KamiMusicPlayer {
     this.updateVoiceStatus(resource).catch(logError);
 
     Logger.debug(`Playing ${resource} at index ${index} in ${this.guild}`);
+
+    return resource;
   }
 
   async buffer(resource: KamiResource): Promise<boolean> {
