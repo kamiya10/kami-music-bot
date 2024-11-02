@@ -2,21 +2,21 @@ import { createReadStream, existsSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { pipeline } from 'node:stream';
 
-import { AudioPlayerStatus, StreamType, VoiceConnectionStatus, createAudioPlayer, createAudioResource, entersState, joinVoiceChannel } from '@discordjs/voice';
-import ytdl from '@distube/ytdl-core';
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Colors, EmbedBuilder, MessageFlags, inlineCode } from 'discord.js';
+import { AudioPlayerStatus, StreamType, VoiceConnectionStatus, createAudioPlayer, createAudioResource, entersState, joinVoiceChannel } from '@discordjs/voice';
 import prism from 'prism-media';
+import ytdl from '@distube/ytdl-core';
 
-import { logError } from '@/utils/callback';
-import Logger from '@/utils/logger';
 import { formatDuration, getLyricsAtTime, progress } from '@/utils/resource';
-import { formatLines } from '@/utils/string';
+import Logger from '@/utils/logger';
 import cookies from '~/cookies.json' with { type: 'json' };
+import { formatLines } from '@/utils/string';
+import { logError } from '@/utils/callback';
 
-import type { KamiClient } from '@/core/client';
-import type { KamiLyric, KamiResource } from '@/core/resource';
 import type { AudioPlayer, AudioResource, PlayerSubscription, VoiceConnection } from '@discordjs/voice';
 import type { DiscordAPIError, Guild, GuildMember, GuildTextBasedChannel, Message, VoiceBasedChannel } from 'discord.js';
+import type { KamiLyric, KamiResource } from '@/core/resource';
+import type { KamiClient } from '@/core/client';
 
 const agent = ytdl.createAgent(cookies as []);
 const GlobalVolumeModifier = 0.25;
@@ -590,8 +590,8 @@ export class KamiMusicPlayer {
         iconURL: this.guild.iconURL() ?? undefined,
       })
       .setTimestamp();
-    const components = [];
 
+    const components = [];
     let content = '';
 
     if (!resource) {

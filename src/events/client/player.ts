@@ -1,4 +1,5 @@
 import { Colors, EmbedBuilder, Events } from 'discord.js';
+
 import { EventHandler } from '@/core/event';
 
 export default new EventHandler({
@@ -60,7 +61,7 @@ export default new EventHandler({
           break;
         case 'control-remove':
           player.removeResource(player.currentIndex);
-          return;
+          break;
         case 'control-destroy':
           player.destroy();
           await interaction.reply({

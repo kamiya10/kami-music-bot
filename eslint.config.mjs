@@ -42,7 +42,13 @@ export default ts.config(
       "@stylistic/space-infix-ops": ["warn"],
       "@stylistic/semi": ["warn"],
 
-      "sort-imports": 'off',
+      "sort-imports": [
+        'warn',
+        {
+          memberSyntaxSortOrder: ['multiple', 'single', 'all', 'none'],
+          allowSeparatedGroups: true
+        }
+      ],
 
       "@typescript-eslint/restrict-template-expressions": ["off"],
       "no-unused-vars": ["off"],
@@ -69,9 +75,6 @@ export default ts.config(
           'type',
         ],
         'newlines-between': 'always',
-        'alphabetize': {
-          order: 'asc',
-        },
       }],
     },
   });

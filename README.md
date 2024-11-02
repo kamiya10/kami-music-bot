@@ -26,12 +26,12 @@
 - [x] `/current`
 - [ ] `/equalizer`
 - [x] `/jump`
-- [ ] `/lock`
+- [x] `/lock`
 - [x] `/next`
 - [ ] `/player`
 - [x] `/prev`
 - [x] `/queue`
-- [ ] `/remove`
+- [x] `/remove`
 - [x] `/repeat`
 - [ ] `/volume`
 
@@ -42,7 +42,7 @@
 - [ ] 個人偏好設定
 - [ ] 音樂資料庫
 - [x] 動態歌詞
-- [ ] 播放器按鈕控制
+- [x] 播放器按鈕控制
 - [ ] 音樂請求頻道
 - [ ] 廣播
 - [ ] 播放清單
