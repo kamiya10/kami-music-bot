@@ -1,7 +1,6 @@
 import ts from "typescript-eslint";
 import stylistic from "@stylistic/eslint-plugin";
-import globals from "globals";
-import tsParser from "@typescript-eslint/parser";
+import eslintPluginImportX from 'eslint-plugin-import-x'
 import js from "@eslint/js";
 
 export default ts.config(
@@ -16,6 +15,8 @@ export default ts.config(
     indent: 2,
     semi: true,
   }),
+  eslintPluginImportX.flatConfigs.recommended,
+  eslintPluginImportX.flatConfigs.typescript,
   {
     languageOptions: {
       parserOptions: {
@@ -41,12 +42,7 @@ export default ts.config(
       "@stylistic/space-infix-ops": ["warn"],
       "@stylistic/semi": ["warn"],
 
-      "sort-imports": [
-        "warn",
-        {
-          allowSeparatedGroups: true,
-        },
-      ],
+      "sort-imports": 'off',
 
       "@typescript-eslint/restrict-template-expressions": ["off"],
       "no-unused-vars": ["off"],
@@ -61,6 +57,21 @@ export default ts.config(
           "varsIgnorePattern": "^_",
           "ignoreRestSiblings": true
         }
-      ]
+      ],
+
+      'import-x/order': ['warn', {
+        'groups': [
+          'builtin',
+          'external',
+          'internal',
+          ['parent', 'sibling', 'index'],
+          'unknown',
+          'type',
+        ],
+        'newlines-between': 'always',
+        'alphabetize': {
+          order: 'asc',
+        },
+      }],
     },
   });

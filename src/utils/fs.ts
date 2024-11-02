@@ -1,7 +1,7 @@
-import { existsSync, mkdirSync, writeFileSync } from 'fs';
-import { dirname } from 'path';
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { dirname } from 'node:path';
 
-import type { WriteFileOptions } from 'fs';
+import type { WriteFileOptions } from 'node:fs';
 
 export const safeWriteFileSync = (path: string, data: string | NodeJS.ArrayBufferView, options?: WriteFileOptions) => {
   if (!existsSync(path)) {

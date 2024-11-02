@@ -1,11 +1,12 @@
-import { cleanupTitle, formatDuration, getMetadata } from '@/utils/resource';
-import { existsSync } from 'fs';
-import { join } from 'path';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 
-import type { GuildMember } from 'discord.js';
+import { cleanupTitle, formatDuration, getMetadata } from '@/utils/resource';
+
 import type { KamiClient } from './client';
-import type { RubyText } from '@/utils/string';
 import type { Video } from '@/api/youtube/video';
+import type { RubyText } from '@/utils/string';
+import type { GuildMember } from 'discord.js';
 
 export interface KamiLyric {
   from: number;

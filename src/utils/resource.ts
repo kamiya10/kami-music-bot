@@ -1,7 +1,7 @@
 import { findInclude, parseRubyText } from './string';
-import { readFileSync, readdirSync } from 'fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { Emoji } from './constant';
-import { resolve } from 'path';
+import { resolve } from 'node:path';
 
 import type { KamiLyric, KamiMetadata, KamiMetadataJson } from '@/core/resource';
 

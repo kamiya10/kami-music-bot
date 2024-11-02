@@ -1,5 +1,5 @@
-import { parse, resolve } from 'path';
-import { readFileSync, writeFileSync } from 'fs';
+import { parse, resolve } from 'node:path';
+import { readFileSync, writeFileSync } from 'node:fs';
 
 import Logger from '@/utils/logger';
 import chalk from 'chalk';
