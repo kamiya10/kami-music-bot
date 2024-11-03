@@ -11,7 +11,9 @@ const indexOption = new SlashCommandIntegerOption()
 export default new KamiCommand({
   builder: new SlashCommandBuilder()
     .setName('jump')
+    .setNameLocalization('zh-TW', '跳至')
     .setDescription('Jump to specific index in the queue')
+    .setDescriptionLocalization('zh-TW', '跳至播放佇列中的指定位置')
     .addIntegerOption(indexOption),
   async execute(interaction) {
     await interaction.deferReply({ ephemeral: true });

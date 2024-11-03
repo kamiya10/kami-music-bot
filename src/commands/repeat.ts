@@ -5,7 +5,9 @@ import { KamiCommand } from '@/core/command';
 
 const modeOption = new SlashCommandIntegerOption()
   .setName('mode')
+  .setNameLocalization('zh-TW', '模式')
   .setDescription('Change the repeat mode of the player')
+  .setDescriptionLocalization('zh-TW', '要更改成的重複模式')
   .addChoices(
     {
       name: RepeatModeName[RepeatMode.Forward],
@@ -45,7 +47,9 @@ const modeOption = new SlashCommandIntegerOption()
 export default new KamiCommand({
   builder: new SlashCommandBuilder()
     .setName('repeat')
+    .setNameLocalization('zh-TW', '重複')
     .setDescription('Change the repeat mode of the player')
+    .setDescriptionLocalization('zh-TW', '變更播放器的重複模式')
     .addIntegerOption(modeOption),
   async execute(interaction) {
     await interaction.deferReply({ ephemeral: true });

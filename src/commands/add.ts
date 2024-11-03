@@ -7,7 +7,9 @@ import youtube from './add/youtube';
 export default new KamiCommand({
   builder: new SlashCommandBuilder()
     .setName('add')
-    .setDescription('Add resource to the queue'),
+    .setNameLocalization('zh-TW', '新增')
+    .setDescription('Add resource to the queue')
+    .setDescriptionLocalization('zh-TW', '新增資源到播放器的播放佇列'),
   groups: [youtube],
   execute(interaction) {
     const group = interaction.options.getSubcommandGroup();

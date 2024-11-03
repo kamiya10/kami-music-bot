@@ -5,7 +5,9 @@ import { KamiCommand } from '@/core/command';
 export default new KamiCommand({
   builder: new SlashCommandBuilder()
     .setName('clear')
-    .setDescription('Clears the player\'s queue'),
+    .setNameLocalization('zh-TW', '清除')
+    .setDescription('Clears the player\'s queue')
+    .setDescriptionLocalization('zh-TW', '清除播放器的播放佇列'),
   async execute(interaction) {
     await interaction.deferReply({ ephemeral: true });
 

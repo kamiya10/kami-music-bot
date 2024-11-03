@@ -35,7 +35,9 @@ const range = (length: number, middle_index: number): [number, number] => {
 export default new KamiCommand({
   builder: new SlashCommandBuilder()
     .setName('queue')
-    .setDescription('Display the current player\'s queue.'),
+    .setNameLocalization('zh-TW', '播放佇列')
+    .setDescription('Display the current player\'s queue.')
+    .setDescriptionLocalization('zh-TW', '查看播放器的播放佇列'),
   async execute(interaction) {
     await interaction.deferReply({ ephemeral: true });
 

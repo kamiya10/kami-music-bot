@@ -4,14 +4,18 @@ import { KamiCommand } from '@/core/command';
 
 const indexOption = new SlashCommandIntegerOption()
   .setName('index')
+  .setNameLocalization('zh-TW', '位置')
   .setDescription('The index of the resource to remove in the queue')
+  .setDescriptionLocalization('zh-TW', '指定資源在佇列中的位置')
   .setMinValue(1)
   .setRequired(true);
 
 export default new KamiCommand({
   builder: new SlashCommandBuilder()
     .setName('remove')
+    .setNameLocalization('zh-TW', '移除')
     .setDescription('Remove specific resource in the queue')
+    .setDescriptionLocalization('zh-TW', '從播放佇列中移除指定資源')
     .addIntegerOption(indexOption),
   async execute(interaction) {
     await interaction.deferReply({ ephemeral: true });

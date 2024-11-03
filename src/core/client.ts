@@ -79,6 +79,8 @@ export class KamiClient extends Client {
         if (!force && readFileSync(filePath, { encoding: 'utf8' }) == hash) return;
       }
 
+      Logger.info('Updating global slash commands...');
+
       await this.application.commands.set(data);
 
       safeWriteFileSync(filePath, hash, { encoding: 'utf8' });

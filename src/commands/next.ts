@@ -5,7 +5,9 @@ import { KamiCommand } from '@/core/command';
 export default new KamiCommand({
   builder: new SlashCommandBuilder()
     .setName('next')
-    .setDescription('Play next resource'),
+    .setNameLocalization('zh-TW', '下一個')
+    .setDescription('Play next resource')
+    .setDescriptionLocalization('zh-TW', '播放下一個資源'),
   async execute(interaction) {
     await interaction.deferReply({ ephemeral: true });
 
