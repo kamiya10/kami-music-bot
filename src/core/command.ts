@@ -1,6 +1,6 @@
 import { Collection, SlashCommandBuilder, SlashCommandSubcommandGroupBuilder } from 'discord.js';
 
-import type { AnySelectMenuInteraction, AutocompleteInteraction, Awaitable, ButtonInteraction, ChatInputCommandInteraction, ModalSubmitInteraction, SharedSlashCommand, SlashCommandSubcommandBuilder } from 'discord.js';
+import type { AnySelectMenuInteraction, AutocompleteInteraction, Awaitable, ButtonInteraction, ChatInputCommandInteraction, LocalizationMap, ModalSubmitInteraction, SharedSlashCommand, SlashCommandSubcommandBuilder } from 'discord.js';
 import type { KamiClient } from '@/core/client';
 
 interface KamiCommandHandlers {
@@ -23,7 +23,9 @@ export interface KamiSubcommandOptions extends KamiCommandHandlers {
 
 export interface KamiSubcommandGroupOptions {
   name: string;
+  nameLocalizations: LocalizationMap;
   description: string;
+  descriptionLocalizations: LocalizationMap;
   subcommands: KamiSubcommand[];
 }
 
@@ -87,7 +89,9 @@ export class KamiSubcommandGroup {
   constructor(options: KamiSubcommandGroupOptions) {
     this.builder = new SlashCommandSubcommandGroupBuilder()
       .setName(options.name)
-      .setDescription(options.description);
+      .setNameLocalizations(options.nameLocalizations)
+      .setDescription(options.description)
+      .setDescriptionLocalizations(options.descriptionLocalizations);
 
     for (const subcommand of options.subcommands) {
       this.builder.addSubcommand(subcommand.builder);

@@ -7,18 +7,24 @@ import { KamiSubcommand } from '@/core/command';
 
 const inputOption = new SlashCommandStringOption()
   .setName('input')
+  .setNameLocalization('zh-TW', '連結')
   .setDescription('The Watch URL/Video ID/Playlist URL/Playlist ID of the resource')
+  .setDescriptionLocalization('zh-TW', '要新增至播放佇列的 影片連結 / 影片ID / 播放清單連結 / 播放清單ID')
   .setRequired(true);
 
 const beforeOption = new SlashCommandIntegerOption()
   .setName('before')
+  .setNameLocalization('zh-TW', '位置')
   .setDescription('Put this resource before. (Insert at first: 1, leave empty to insert at last)')
+  .setDescriptionLocalization('zh-TW', '資源加入的位置（最前端 = 1 ，留空來將資源加到播放佇列的最尾端）')
   .setMinValue(1);
 
 export default new KamiSubcommand({
   builder: new SlashCommandSubcommandBuilder()
     .setName('url')
+    .setNameLocalization('zh-TW', '連結')
     .setDescription('Add videos from YouTube with url')
+    .setDescriptionLocalization('zh-TW', '依 YouTube 連結新增資源到播放佇列')
     .addStringOption(inputOption)
     .addIntegerOption(beforeOption),
   async execute(interaction) {

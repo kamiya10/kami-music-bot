@@ -8,13 +8,18 @@ import { logError } from '@/utils/callback';
 
 const inputOption = new SlashCommandStringOption()
   .setName('video')
+  .setNameLocalization('zh-TW', '影片')
   .setDescription('Search and select a video to add to the queue')
+  .setDescriptionLocalization('zh-TW', '搜尋並選擇影片來新增資源到播放佇列中')
+  .setMinLength(4)
   .setAutocomplete(true)
   .setRequired(true);
 
 const beforeOption = new SlashCommandIntegerOption()
   .setName('before')
+  .setNameLocalization('zh-TW', '位置')
   .setDescription('Put this resource before. (Insert at first: 1, leave empty to insert at last)')
+  .setDescriptionLocalization('zh-TW', '資源加入的位置（最前端 = 1 ，留空來將資源加到播放佇列的最尾端）')
   .setMinValue(1);
 
 const cache = new Collection<string, Timer>();
@@ -22,7 +27,9 @@ const cache = new Collection<string, Timer>();
 export default new KamiSubcommand({
   builder: new SlashCommandSubcommandBuilder()
     .setName('search')
+    .setNameLocalization('zh-TW', '搜尋')
     .setDescription('Add videos from YouTube by search')
+    .setDescriptionLocalization('zh-TW', '依 YouTube 搜尋結果新增資源到播放佇列')
     .addStringOption(inputOption)
     .addIntegerOption(beforeOption),
   async execute(interaction) {
@@ -109,8 +116,13 @@ export default new KamiSubcommand({
       embeds: [embed],
     });
   },
-  onAutocomplete(interaction) {
+  async onAutocomplete(interaction) {
     const keyword = interaction.options.getFocused();
+
+    if (keyword.length < 4) {
+      await interaction.respond([]).catch(logError);
+      return;
+    }
 
     const respond = async () => {
       const result = await searchVideo(keyword).catch(logError) ?? [];
