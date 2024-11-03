@@ -28,19 +28,19 @@ export default new EventHandler({
     if (id.startsWith('offset')) {
       switch (id) {
         case 'offset-1s':
-          player._lyricsOffset -= 1000;
+          player.lyricsOffset -= 1000;
           break;
         case 'offset-250ms':
-          player._lyricsOffset -= 250;
+          player.lyricsOffset -= 250;
           break;
         case 'offset-reset':
-          player._lyricsOffset = 0;
+          player.lyricsOffset = 0;
           break;
         case 'offset+250ms':
-          player._lyricsOffset += 250;
+          player.lyricsOffset += 250;
           break;
         case 'offset+1s':
-          player._lyricsOffset += 1000;
+          player.lyricsOffset += 1000;
           break;
       }
     }
@@ -73,6 +73,6 @@ export default new EventHandler({
     }
 
     await interaction.update({});
-    await player.updateMessage(player._currentResource?.metadata, true);
+    await player.updateMessage(player.currentResource?.metadata, true);
   },
 });

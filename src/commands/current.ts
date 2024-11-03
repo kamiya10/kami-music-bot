@@ -34,7 +34,7 @@ export default new KamiCommand({
       return;
     }
 
-    const resource = player._currentResource;
+    const resource = player.currentResource;
 
     if (!resource) {
       embed

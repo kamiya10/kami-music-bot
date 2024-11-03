@@ -36,7 +36,7 @@ const PlayerControls = (player: KamiMusicPlayer, status?: AudioPlayerStatus) => 
       : new ButtonBuilder()
         .setCustomId('player:control-pause')
         .setEmoji('⏸️')
-        .setDisabled(!player._currentResource)
+        .setDisabled(!player.currentResource)
         .setStyle(ButtonStyle.Secondary),
     new ButtonBuilder()
       .setCustomId('player:control-next')
@@ -127,25 +127,25 @@ export class KamiMusicPlayer {
     this._volume = v;
   }
 
-  _random = [] as KamiResource[];
-  _transcoder: prism.FFmpeg | null = null;
-  _currentResource: AudioResource<KamiResource> | null = null;
+  private _random = [] as KamiResource[];
+  private _transcoder: prism.FFmpeg | null = null;
+  currentResource: AudioResource<KamiResource> | null = null;
 
-  _currentLyrics: KamiLyric | null = null;
-  _lyricsOffset = 0;
-  _lyricsTimer = setInterval(() => {
-    if (!this._currentResource?.metadata?.metadata) return;
-    const metadata = this._currentResource.metadata.metadata;
+  lyricsOffset = 0;
+  private _currentLyrics: KamiLyric | null = null;
+  private _lyricsTimer = setInterval(() => {
+    if (!this.currentResource?.metadata?.metadata) return;
+    const metadata = this.currentResource.metadata.metadata;
 
     const { current } = getLyricsAtTime(
-      this._currentResource.playbackDuration + this._lyricsOffset,
+      this.currentResource.playbackDuration + this.lyricsOffset,
       metadata.lyrics,
     );
 
     if (current.from == this._currentLyrics?.from) return;
 
     this._currentLyrics = current;
-    void this.updateMessage(this._currentResource.metadata, true);
+    void this.updateMessage(this.currentResource.metadata, true);
   }, 100);
 
   constructor(
@@ -170,7 +170,7 @@ export class KamiMusicPlayer {
         this._transcoder.destroy();
         this._transcoder = null;
       }
-      this._currentResource = null;
+      this.currentResource = null;
       /*
         if (this.preference.updateVoiceStatus) {
           this.updateVoiceStatus();
@@ -314,7 +314,7 @@ export class KamiMusicPlayer {
     );
     audioResource.volume!.setVolume(this.volume);
 
-    this._currentResource = audioResource;
+    this.currentResource = audioResource;
     this.player?.play(audioResource);
 
     this.updateMessage(resource).catch(logError);
@@ -505,7 +505,7 @@ export class KamiMusicPlayer {
   stop() {
     this._transcoder?.destroy();
     this.player?.stop();
-    this._currentResource = null;
+    this.currentResource = null;
   }
 
   addResource(resource: KamiResource | KamiResource[], index: number = this.queue.length) {
@@ -517,9 +517,9 @@ export class KamiMusicPlayer {
 
     this.queue.splice(index, 0, ...resource);
 
-    if (this.isPlaying && this._currentResource) {
+    if (this.isPlaying && this.currentResource) {
       this.currentIndex = this.queue.indexOf(current);
-      void this.updateMessage(this._currentResource.metadata, true);
+      void this.updateMessage(this.currentResource.metadata, true);
     }
     else {
       this.currentIndex = this.queue.indexOf(resource[0]);
@@ -559,7 +559,7 @@ export class KamiMusicPlayer {
   clearResources() {
     const removed = this.queue.splice(0, this.queue.length);
     this.currentIndex = 0;
-    this._currentResource = null;
+    this.currentResource = null;
 
     if (this.isPlaying) {
       this.player?.stop();
@@ -630,11 +630,11 @@ export class KamiMusicPlayer {
 
       components.push(PlayerControls(this, this.player?.state.status));
 
-      if (resource.metadata && this._currentResource) {
+      if (resource.metadata && this.currentResource) {
         const playback = resource.length
           ? [
-            inlineCode(formatDuration(this._currentResource.playbackDuration)),
-            progress((this._currentResource.playbackDuration / resource.length) * 100),
+            inlineCode(formatDuration(this.currentResource.playbackDuration)),
+            progress((this.currentResource.playbackDuration / resource.length) * 100),
             inlineCode(resource.getLength()),
           ].join(' ')
           : 'LIVE';
@@ -646,7 +646,7 @@ export class KamiMusicPlayer {
           });
 
         const lyrics = getLyricsAtTime(
-          this._currentResource.playbackDuration + this._lyricsOffset,
+          this.currentResource.playbackDuration + this.lyricsOffset,
           resource.metadata.lyrics,
         );
 
