@@ -1,4 +1,5 @@
 import { Colors, EmbedBuilder, SlashCommandBuilder, bold, hyperlink, orderedList } from 'discord.js';
+
 import { KamiCommand } from '@/core/command';
 
 const range = (length: number, middle_index: number): [number, number] => {

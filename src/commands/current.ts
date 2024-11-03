@@ -1,4 +1,5 @@
 import { Colors, EmbedBuilder, SlashCommandBuilder, inlineCode } from 'discord.js';
+
 import { formatDuration, progress } from '@/utils/resource';
 import { KamiCommand } from '@/core/command';
 import { RepeatModeName } from '@/core/player';

@@ -1,4 +1,5 @@
 import { Collection, Colors, EmbedBuilder, SlashCommandIntegerOption, SlashCommandStringOption, SlashCommandSubcommandBuilder, hyperlink } from 'discord.js';
+
 import { fetchVideo, searchVideo } from '@/api/youtube';
 import { KamiMusicPlayer } from '@/core/player';
 import { KamiResource } from '@/core/resource';

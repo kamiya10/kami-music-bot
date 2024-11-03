@@ -1,5 +1,4 @@
-import { Collection, SlashCommandSubcommandGroupBuilder } from 'discord.js';
-import { SlashCommandBuilder } from 'discord.js';
+import { Collection, SlashCommandBuilder, SlashCommandSubcommandGroupBuilder } from 'discord.js';
 
 import type { AnySelectMenuInteraction, AutocompleteInteraction, Awaitable, ButtonInteraction, ChatInputCommandInteraction, ModalSubmitInteraction, SharedSlashCommand, SlashCommandSubcommandBuilder } from 'discord.js';
 import type { KamiClient } from '@/core/client';

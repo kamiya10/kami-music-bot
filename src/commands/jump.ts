@@ -1,4 +1,5 @@
 import { Colors, EmbedBuilder, SlashCommandBuilder, SlashCommandIntegerOption, hyperlink } from 'discord.js';
+
 import { KamiCommand } from '@/core/command';
 
 const indexOption = new SlashCommandIntegerOption()

@@ -1,5 +1,6 @@
-import { EventHandler } from '@/core/event';
 import { Events } from 'discord.js';
+
+import { EventHandler } from '@/core/event';
 
 export default new EventHandler({
   event: Events.InteractionCreate,

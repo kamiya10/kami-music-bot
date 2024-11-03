@@ -1,4 +1,5 @@
 import { Colors, EmbedBuilder, SlashCommandBuilder, SlashCommandIntegerOption } from 'discord.js';
+
 import { RepeatMode, RepeatModeName } from '@/core/player';
 import { KamiCommand } from '@/core/command';
 

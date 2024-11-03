@@ -1,18 +1,18 @@
-import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
 
 import { Client, Collection, GatewayIntentBits } from 'discord.js';
 
-import events from '#';
-import commands from '&';
-import { safeWriteFileSync } from '@/utils/fs';
 import Logger from '@/utils/logger';
+import commands from '&';
+import events from '#';
 import pkg from '~/package.json';
+import { safeWriteFileSync } from '@/utils/fs';
 
+import type { ClientOptions } from 'discord.js';
 import type { KamiCommand } from '@/core/command';
 import type { KamiMusicPlayer } from '@/core/player';
-import type { ClientOptions } from 'discord.js';
 
 export class KamiClient extends Client {
   cacheFolderPath = resolve(process.env['CACHE_FOLDER'] ?? '.cache');

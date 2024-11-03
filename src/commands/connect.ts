@@ -1,6 +1,7 @@
+import { SlashCommandBuilder } from 'discord.js';
+
 import { KamiCommand } from '@/core/command';
 import { KamiMusicPlayer } from '@/core/player';
-import { SlashCommandBuilder } from 'discord.js';
 
 export default new KamiCommand({
   builder: new SlashCommandBuilder()

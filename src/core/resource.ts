@@ -3,10 +3,10 @@ import { join } from 'node:path';
 
 import { cleanupTitle, formatDuration, getMetadata } from '@/utils/resource';
 
-import type { KamiClient } from './client';
-import type { Video } from '@/api/youtube/video';
-import type { RubyText } from '@/utils/string';
 import type { GuildMember } from 'discord.js';
+import type { KamiClient } from './client';
+import type { RubyText } from '@/utils/string';
+import type { Video } from '@/api/youtube/video';
 
 export interface KamiLyric {
   from: number;

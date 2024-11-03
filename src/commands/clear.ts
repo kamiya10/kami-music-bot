@@ -1,4 +1,5 @@
 import { Colors, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
+
 import { KamiCommand } from '@/core/command';
 
 export default new KamiCommand({

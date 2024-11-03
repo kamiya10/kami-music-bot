@@ -1,6 +1,6 @@
-import { EventHandler } from '@/core/event';
 import { Events } from 'discord.js';
 
+import { EventHandler } from '@/core/event';
 import Logger from '@/utils/logger';
 
 export default new EventHandler({

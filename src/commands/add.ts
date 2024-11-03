@@ -1,5 +1,7 @@
-import { KamiCommand } from '@/core/command';
 import { SlashCommandBuilder } from 'discord.js';
+
+import { KamiCommand } from '@/core/command';
+
 import youtube from './add/youtube';
 
 export default new KamiCommand({
