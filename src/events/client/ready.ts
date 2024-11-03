@@ -8,11 +8,14 @@ export default new EventHandler({
   async on(client) {
     await this.updateCommands();
     Logger.info(`Logged in as ${client.user.tag}`);
-    setInterval(() => {
+
+    const updateActivity = () => {
       client.user.setActivity({
         name: `v${this.version} | 🎵 ${this.players.size}`,
         type: ActivityType.Listening,
       });
-    }, 600_000);
+    };
+    updateActivity();
+    setInterval(updateActivity, 600_000);
   },
 });
