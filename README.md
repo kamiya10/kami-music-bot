@@ -20,6 +20,9 @@
   - [ ] soundcloud
     - [ ] `/add soudcloud url`
     - [ ] `/add soudcloud search`
+  - [ ] spotify
+    - [ ] `/add spotify url`
+    - [ ] `/add spotify search`
   - [ ] `/add file`
 - [x] `/clear`
 - [x] `/connect`
