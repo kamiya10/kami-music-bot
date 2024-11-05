@@ -1,15 +1,12 @@
 # Kami Music
 
-> [!NOTE]
-> 機器人目前還在快速開發階段，功能不齊全，但如果想要測試的人可以[邀請開發版本](https://discord.com/oauth2/authorize?client_id=1296776097131790358&permissions=4331718912&integration_type=0&scope=bot+applications.commands)  
-> 開發版在開發時段隨時都會有重啟的可能，不能保證會把音樂播完  
-> 開發時段約落在 16:00 ~ 2:00 (UTC+8)
-
 > [!TIP]
 > 這隻機器人是 Kami Bot 的音樂分支  
 > 如果你在找 Kami Bot 的話可以在 [kamiya10/kami-bot](https://github.com/kamiya10/kami-bot) 找到他
 
 ![preview](.github/preview.png)
+
+[邀請](https://discord.com/oauth2/authorize?client_id=886482127263244318&permissions=36702464&integration_type=0&scope=bot+applications.commands)
 
 ### 指令
 
