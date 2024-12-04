@@ -1,6 +1,6 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-import { resolve } from 'node:path';
+import { join, resolve } from 'node:path';
 
 import { Client, Collection, GatewayIntentBits } from 'discord.js';
 
@@ -28,6 +28,8 @@ export class KamiClient extends Client {
       ],
       ...options,
     });
+
+    mkdirSync(join(this.cacheFolderPath, 'audio'), { recursive: true });
 
     for (const command of commands) {
       this.commands.set(command.builder.name, command);
