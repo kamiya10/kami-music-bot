@@ -9,10 +9,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: SSH and deploy
+      - name: SSH and rebuild bot
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.SERVER_HOST }}
@@ -21,6 +18,4 @@ jobs:
           script: |
             cd /home/user/kami-music-bot
             git pull
-            docker compose down
-            docker compose build --no-cache
-            docker compose up -d
+            docker compose up -d --build discord-bot
