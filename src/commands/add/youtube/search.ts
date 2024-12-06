@@ -22,7 +22,7 @@ const beforeOption = new SlashCommandIntegerOption()
   .setDescriptionLocalization('zh-TW', '資源加入的位置（最前端 = 1 ，留空來將資源加到播放佇列的最尾端）')
   .setMinValue(1);
 
-const cache = new Collection<string, Timer>();
+const cache = new Collection<string, NodeJS.Timeout>();
 
 export default new KamiSubcommand({
   builder: new SlashCommandSubcommandBuilder()

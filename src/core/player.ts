@@ -302,6 +302,7 @@ export class KamiMusicPlayer {
       // "-af", `firequalizer=gain_entry='${Object.keys(this.equalizer).map(k => `entry(${k},${this.equalizer[k]})`).join(";")}',dynaudnorm=n=0:c=1`,
       // "-af", `bass=g=${this.audiofilter.bass}`,
     ];
+    // eslint-disable-next-line import-x/no-named-as-default-member
     this._transcoder = new prism.FFmpeg({ args: transcoderArgs });
 
     const audioResource = createAudioResource(

@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, readFileSync } from 'node:fs';
-import { createHash } from 'node:crypto';
 import { join, resolve } from 'node:path';
+import { createHash } from 'node:crypto';
 
 import { Client, Collection, GatewayIntentBits } from 'discord.js';
 
@@ -61,7 +61,7 @@ export class KamiClient extends Client {
 
       const filePath = resolve(this.cacheFolderPath, 'commands.cache');
 
-      if (process.env.NODE_ENV == 'development') {
+      if (process.env['NODE_ENV'] == 'development') {
         const devGuildId = process.env['DEV_GUILD_ID']?.split(',');
         if (!devGuildId?.length) return;
 
