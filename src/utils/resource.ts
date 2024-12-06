@@ -11,20 +11,15 @@ const titleCleanupRegex = /(^(?:【|「|\(|\[|（).*?(?:】|\)|\]|）))|((?:【|
 export const cleanupTitle = (title: string) => {
   let clean = title.replaceAll(titleCleanupRegex, '').trim();
 
-  if (clean.length) {
+  if (clean) {
     clean = clean.replaceAll(/((?:【|「|\(|\[|（)?\w*歌ってみた\w*(?:】|\)|\]|）)?)/gi, '');
   }
 
-  if (clean.length) {
+  if (clean) {
     clean = clean.replaceAll(/((?:【|「|\(|\[|（)?\w*cover(?:ed)?(?:\wby)?\w*(?:】|\)|\]|）)?)/gi, '');
   }
 
-  if (clean.length) {
-    return clean;
-  }
-  else {
-    return title;
-  }
+  return clean || title;
 };
 
 export const progress = (percentage: number) => {
