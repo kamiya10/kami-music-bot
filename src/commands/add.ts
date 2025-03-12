@@ -30,6 +30,9 @@ export default new KamiCommand({
       case Platform.YouTube:
         youtube.onAutocomplete(this, interaction);
         break;
+      case Platform.SoundCloud:
+        soundcloud.onAutocomplete(this, interaction);
+        break;
     }
   },
 });
