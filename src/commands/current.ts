@@ -1,4 +1,4 @@
-import { Colors, EmbedBuilder, SlashCommandBuilder, inlineCode } from 'discord.js';
+import { Colors, EmbedBuilder, MessageFlags, SlashCommandBuilder, inlineCode } from 'discord.js';
 
 import { formatDuration, progress } from '@/utils/resource';
 import { KamiCommand } from '@/core/command';

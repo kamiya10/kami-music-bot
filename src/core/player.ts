@@ -4,11 +4,13 @@ import { pipeline } from 'node:stream';
 
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Colors, EmbedBuilder, MessageFlags, inlineCode } from 'discord.js';
 import { AudioPlayerStatus, StreamType, VoiceConnectionStatus, createAudioPlayer, createAudioResource, entersState, joinVoiceChannel } from '@discordjs/voice';
+import { SoundCloud } from 'scdl-core';
 import prism from 'prism-media';
 import ytdl from '@distube/ytdl-core';
 
 import { formatDuration, getLyricsAtTime, progress } from '@/utils/resource';
 import Logger from '@/utils/logger';
+import { Platform } from '@/core/resource';
 import cookies from '~/cookies.json' with { type: 'json' };
 import { formatLines } from '@/utils/string';
 import { logError } from '@/utils/callback';
@@ -337,13 +339,23 @@ export class KamiMusicPlayer {
     try {
       Logger.debug(`Start buffering resource ${resource}`);
 
-      const stream = ytdl(resource.url, {
-        agent,
-        filter: (format) => +format.contentLength > 0,
-        quality: 'highestaudio',
-        highWaterMark: 1 << 25,
-      // ...(agent && { requestOptions : { agent } }),
-      });
+      const stream = await (async () => {
+        switch (resource.type) {
+          case Platform.YouTube:
+            return ytdl(resource.url, {
+              agent,
+              filter: (format) => +format.contentLength > 0,
+              quality: 'highestaudio',
+              highWaterMark: 1 << 25,
+              // ...(agent && { requestOptions : { agent } }),
+            });
+
+          case Platform.SoundCloud:
+            return await SoundCloud.download(resource.url, {
+              highWaterMark: 1 << 25,
+            });
+        }
+      })();
 
       const data = await new Response(stream).arrayBuffer();
 

@@ -6,6 +6,7 @@ import { cleanupTitle, formatDuration, getMetadata } from '@/utils/resource';
 import type { GuildMember } from 'discord.js';
 import type { KamiClient } from './client';
 import type { RubyText } from '@/utils/string';
+import type { Track } from 'scdl-core';
 import type { Video } from '@/api/youtube/video';
 
 export interface KamiLyric {
@@ -109,6 +110,17 @@ export class KamiResource {
     });
   }
 
+  static soundcloud(client: KamiClient, track: Track): KamiResource {
+    return new KamiResource(client, {
+      type: Platform.SoundCloud,
+      id: String(track.id),
+      title: track.title,
+      length: track.duration,
+      url: track.uri,
+      thumbnail: track.artwork_url ?? '',
+    });
+  }
+
   getLength() {
     if (!this.length) return 'N/A';
     return formatDuration(this.length);
@@ -131,4 +143,5 @@ export class KamiResource {
 
 export enum Platform {
   YouTube = 'youtube',
+  SoundCloud = 'soundcloud',
 }

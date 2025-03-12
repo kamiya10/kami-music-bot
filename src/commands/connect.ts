@@ -1,4 +1,4 @@
-import { SlashCommandBuilder } from 'discord.js';
+import { MessageFlags, SlashCommandBuilder } from 'discord.js';
 
 import { KamiCommand } from '@/core/command';
 import { KamiMusicPlayer } from '@/core/player';

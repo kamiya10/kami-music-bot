@@ -1,4 +1,4 @@
-import { Colors, EmbedBuilder, SlashCommandBooleanOption, SlashCommandBuilder } from 'discord.js';
+import { Colors, EmbedBuilder, MessageFlags, SlashCommandBooleanOption, SlashCommandBuilder } from 'discord.js';
 
 import { KamiCommand } from '@/core/command';
 
