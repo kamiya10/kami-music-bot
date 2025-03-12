@@ -16,7 +16,7 @@ export default new KamiCommand({
     .setDescriptionLocalization('zh-TW', '切換播放器的鎖定狀態')
     .addBooleanOption(stateOption),
   async execute(interaction) {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
 
     const embed = new EmbedBuilder()
       .setAuthor({

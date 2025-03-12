@@ -10,7 +10,7 @@ export default new KamiCommand({
     .setDescription('Connect to the voice channel you currently in.')
     .setDescriptionLocalization('zh-TW', '嘗試讓機器人加入語音頻道，當機器人突然離開語音頻道時可以用這個指令'),
   async execute(interaction) {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
 
     const guild = interaction.guild;
     const member = interaction.member;

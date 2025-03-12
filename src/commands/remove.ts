@@ -18,7 +18,7 @@ export default new KamiCommand({
     .setDescriptionLocalization('zh-TW', '從播放佇列中移除指定資源')
     .addIntegerOption(indexOption),
   async execute(interaction) {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
 
     const embed = new EmbedBuilder()
       .setAuthor({

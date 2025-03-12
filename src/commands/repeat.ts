@@ -52,7 +52,7 @@ export default new KamiCommand({
     .setDescriptionLocalization('zh-TW', '變更播放器的重複模式')
     .addIntegerOption(modeOption),
   async execute(interaction) {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
 
     const embed = new EmbedBuilder()
       .setAuthor({

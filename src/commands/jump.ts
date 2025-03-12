@@ -16,7 +16,7 @@ export default new KamiCommand({
     .setDescriptionLocalization('zh-TW', '跳至播放佇列中的指定位置')
     .addIntegerOption(indexOption),
   async execute(interaction) {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
 
     const embed = new EmbedBuilder()
       .setAuthor({

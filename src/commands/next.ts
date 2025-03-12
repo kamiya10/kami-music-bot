@@ -9,7 +9,7 @@ export default new KamiCommand({
     .setDescription('Play next resource')
     .setDescriptionLocalization('zh-TW', '播放下一個資源'),
   async execute(interaction) {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
 
     const embed = new EmbedBuilder()
       .setAuthor({
