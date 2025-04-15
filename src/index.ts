@@ -1,9 +1,14 @@
 import 'dotenv/config';
 
+import { generateDependencyReport } from '@discordjs/voice';
+
 import { KamiClient } from '@/core/client';
 import { setConsoleTitle } from '@/utils/console';
 
 process.env['NODE_ENV'] ??= 'development';
+
+if (process.env['NODE_ENV'] == 'development')
+  console.log(generateDependencyReport());
 
 const client = new KamiClient();
 
