@@ -1,4 +1,4 @@
-import { Colors, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
+import { Colors, EmbedBuilder, MessageFlags, SlashCommandBuilder } from 'discord.js';
 
 import { KamiCommand } from '@/core/command';
 
@@ -9,7 +9,7 @@ export default new KamiCommand({
     .setDescription('Clears the player\'s queue')
     .setDescriptionLocalization('zh-TW', '清除播放器的播放佇列'),
   async execute(interaction) {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
 
     const embed = new EmbedBuilder()
       .setAuthor({

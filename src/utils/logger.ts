@@ -35,7 +35,7 @@ export default class Logger {
   }
 
   static debug(message: string, ...args: unknown[]) {
-    if (process.env.NODE_ENV != 'development') return;
+    if (process.env['NODE_ENV'] != 'development') return;
     const time = getCurrentTime();
     console.debug(`${c.gray(time)} ${c.cyan.italic(pad('Debug'))} ${c.gray.italic(message)}`);
     if (args.length) {

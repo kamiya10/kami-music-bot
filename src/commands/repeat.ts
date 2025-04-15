@@ -1,4 +1,4 @@
-import { Colors, EmbedBuilder, SlashCommandBuilder, SlashCommandIntegerOption } from 'discord.js';
+import { Colors, EmbedBuilder, MessageFlags, SlashCommandBuilder, SlashCommandIntegerOption } from 'discord.js';
 
 import { RepeatMode, RepeatModeName } from '@/core/player';
 import { KamiCommand } from '@/core/command';
@@ -52,7 +52,7 @@ export default new KamiCommand({
     .setDescriptionLocalization('zh-TW', '變更播放器的重複模式')
     .addIntegerOption(modeOption),
   async execute(interaction) {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
 
     const embed = new EmbedBuilder()
       .setAuthor({

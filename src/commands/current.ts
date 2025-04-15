@@ -1,4 +1,4 @@
-import { Colors, EmbedBuilder, SlashCommandBuilder, inlineCode } from 'discord.js';
+import { Colors, EmbedBuilder, MessageFlags, SlashCommandBuilder, inlineCode } from 'discord.js';
 
 import { formatDuration, progress } from '@/utils/resource';
 import { KamiCommand } from '@/core/command';
@@ -11,7 +11,7 @@ export default new KamiCommand({
     .setDescription('Display the current playing resource')
     .setDescriptionLocalization('zh-TW', '查看目前正在播放的資源'),
   async execute(interaction) {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
 
     const embed = new EmbedBuilder()
       .setAuthor({

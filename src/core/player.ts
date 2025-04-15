@@ -4,12 +4,13 @@ import { pipeline } from 'node:stream';
 
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Colors, EmbedBuilder, MessageFlags, inlineCode } from 'discord.js';
 import { AudioPlayerStatus, StreamType, VoiceConnectionStatus, createAudioPlayer, createAudioResource, entersState, joinVoiceChannel } from '@discordjs/voice';
+import { SoundCloud } from 'scdl-core';
 import prism from 'prism-media';
-import ytdl from '@distube/ytdl-core';
+import ytdl from 'youtube-dl-exec';
 
 import { formatDuration, getLyricsAtTime, progress } from '@/utils/resource';
 import Logger from '@/utils/logger';
-import cookies from '~/cookies.json' with { type: 'json' };
+import { Platform } from '@/core/resource';
 import { formatLines } from '@/utils/string';
 import { logError } from '@/utils/callback';
 
@@ -18,8 +19,7 @@ import type { DiscordAPIError, Guild, GuildMember, GuildTextBasedChannel, Messag
 import type { KamiLyric, KamiResource } from '@/core/resource';
 import type { KamiClient } from '@/core/client';
 
-const agent = ytdl.createAgent(cookies as []);
-const GlobalVolumeModifier = 0.25;
+const GlobalVolumeModifier = 0.2;
 
 const PlayerControls = (player: KamiMusicPlayer, status?: AudioPlayerStatus) => new ActionRowBuilder<ButtonBuilder>()
   .setComponents(
@@ -302,6 +302,7 @@ export class KamiMusicPlayer {
       // "-af", `firequalizer=gain_entry='${Object.keys(this.equalizer).map(k => `entry(${k},${this.equalizer[k]})`).join(";")}',dynaudnorm=n=0:c=1`,
       // "-af", `bass=g=${this.audiofilter.bass}`,
     ];
+    // eslint-disable-next-line import-x/no-named-as-default-member
     this._transcoder = new prism.FFmpeg({ args: transcoderArgs });
 
     const audioResource = createAudioResource(
@@ -336,13 +337,25 @@ export class KamiMusicPlayer {
     try {
       Logger.debug(`Start buffering resource ${resource}`);
 
-      const stream = ytdl(resource.url, {
-        agent,
-        filter: (format) => +format.contentLength > 0,
-        quality: 'highestaudio',
-        highWaterMark: 1 << 25,
-      // ...(agent && { requestOptions : { agent } }),
-      });
+      const stream = await (async () => {
+        switch (resource.type) {
+          case Platform.YouTube:
+            // eslint-disable-next-line import-x/no-named-as-default-member
+            return ytdl.exec(resource.url, {
+              noCheckCertificates: true,
+              noWarnings: true,
+              preferFreeFormats: true,
+              addHeader: ['referer:youtube.com', 'user-agent:googlebot'],
+              format: 'ba',
+              output: '-',
+            }).stdout;
+
+          case Platform.SoundCloud:
+            return await SoundCloud.download(resource.url, {
+              highWaterMark: 1 << 25,
+            });
+        }
+      })();
 
       const data = await new Response(stream).arrayBuffer();
 

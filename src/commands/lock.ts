@@ -1,4 +1,4 @@
-import { Colors, EmbedBuilder, SlashCommandBooleanOption, SlashCommandBuilder } from 'discord.js';
+import { Colors, EmbedBuilder, MessageFlags, SlashCommandBooleanOption, SlashCommandBuilder } from 'discord.js';
 
 import { KamiCommand } from '@/core/command';
 
@@ -16,7 +16,7 @@ export default new KamiCommand({
     .setDescriptionLocalization('zh-TW', '切換播放器的鎖定狀態')
     .addBooleanOption(stateOption),
   async execute(interaction) {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
 
     const embed = new EmbedBuilder()
       .setAuthor({

@@ -1,4 +1,4 @@
-import { Colors, EmbedBuilder, SlashCommandBuilder, bold, hyperlink, orderedList } from 'discord.js';
+import { Colors, EmbedBuilder, MessageFlags, SlashCommandBuilder, bold, hyperlink, orderedList } from 'discord.js';
 
 import { KamiCommand } from '@/core/command';
 
@@ -39,7 +39,7 @@ export default new KamiCommand({
     .setDescription('Display the current player\'s queue.')
     .setDescriptionLocalization('zh-TW', '查看播放器的播放佇列'),
   async execute(interaction) {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
 
     const player = this.players.get(interaction.guild.id);
 

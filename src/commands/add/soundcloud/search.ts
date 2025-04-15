@@ -1,16 +1,16 @@
 import { Collection, Colors, EmbedBuilder, MessageFlags, SlashCommandIntegerOption, SlashCommandStringOption, SlashCommandSubcommandBuilder, hyperlink } from 'discord.js';
+import { type SearchResponse, SoundCloud, type Track } from 'scdl-core';
 
-import { fetchVideo, searchVideo } from '@/api/youtube';
 import { KamiMusicPlayer } from '@/core/player';
 import { KamiResource } from '@/core/resource';
 import { KamiSubcommand } from '@/core/command';
 import { logError } from '@/utils/callback';
 
 const inputOption = new SlashCommandStringOption()
-  .setName('video')
-  .setNameLocalization('zh-TW', '影片')
-  .setDescription('Search and select a video to add to the queue')
-  .setDescriptionLocalization('zh-TW', '搜尋並選擇影片來新增資源到播放佇列中')
+  .setName('track')
+  .setNameLocalization('zh-TW', '關鍵字')
+  .setDescription('Search and select a track to add to the queue')
+  .setDescriptionLocalization('zh-TW', '搜尋並選擇音軌來新增到播放佇列中')
   .setMinLength(4)
   .setAutocomplete(true)
   .setRequired(true);
@@ -28,8 +28,8 @@ export default new KamiSubcommand({
   builder: new SlashCommandSubcommandBuilder()
     .setName('search')
     .setNameLocalization('zh-TW', '搜尋')
-    .setDescription('Add videos from YouTube by search')
-    .setDescriptionLocalization('zh-TW', '依 YouTube 搜尋結果新增資源到播放佇列')
+    .setDescription('Add tracks from SoundCloud by search')
+    .setDescriptionLocalization('zh-TW', '依 SoundCloud 搜尋結果新增音軌到播放佇列')
     .addStringOption(inputOption)
     .addIntegerOption(beforeOption),
   async execute(interaction) {
@@ -83,28 +83,37 @@ export default new KamiSubcommand({
       return;
     }
 
-    const videoId = interaction.options.getString('video', true);
+    const trackId = +interaction.options.getString('track', true);
     const before = interaction.options.getInteger('before') ?? undefined;
 
-    try {
-      const video = await fetchVideo(videoId);
+    if (Number.isNaN(trackId)) {
+      embed
+        .setColor(Colors.Red)
+        .setDescription('❌ 無效的 SoundCloud 影片');
 
-      if (!video.duration) {
+      await edit();
+      return;
+    }
+
+    try {
+      const [track] = await SoundCloud.tracks.getTracksByIds([trackId]);
+
+      if (!track.streamable) {
         embed
           .setColor(Colors.Red)
-          .setDescription('❌ 無效的 YouTube 影片（未公開或尚未上映）');
+          .setDescription('❌ 無效的 SoundCloud 影片（無法串流）');
 
         await edit();
         return;
       }
 
-      const resource = KamiResource.youtube(this, video).setMember(interaction.member);
+      const resource = KamiResource.soundcloud(this, track).setMember(interaction.member);
       player.addResource(resource, before);
 
       embed
         .setColor(Colors.Green)
         .setDescription(`✅ ${hyperlink(resource.title, resource.url)} 已加到播放佇列`)
-        .setThumbnail(video.thumbnail.url);
+        .setThumbnail(track.artwork_url ?? '');
     }
     catch (error) {
       embed
@@ -125,12 +134,22 @@ export default new KamiSubcommand({
     }
 
     const respond = async () => {
-      const result = await searchVideo(keyword).catch(logError) ?? [];
+      const result = await SoundCloud.search({ query: keyword, filter: 'tracks' }).catch(logError) as void | SearchResponse<Track>;
 
-      const choice = result.map((v) => ({
-        name: v.title,
-        value: v.id,
-      }));
+      if (!result) {
+        await interaction.respond([]).catch(logError);
+        cache.delete(interaction.guild.id);
+        return;
+      }
+
+      const choice = result.collection.map((v) => {
+        const username = ` —— @${v.user.username}`;
+
+        return {
+          name: `${v.title.slice(0, 100 - username.length)}${username}`,
+          value: `${v.id}`,
+        };
+      });
 
       await interaction.respond(choice).catch(logError);
       cache.delete(interaction.guild.id);

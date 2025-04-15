@@ -9,11 +9,21 @@ import type { KamiLyric, KamiMetadata, KamiMetadataJson } from '@/core/resource'
 const titleCleanupRegex = /(^(?:【|「|\(|\[|（).*?(?:】|\)|\]|）))|((?:【|\(|\[|（).*?(?:】|」|\)|\]|）)$)/gi;
 
 export const cleanupTitle = (title: string) => {
-  return title
-    .replaceAll(titleCleanupRegex, '')
-    .trim()
-    .replaceAll(/((?:【|「|\(|\[|（)?\w*歌ってみた\w*(?:】|\)|\]|）)?)/gi, '')
-    .replaceAll(/((?:【|「|\(|\[|（)?\w*cover(?:ed)?(?:\wby)?\w*(?:】|\)|\]|）)?)/gi, '');
+  let temp = title.replaceAll(titleCleanupRegex, '').trim();
+
+  if (temp) {
+    title = temp;
+  }
+
+  temp = title.replaceAll(/((?:【|「|\(|\[|（)?\w*歌ってみた\w*(?:】|\)|\]|）)?)/gi, '');
+
+  if (temp) {
+    title = temp;
+  }
+
+  temp = title.replaceAll(/((?:【|「|\(|\[|（)?\w*cover(?:ed)?(?:\wby)?\w*(?:】|\)|\]|）)?)/gi, '');
+
+  return temp || title;
 };
 
 export const progress = (percentage: number) => {

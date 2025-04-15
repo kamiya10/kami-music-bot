@@ -14,9 +14,9 @@
   - [x] youtube
     - [x] `/add youtube url`
     - [x] `/add youtube search`
-  - [ ] soundcloud
-    - [ ] `/add soudcloud url`
-    - [ ] `/add soudcloud search`
+  - [x] soundcloud
+    - [x] `/add soudcloud url`
+    - [x] `/add soudcloud search`
   - [ ] spotify
     - [ ] `/add spotify url`
     - [ ] `/add spotify search`

@@ -1,4 +1,4 @@
-import { Colors, EmbedBuilder, SlashCommandBuilder, hyperlink } from 'discord.js';
+import { Colors, EmbedBuilder, MessageFlags, SlashCommandBuilder, hyperlink } from 'discord.js';
 
 import { KamiCommand } from '@/core/command';
 
@@ -9,7 +9,7 @@ export default new KamiCommand({
     .setDescription('Play next resource')
     .setDescriptionLocalization('zh-TW', '播放下一個資源'),
   async execute(interaction) {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
 
     const embed = new EmbedBuilder()
       .setAuthor({

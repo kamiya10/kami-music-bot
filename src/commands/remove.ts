@@ -1,4 +1,4 @@
-import { Colors, EmbedBuilder, SlashCommandBuilder, SlashCommandIntegerOption, hyperlink } from 'discord.js';
+import { Colors, EmbedBuilder, MessageFlags, SlashCommandBuilder, SlashCommandIntegerOption, hyperlink } from 'discord.js';
 
 import { KamiCommand } from '@/core/command';
 
@@ -18,7 +18,7 @@ export default new KamiCommand({
     .setDescriptionLocalization('zh-TW', '從播放佇列中移除指定資源')
     .addIntegerOption(indexOption),
   async execute(interaction) {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
 
     const embed = new EmbedBuilder()
       .setAuthor({

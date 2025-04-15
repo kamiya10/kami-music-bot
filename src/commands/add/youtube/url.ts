@@ -1,4 +1,4 @@
-import { Colors, EmbedBuilder, SlashCommandIntegerOption, SlashCommandStringOption, SlashCommandSubcommandBuilder, hyperlink, unorderedList } from 'discord.js';
+import { Colors, EmbedBuilder, MessageFlags, SlashCommandIntegerOption, SlashCommandStringOption, SlashCommandSubcommandBuilder, hyperlink, unorderedList } from 'discord.js';
 
 import { fetchPlaylist, fetchVideo, parseUrl } from '@/api/youtube';
 import { KamiMusicPlayer } from '@/core/player';
@@ -28,7 +28,7 @@ export default new KamiSubcommand({
     .addStringOption(inputOption)
     .addIntegerOption(beforeOption),
   async execute(interaction) {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
 
     const guild = interaction.guild;
     const member = interaction.member;
