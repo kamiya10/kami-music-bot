@@ -6,12 +6,11 @@ import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Colors, EmbedBuilder, Mes
 import { AudioPlayerStatus, StreamType, VoiceConnectionStatus, createAudioPlayer, createAudioResource, entersState, joinVoiceChannel } from '@discordjs/voice';
 import { SoundCloud } from 'scdl-core';
 import prism from 'prism-media';
-import ytdl from '@distube/ytdl-core';
+import ytdl from 'youtube-dl-exec';
 
 import { formatDuration, getLyricsAtTime, progress } from '@/utils/resource';
 import Logger from '@/utils/logger';
 import { Platform } from '@/core/resource';
-import cookies from '~/cookies.json' with { type: 'json' };
 import { formatLines } from '@/utils/string';
 import { logError } from '@/utils/callback';
 
@@ -20,8 +19,7 @@ import type { DiscordAPIError, Guild, GuildMember, GuildTextBasedChannel, Messag
 import type { KamiLyric, KamiResource } from '@/core/resource';
 import type { KamiClient } from '@/core/client';
 
-const agent = ytdl.createAgent(cookies as []);
-const GlobalVolumeModifier = 0.25;
+const GlobalVolumeModifier = 0.2;
 
 const PlayerControls = (player: KamiMusicPlayer, status?: AudioPlayerStatus) => new ActionRowBuilder<ButtonBuilder>()
   .setComponents(
@@ -342,13 +340,15 @@ export class KamiMusicPlayer {
       const stream = await (async () => {
         switch (resource.type) {
           case Platform.YouTube:
-            return ytdl(resource.url, {
-              agent,
-              filter: (format) => +format.contentLength > 0,
-              quality: 'highestaudio',
-              highWaterMark: 1 << 25,
-              // ...(agent && { requestOptions : { agent } }),
-            });
+            // eslint-disable-next-line import-x/no-named-as-default-member
+            return ytdl.exec(resource.url, {
+              noCheckCertificates: true,
+              noWarnings: true,
+              preferFreeFormats: true,
+              addHeader: ['referer:youtube.com', 'user-agent:googlebot'],
+              format: 'ba',
+              output: '-',
+            }).stdout;
 
           case Platform.SoundCloud:
             return await SoundCloud.download(resource.url, {
