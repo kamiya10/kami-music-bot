@@ -142,10 +142,14 @@ export default new KamiSubcommand({
         return;
       }
 
-      const choice = result.collection.map((v) => ({
-        name: `${v.title} —— @${v.user.username}`,
-        value: `${v.id}`,
-      }));
+      const choice = result.collection.map((v) => {
+        const username = ` —— @${v.user.username}`;
+
+        return {
+          name: `${v.title.slice(0, 100 - username.length)}${username}`,
+          value: `${v.id}`,
+        };
+      });
 
       await interaction.respond(choice).catch(logError);
       cache.delete(interaction.guild.id);
