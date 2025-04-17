@@ -11,8 +11,10 @@ import ytdl from 'youtube-dl-exec';
 import { formatDuration, getLyricsAtTime, progress } from '@/utils/resource';
 import Logger from '@/utils/logger';
 import { Platform } from '@/core/resource';
+import { db } from '@/database';
 import { formatLines } from '@/utils/string';
 import { logError } from '@/utils/callback';
+import { resourceTable } from '@/database/schema';
 
 import type { AudioPlayer, AudioResource, PlayerSubscription, VoiceConnection } from '@discordjs/voice';
 import type { DiscordAPIError, Guild, GuildMember, GuildTextBasedChannel, Message, VoiceBasedChannel } from 'discord.js';
@@ -521,7 +523,7 @@ export class KamiMusicPlayer {
     this.currentResource = null;
   }
 
-  addResource(resource: KamiResource | KamiResource[], index: number = this.queue.length) {
+  async addResource(resource: KamiResource | KamiResource[], index: number = this.queue.length) {
     const current = this.queue[this.currentIndex];
 
     if (!Array.isArray(resource)) {
@@ -529,6 +531,14 @@ export class KamiMusicPlayer {
     }
 
     this.queue.splice(index, 0, ...resource);
+
+    await db
+      .insert(resourceTable)
+      .values(resource.map((v) => ({ ...v.toJSON(), resourceId: `${v.id}@${v.type}` })))
+      .onConflictDoNothing({
+        target: [resourceTable.resourceId],
+      })
+      .catch(logError);
 
     if (this.isPlaying && this.currentResource) {
       this.currentIndex = this.queue.indexOf(current);
