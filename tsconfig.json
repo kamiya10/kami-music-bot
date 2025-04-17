@@ -1,40 +1,55 @@
 {
   "compilerOptions": {
     // Enable latest features
-    "lib": ["ESNext"],
+    "lib": [
+      "ESNext"
+    ],
     "target": "ESNext",
     "module": "ESNext",
     "moduleDetection": "force",
     "resolveJsonModule": true,
     "allowJs": true,
     "esModuleInterop": true,
-
     // Bundler mode
     "moduleResolution": "bundler",
     "verbatimModuleSyntax": true,
     "outDir": "dist",
     "rootDir": "src",
     "paths": {
-      "#": ["./src/events"],
-      "#/*": ["./src/events/*"],
-      "&": ["./src/commands"],
-      "&/*": ["./src/commands/*"],
-      "@/*": ["./src/*"],
-      "~/*": ["./*"]
+      "#": [
+        "./src/events"
+      ],
+      "#/*": [
+        "./src/events/*"
+      ],
+      "&": [
+        "./src/commands"
+      ],
+      "&/*": [
+        "./src/commands/*"
+      ],
+      "@/*": [
+        "./src/*"
+      ],
+      "~/*": [
+        "./*"
+      ]
     },
-
     // Best practices
     "strict": true,
     "strictNullChecks": true,
     "noImplicitAny": true,
     "skipLibCheck": true,
     "noFallthroughCasesInSwitch": true,
-
     // Some stricter flags
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noPropertyAccessFromIndexSignature": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["./src/**/*", "./tools/**/*"]
+  "include": [
+    "./src/**/*",
+    "./tools/**/*",
+    "drizzle.config.ts"
+  ]
 }

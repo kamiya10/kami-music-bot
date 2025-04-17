@@ -1,3 +1,5 @@
+import { env } from '@/env';
+
 import { Playlist } from './playlist';
 import { SearchResult } from './search';
 import { Video } from './video';
@@ -25,7 +27,7 @@ interface APIResponse<T> {
 
 const get = async <T = object>(endpoint: string, query: Record<string, string>) => {
   const param = new URLSearchParams({
-    key: process.env['YOUTUBE_TOKEN'] ?? '',
+    key: env.YOUTUBE_TOKEN,
     ...query,
   });
 
