@@ -1,8 +1,9 @@
 import { parse, resolve } from 'node:path';
 import { readFileSync, writeFileSync } from 'node:fs';
 
-import Logger from '@/utils/logger';
 import chalk from 'chalk';
+
+import Logger from '@/utils/logger';
 
 const args = process.argv;
 const pathString = args[2];

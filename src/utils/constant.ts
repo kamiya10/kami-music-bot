@@ -1,4 +1,6 @@
-export const Emoji = process.env['NODE_ENV'] == 'production'
+import { env } from '@/env';
+
+export const Emoji = env.NODE_ENV == 'production'
   ? {
     Progress: '<:p_:1302566053179687002>',
     ProgressEnd: '<:pe:1302566042194677760>',

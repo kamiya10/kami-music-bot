@@ -3,17 +3,16 @@ import 'dotenv/config';
 import { generateDependencyReport } from '@discordjs/voice';
 
 import { KamiClient } from '@/core/client';
+import { env } from '@/env';
 import { setConsoleTitle } from '@/utils/console';
 
-process.env['NODE_ENV'] ??= 'development';
-
-if (process.env['NODE_ENV'] == 'development')
+if (env.NODE_ENV == 'development')
   console.log(generateDependencyReport());
 
 const client = new KamiClient();
 
 void client.login(
-  process.env[process.env['NODE_ENV'] == 'production' ? 'KAMI_TOKEN' : 'DEV_TOKEN'],
+  env.NODE_ENV == 'production' ? env.KAMI_TOKEN : env.DEV_TOKEN,
 );
 
 setConsoleTitle(`Kami Music ${client.version}`);

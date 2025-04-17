@@ -6,6 +6,7 @@ import { Client, Collection, GatewayIntentBits } from 'discord.js';
 
 import Logger from '@/utils/logger';
 import commands from '&';
+import { env } from '@/env';
 import events from '#';
 import pkg from '~/package.json';
 import { safeWriteFileSync } from '@/utils/fs';
@@ -15,7 +16,7 @@ import type { KamiCommand } from '@/core/command';
 import type { KamiMusicPlayer } from '@/core/player';
 
 export class KamiClient extends Client {
-  cacheFolderPath = resolve(process.env['CACHE_FOLDER'] ?? '.cache');
+  cacheFolderPath = resolve(env.CACHE_FOLDER);
   commands = new Collection<string, KamiCommand>();
   players = new Collection<string, KamiMusicPlayer>();
   version = pkg.version;
@@ -61,8 +62,8 @@ export class KamiClient extends Client {
 
       const filePath = resolve(this.cacheFolderPath, 'commands.cache');
 
-      if (process.env['NODE_ENV'] == 'development') {
-        const devGuildId = process.env['DEV_GUILD_ID']?.split(',');
+      if (env.NODE_ENV == 'development') {
+        const devGuildId = env.DEV_GUILD_ID.split(',');
         if (!devGuildId?.length) return;
 
         for (const id of devGuildId) {
