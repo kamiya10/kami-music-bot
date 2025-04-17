@@ -1,0 +1,365 @@
+{
+  "$schema": "../../../../$schema/metadata.json",
+  "title": "Angels For Each Other",
+  "album": "Angels For Each Other (Single)",
+  "cover": "BiH5kid",
+  "artist": [
+    "Martin Garrix",
+    "Arijit Singh"
+  ],
+  "producer": [
+    "Michel Zitron",
+    "Martin Garrix",
+    "Osrin",
+    "Albin Nedler"
+  ],
+  "vocals": [
+    "Martin Garrix",
+    "Arijit Singh"
+  ],
+  "composer": [
+    "Martin Garrix"
+  ],
+  "arranger": [
+    "Martin Garrix"
+  ],
+  "lyricist": [
+    "Arijit Singh",
+    "JUNO",
+    "Martijn Garritsen",
+    "Michel Zitron",
+    "Paul David Hewson",
+    "Shaun Farrugia",
+    "Simon Edmund Carmody"
+  ],
+  "diskNo": 1,
+  "trackNo": 1,
+  "year": 2025,
+  "script": "en",
+  "source": "STMPD RCRDS",
+  "tags": [
+    "martin",
+    "garrix",
+    "arijit",
+    "singh",
+    "angels",
+    "for",
+    "each",
+    "other",
+    "nihan"
+  ],
+  "lyrics": [
+    {
+      "from": 16673,
+      "to": 18673,
+      "line": "{सुन मेरी जाँ}(Sun, meri jaan)",
+      "translation": "聽我說，親愛的"
+    },
+    {
+      "from": 18673,
+      "to": 23028,
+      "line": "{जीने से ख़फ़ा तू है क्यों?}(Jeene se khafa tu hai kyun?)",
+      "translation": "為什麼你對生活感到失望？"
+    },
+    {
+      "from": 23028,
+      "to": 26106,
+      "line": "{होने दे ख़त्म तू}(Hone de khatam tu)",
+      "translation": "就讓錯誤發生吧"
+    },
+    {
+      "from": 26106,
+      "to": 30458,
+      "line": "{जो है पल यही है}(Jo hai pal; yahi hai)",
+      "translation": "這一刻才是我們真正擁有的"
+    },
+    {
+      "from": 30458,
+      "to": 32357,
+      "line": "{जी ले ना}(Jee lena)",
+      "translation": "好好活在當下"
+    },
+    {
+      "from": 32357,
+      "to": 33629,
+      "line": "{संग मैं रहूँ}(Sang main rahoon)",
+      "translation": "我會陪在你身邊"
+    },
+    {
+      "from": 33629,
+      "to": 37598,
+      "line": "{कितना भी हो अंधेरा}(Kitna bhi ho andhera)",
+      "translation": "不管前方多黑暗"
+    },
+    {
+      "from": 37598,
+      "to": 40925,
+      "line": "{और जिक्र हो तेरा}(Aur zikr ho tera)",
+      "translation": "我向你承諾"
+    },
+    {
+      "from": 40925,
+      "to": 45152,
+      "line": "{मेरी हर दुआ में}(Meri har dua main)",
+      "translation": "你會在我每一個祈禱之中"
+    },
+    {
+      "from": 45152,
+      "to": 49344,
+      "line": "Life will be beautiful",
+      "translation": "生命會很美好"
+    },
+    {
+      "from": 49344,
+      "to": 52392,
+      "line": "Know that you're not alone",
+      "translation": "記住你並不孤單"
+    },
+    {
+      "from": 52392,
+      "to": 54069,
+      "line": "We rise and we fall",
+      "translation": "我們曾跌倒，也會再站起來"
+    },
+    {
+      "from": 54069,
+      "to": 55840,
+      "line": "I see who you are",
+      "translation": "我看見你真正的模樣"
+    },
+    {
+      "from": 55840,
+      "to": 59827,
+      "line": "Underneath it all",
+      "translation": "在你所有外表底下"
+    },
+    {
+      "from": 59827,
+      "to": 63086,
+      "line": "The sun and the moon and stars",
+      "translation": "太陽、月亮還有星星"
+    },
+    {
+      "from": 63086,
+      "to": 66720,
+      "line": "We don't have to look so far",
+      "translation": "我們不需要尋找太遠"
+    },
+    {
+      "from": 66720,
+      "to": 68654,
+      "line": "In the shadows of dawn",
+      "translation": "在黎明的微光裡"
+    },
+    {
+      "from": 68654,
+      "to": 70654,
+      "line": "We've been here all along",
+      "translation": "我們一直都在這裡"
+    },
+    {
+      "from": 70654,
+      "to": 74039,
+      "line": "Angels for each other",
+      "translation": "彼此的天使"
+    },
+    {
+      "from": 74039,
+      "to": 75640,
+      "line": "We are",
+      "translation": "就是我們自己"
+    },
+    {
+      "from": 89001,
+      "to": 91001,
+      "line": "{ज़िंदा है अगर तू}(Zinda hai agar tu)",
+      "translation": "只要你還活著"
+    },
+    {
+      "from": 106069,
+      "to": 107492,
+      "line": "Are you looking up",
+      "translation": "你是否也抬頭仰望天空？"
+    },
+    {
+      "from": 107492,
+      "to": 111240,
+      "line": "Are you looking up like I do",
+      "translation": "就像我常做的那樣？"
+    },
+    {
+      "from": 111240,
+      "to": 114480,
+      "line": "I could be right beside you",
+      "translation": "也許我就在你身邊"
+    },
+    {
+      "from": 114480,
+      "to": 118694,
+      "line": "And we may never know",
+      "translation": "但我們可能永遠不會發現"
+    },
+    {
+      "from": 118694,
+      "to": 120313,
+      "line": "For all this time",
+      "translation": "這段時間以來"
+    },
+    {
+      "from": 120313,
+      "to": 122120,
+      "line": "It's getting kind of clear",
+      "translation": "一切開始變得清晰"
+    },
+    {
+      "from": 122120,
+      "to": 126115,
+      "line": "As we're getting near the daylight",
+      "translation": "當我們逐漸接近曙光"
+    },
+    {
+      "from": 126115,
+      "to": 129146,
+      "line": "If I learn to pray right",
+      "translation": "如果我學會如何正確祈禱"
+    },
+    {
+      "from": 129146,
+      "to": 133638,
+      "line": "I pray you're safely home",
+      "translation": "那我會為你平安回家祈禱"
+    },
+    {
+      "from": 133638,
+      "to": 137391,
+      "line": "Life will be beautiful",
+      "translation": "生命會很美好"
+    },
+    {
+      "from": 137391,
+      "to": 140810,
+      "line": "Know that you're not alone",
+      "translation": "記住你並不孤單"
+    },
+    {
+      "from": 140810,
+      "to": 142446,
+      "line": "We rise and we fall",
+      "translation": "我們曾跌倒，也會再站起來"
+    },
+    {
+      "from": 142446,
+      "to": 144446,
+      "line": "I see who you are",
+      "translation": "我看見你真正的模樣"
+    },
+    {
+      "from": 144446,
+      "to": 148498,
+      "line": "Underneath it all",
+      "translation": "在你所有外表底下"
+    },
+    {
+      "from": 148498,
+      "to": 151906,
+      "line": "The sun and the moon and stars",
+      "translation": "太陽、月亮還有星星"
+    },
+    {
+      "from": 151906,
+      "to": 155489,
+      "line": "We don't have to look so far",
+      "translation": "我們不需要尋找太遠"
+    },
+    {
+      "from": 155489,
+      "to": 157489,
+      "line": "In the shadows of dawn",
+      "translation": "在黎明的微光裡"
+    },
+    {
+      "from": 157489,
+      "to": 159247,
+      "line": "We've been here all along",
+      "translation": "我們一直都在這裡"
+    },
+    {
+      "from": 159247,
+      "to": 162891,
+      "line": "Angels for each other",
+      "translation": "彼此的天使"
+    },
+    {
+      "from": 162891,
+      "to": 165848,
+      "line": "We are",
+      "translation": "就是我們自己自己"
+    },
+    {
+      "from": 177894,
+      "to": 181555,
+      "line": "Life will be beautiful",
+      "translation": "生命會很美好"
+    },
+    {
+      "from": 181555,
+      "to": 185369,
+      "line": "Know that you're not alone",
+      "translation": "記住你並不孤單"
+    },
+    {
+      "from": 185369,
+      "to": 186931,
+      "line": "We rise and we fall",
+      "translation": "我們曾跌倒，也會再站起來"
+    },
+    {
+      "from": 186931,
+      "to": 188640,
+      "line": "I see who you are",
+      "translation": "我看見你真正的模樣"
+    },
+    {
+      "from": 188640,
+      "to": 192564,
+      "line": "Underneath it all",
+      "translation": "在你所有外表底下"
+    },
+    {
+      "from": 192564,
+      "to": 196403,
+      "line": "The sun and the moon and stars",
+      "translation": "太陽、月亮還有星星"
+    },
+    {
+      "from": 196403,
+      "to": 199935,
+      "line": "We don't have to look so far",
+      "translation": "我們不需要尋找太遠"
+    },
+    {
+      "from": 199935,
+      "to": 201935,
+      "line": "In the shadows of dawn",
+      "translation": "在黎明的微光裡"
+    },
+    {
+      "from": 201935,
+      "to": 203596,
+      "line": "We've been here all along",
+      "translation": "我們一直都在這裡"
+    },
+    {
+      "from": 203596,
+      "to": 207209,
+      "line": "Angels for each other",
+      "translation": "彼此的天使"
+    },
+    {
+      "from": 207209,
+      "to": 209209,
+      "line": "We are",
+      "translation": "就是我們自己"
+    }
+  ]
+}
