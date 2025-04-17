@@ -137,6 +137,7 @@ export class KamiResource {
       title: this.title,
       length: this.length,
       url: this.url,
+      thumbnail: this.thumbnail,
     };
   }
 }

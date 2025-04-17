@@ -11,4 +11,5 @@ export const preferenceTable = createTable('preference', {
   bitrate: smallint('bitrate'),
   nsfw: boolean('nsfw'),
   limit: smallint('limit'),
+  repeat: smallint('repeat'),
 });
