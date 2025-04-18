@@ -5,6 +5,7 @@ import current from '&/current';
 import jump from '&/jump';
 import lock from '&/lock';
 import next from '&/next';
+import playlist from '&/playlist';
 import prev from '&/prev';
 import queue from '&/queue';
 import remove from '&/remove';
@@ -20,6 +21,7 @@ export default [
   jump,
   lock,
   next,
+  playlist,
   prev,
   queue,
   remove,

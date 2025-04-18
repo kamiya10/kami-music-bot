@@ -1,4 +1,4 @@
-import { MessageFlags, SlashCommandBuilder } from 'discord.js';
+import { Colors, EmbedBuilder, MessageFlags, SlashCommandBuilder } from 'discord.js';
 
 import { KamiCommand } from '@/core/command';
 import { KamiMusicPlayer } from '@/core/player';
@@ -18,9 +18,19 @@ export default new KamiCommand({
     const text = interaction.channel;
     const voice = interaction.member.voice.channel;
 
+    const embed = new EmbedBuilder()
+      .setAuthor({
+        name: `加入語音 | ${interaction.guild.name}`,
+        iconURL: interaction.guild.iconURL() ?? undefined,
+      });
+
     if (!voice || !text) {
+      embed
+        .setColor(Colors.Red)
+        .setDescription('❌ 你需要在語音頻道內才能使用這個指令');
+
       void interaction.editReply({
-        content: '你需要在語音頻道內才能使用這個指令',
+        embeds: [embed],
       });
       return;
     }
@@ -38,8 +48,12 @@ export default new KamiCommand({
         ),
       );
 
+      embed
+        .setColor(Colors.Green)
+        .setDescription(`📥 已加入 ${voice}`);
+
       await interaction.editReply({
-        content: `📥 ${voice}`,
+        embeds: [embed],
       });
       return;
     }
@@ -48,16 +62,24 @@ export default new KamiCommand({
     const isMemberVoiceSameAsPlayerVoice = player.voice.id == voice.id;
 
     if (!isMemberPlayerOwner && !isMemberVoiceSameAsPlayerVoice) {
+      embed
+        .setColor(Colors.Red)
+        .setDescription('❌ 你沒有權限和這個播放器互動');
+
       void interaction.editReply({
-        content: '你沒有權限和這個播放器互動',
+        embeds: [embed],
       });
       return;
     }
 
     player.connect(voice);
 
+    embed
+      .setColor(Colors.Green)
+      .setDescription(isMemberVoiceSameAsPlayerVoice ? `🔄️ 已重新連接至 ${voice}` : `📥 已加入 ${voice}`);
+
     await interaction.editReply({
-      content: isMemberVoiceSameAsPlayerVoice ? `🔄️ ${voice}` : `📥 ${voice}`,
+      embeds: [embed],
     });
   },
 });
