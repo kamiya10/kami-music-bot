@@ -34,6 +34,7 @@
     "ffmpeg-static": "^5.2.0",
     "iso8601-duration": "^2.1.2",
     "lowdb": "^7.0.1",
+    "nanoid": "^5.1.5",
     "pino": "^9.6.0",
     "pino-pretty": "^13.0.0",
     "postgres": "^3.4.5",

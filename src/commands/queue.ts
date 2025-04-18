@@ -44,8 +44,16 @@ export default new KamiCommand({
     const player = this.players.get(interaction.guild.id);
 
     if (!player) {
+      const embed = new EmbedBuilder()
+        .setColor(Colors.Red)
+        .setAuthor({
+          name: `播放佇列 | ${interaction.guild.name}`,
+          iconURL: interaction.guild.iconURL() ?? undefined,
+        })
+        .setDescription('❌ 目前沒有在播放音樂');
+
       void interaction.editReply({
-        content: '目前沒有在播放音樂',
+        embeds: [embed],
       });
       return;
     }

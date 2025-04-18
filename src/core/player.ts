@@ -14,7 +14,7 @@ import { Platform } from '@/core/resource';
 import { db } from '@/database';
 import { formatLines } from '@/utils/string';
 import { logError } from '@/utils/callback';
-import { resourceTable } from '@/database/schema';
+import { resource as resourceTable } from '@/database/schema';
 
 import type { AudioPlayer, AudioResource, PlayerSubscription, VoiceConnection } from '@discordjs/voice';
 import type { DiscordAPIError, Guild, GuildMember, GuildTextBasedChannel, Message, VoiceBasedChannel } from 'discord.js';

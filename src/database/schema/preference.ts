@@ -2,7 +2,7 @@ import { boolean, real, smallint, text, varchar } from 'drizzle-orm/pg-core';
 
 import { createTable } from '../utils';
 
-export const preferenceTable = createTable('preference', {
+export const preference = createTable('preference', {
   userId: varchar('user_id', { length: 20 }).primaryKey().unique(),
   name: text('name'),
   lock: boolean('lock'),

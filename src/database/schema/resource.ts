@@ -4,7 +4,7 @@ import { Platform } from '@/core/resource';
 
 import { createTable } from '../utils';
 
-export const resourceTable = createTable('resource', {
+export const resource = createTable('resource', {
   resourceId: text('resource_id').primaryKey().unique(),
   id: text('id').notNull(),
   type: text('platform', { enum: [Platform.SoundCloud, Platform.YouTube] }).notNull(),

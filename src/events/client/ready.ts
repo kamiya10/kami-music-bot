@@ -7,6 +7,7 @@ export default new EventHandler({
   event: Events.ClientReady,
   async on(client) {
     await this.updateCommands();
+    await client.application.commands.fetch();
     Logger.info(`Logged in as ${client.user.tag}`);
 
     const updateActivity = () => {
