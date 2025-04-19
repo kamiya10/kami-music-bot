@@ -1,36 +1,9 @@
-import { Colors, EmbedBuilder, MessageFlags, SlashCommandBuilder, bold, hyperlink, orderedList } from 'discord.js';
+import { Colors, EmbedBuilder, MessageFlags, SlashCommandBuilder, hyperlink } from 'discord.js';
 
 import { KamiCommand } from '@/core/command';
+import { PaginationManager } from '@/utils/pagination';
 
-const range = (length: number, middle_index: number): [number, number] => {
-  let n: number;
-  let m: number;
-
-  if (length <= 20) {
-    n = 0;
-    m = length;
-  }
-  else {
-    n = middle_index - 10;
-
-    if (n < 0) {
-      n = 0;
-    }
-
-    m = n + 20;
-
-    if (m > length) {
-      m = length;
-      n = m - 20;
-
-      if (n < 0) {
-        n = 0;
-      }
-    }
-  }
-
-  return [n, m];
-};
+import type { InteractionEditReplyOptions } from 'discord.js';
 
 export default new KamiCommand({
   builder: new SlashCommandBuilder()
@@ -38,6 +11,7 @@ export default new KamiCommand({
     .setNameLocalization('zh-TW', '播放佇列')
     .setDescription('Display the current player\'s queue.')
     .setDescriptionLocalization('zh-TW', '查看播放器的播放佇列'),
+
   async execute(interaction) {
     await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
 
@@ -52,46 +26,75 @@ export default new KamiCommand({
         })
         .setDescription('❌ 目前沒有在播放音樂');
 
-      void interaction.editReply({
+      await interaction.editReply({
         embeds: [embed],
       });
       return;
     }
 
-    const embed = new EmbedBuilder()
-      .setColor(Colors.Blue)
-      .setAuthor({
-        name: `播放佇列 | ${interaction.guild.name}`,
-        iconURL: interaction.guild.iconURL()!,
-      })
-      .setFooter({
-        text: `${player?.queue.length} 個項目`,
-      });
+    const paginationManager = new PaginationManager({
+      items: player.queue,
+      itemsPerPage: 10,
+      customId: `queue_${interaction.guild.id}`,
+      embedBuilder: (items, currentPage, totalPages) => {
+        const embed = new EmbedBuilder()
+          .setColor(Colors.Blue)
+          .setAuthor({
+            name: `播放佇列 | ${interaction.guild.name}`,
+            iconURL: interaction.guild.iconURL()!,
+          })
+          .setDescription(
+            items.length > 0
+              ? items.map((resource, i) => {
+                const index = (currentPage - 1) * 10 + i;
+                const item = hyperlink(resource.title.slice(0, 40), resource.url);
+                if (index === player.currentIndex && player.isPlaying) {
+                  return `${index + 1}. 🎵 ${item}`;
+                }
+                return `${index + 1}. ${item}`;
+              }).join('\n')
+              : '目前沒有任何項目，使用 `/add` 來新增項目',
+          )
+          .setFooter({
+            text: `Page ${currentPage}/${totalPages} • ${player.queue.length} items`,
+          });
+        return embed;
+      },
+    });
 
-    const description = [];
+    const reply = paginationManager.createReply();
+    const message = await interaction.editReply(reply as InteractionEditReplyOptions);
 
-    const [from, to] = range(player.queue.length, player.currentIndex);
+    const collector = message.createMessageComponentCollector({
+      time: 5 * 60 * 1000, // 5 minutes
+    });
 
-    for (let index = from; index < to; index++) {
-      const resource = player.queue[index];
-      const item = hyperlink(resource.title.slice(0, 40), resource.url);
-      if (index == player.currentIndex && player.isPlaying) {
-        description.push(bold(`🎵 ${item}`));
+    collector.on('collect', (i) => {
+      if (i.user.id !== interaction.user.id) {
+        void i.reply({
+          content: '❌ You cannot use these buttons',
+          ephemeral: true,
+        });
+        return;
       }
-      else {
-        description.push(item);
+
+      void paginationManager.handleInteraction(i);
+    });
+
+    collector.on('end', () => {
+      const disabledReply = { ...reply } as InteractionEditReplyOptions;
+      if (disabledReply.components) {
+        for (const row of disabledReply.components) {
+          if ('components' in row) {
+            for (const component of row.components) {
+              if ('setDisabled' in component) {
+                component.setDisabled(true);
+              }
+            }
+          }
+        }
       }
-    }
-
-    if (!description.length) {
-      embed.setDescription('-# 目前沒有任何項目，使用 `/add` 來新增項目*');
-    }
-    else {
-      embed.setDescription(orderedList(description, from + 1));
-    }
-
-    await interaction.editReply({
-      embeds: [embed],
+      void interaction.editReply(disabledReply);
     });
   },
 });

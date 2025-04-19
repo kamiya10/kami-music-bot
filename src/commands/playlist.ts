@@ -5,6 +5,7 @@ import { KamiCommand } from '@/core/command';
 import add from './playlist/add';
 import create from './playlist/create';
 import list from './playlist/list';
+import view from './playlist/view';
 
 const command = new KamiCommand({
   builder: new SlashCommandBuilder()
@@ -12,7 +13,7 @@ const command = new KamiCommand({
     .setNameLocalization('zh-TW', '播放清單')
     .setDescription('Manage your playlists')
     .setDescriptionLocalization('zh-TW', '管理你的播放清單'),
-  subcommands: [add, create, list],
+  subcommands: [add, create, list, view],
   async execute(interaction) {
     const subcommand = interaction.options.getSubcommand();
     switch (subcommand) {
@@ -25,6 +26,9 @@ const command = new KamiCommand({
       case 'list':
         await list.execute.call(this, interaction);
         break;
+      case 'view':
+        await view.execute.call(this, interaction);
+        break;
     }
   },
   onAutocomplete(interaction) {
@@ -32,6 +36,9 @@ const command = new KamiCommand({
     switch (subcommand) {
       case 'add':
         add.onAutocomplete!.call(this, interaction);
+        break;
+      case 'view':
+        view.onAutocomplete!.call(this, interaction);
         break;
     }
   },
