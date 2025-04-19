@@ -106,7 +106,7 @@ export default new KamiSubcommand({
         }
 
         const resource = KamiResource.youtube(this, video).setMember(interaction.member);
-        player.addResource(resource, before);
+        await player.addResource(resource, before);
 
         embed
           .setColor(Colors.Green)
@@ -120,7 +120,7 @@ export default new KamiSubcommand({
           .filter((v) => v.duration)
           .map((v) => KamiResource.youtube(this, v).setMember(interaction.member));
 
-        player.addResource(resources, before);
+        await player.addResource(resources, before);
 
         const description: string[] = resources
           .slice(0, 5)
