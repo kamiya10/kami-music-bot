@@ -1,4 +1,4 @@
-import { Colors, EmbedBuilder, Events } from 'discord.js';
+import { Colors, EmbedBuilder, Events, MessageFlags } from 'discord.js';
 
 import { EventHandler } from '@/core/event';
 
@@ -66,7 +66,7 @@ export default new EventHandler({
           player.destroy();
           await interaction.reply({
             content: '👋',
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
           });
           return;
       }
