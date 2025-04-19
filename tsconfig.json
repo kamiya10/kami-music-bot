@@ -28,6 +28,12 @@
       "&/*": [
         "./src/commands/*"
       ],
+      "$": [
+        "./src/contexts"
+      ],
+      "$/*": [
+        "./src/contexts/*"
+      ],
       "@/*": [
         "./src/*"
       ],
