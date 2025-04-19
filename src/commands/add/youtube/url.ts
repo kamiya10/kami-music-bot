@@ -1,9 +1,12 @@
 import { Colors, EmbedBuilder, MessageFlags, SlashCommandIntegerOption, SlashCommandStringOption, SlashCommandSubcommandBuilder, hyperlink, unorderedList } from 'discord.js';
+import { eq } from 'drizzle-orm';
 
+import { KamiResource, Platform } from '@/core/resource';
 import { fetchPlaylist, fetchVideo, parseUrl } from '@/api/youtube';
 import { KamiMusicPlayer } from '@/core/player';
-import { KamiResource } from '@/core/resource';
 import { KamiSubcommand } from '@/core/command';
+import { db } from '@/database';
+import { resource as resourceTable } from '@/database/schema';
 
 const inputOption = new SlashCommandStringOption()
   .setName('input')
@@ -94,24 +97,42 @@ export default new KamiSubcommand({
 
     try {
       if (ids.video) {
-        const video = await fetchVideo(ids.video);
+        const resourceId = `${ids.video}@${Platform.YouTube}`;
+        const existingResource = await db.query.resource.findFirst({
+          where: eq(resourceTable.resourceId, resourceId),
+        });
 
-        if (!video.duration) {
-          embed
-            .setColor(Colors.Red)
-            .setDescription('❌ 無效的 YouTube 連結（影片未公開或尚未上映）');
+        let video;
+        if (existingResource) {
+          video = new KamiResource(this, {
+            type: Platform.YouTube,
+            id: existingResource.id,
+            title: existingResource.title,
+            length: existingResource.length,
+            url: existingResource.url,
+            thumbnail: existingResource.thumbnail,
+          });
+        }
+        else {
+          const ytVideo = await fetchVideo(ids.video);
+          if (!ytVideo.duration) {
+            embed
+              .setColor(Colors.Red)
+              .setDescription('❌ 無效的 YouTube 連結（影片未公開或尚未上映）');
 
-          await edit();
-          return;
+            await edit();
+            return;
+          }
+          video = KamiResource.youtube(this, ytVideo);
         }
 
-        const resource = KamiResource.youtube(this, video).setMember(interaction.member);
+        const resource = video.setMember(interaction.member);
         await player.addResource(resource, before);
 
         embed
           .setColor(Colors.Green)
           .setDescription(`✅ ${hyperlink(resource.title, resource.url)} 已加到播放佇列`)
-          .setThumbnail(video.thumbnail.url);
+          .setThumbnail(video.thumbnail);
       }
       else if (ids.playlist) {
         const playlist = await fetchPlaylist(ids.playlist);

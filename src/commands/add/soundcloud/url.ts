@@ -1,9 +1,12 @@
 import { Colors, EmbedBuilder, MessageFlags, SlashCommandIntegerOption, SlashCommandStringOption, SlashCommandSubcommandBuilder, hyperlink } from 'discord.js';
+import { eq } from 'drizzle-orm';
 import { SoundCloud as sc } from 'scdl-core';
 
+import { KamiResource, Platform } from '@/core/resource';
 import { KamiMusicPlayer } from '@/core/player';
-import { KamiResource } from '@/core/resource';
 import { KamiSubcommand } from '@/core/command';
+import { db } from '@/database';
+import { resource as resourceTable } from '@/database/schema';
 
 await sc.connect();
 
@@ -93,24 +96,56 @@ export default new KamiSubcommand({
     }
 
     try {
-      const track = await sc.tracks.getTrack(input);
-
-      if (!track.streamable) {
+      // Try to extract track ID from URL
+      const match = /soundcloud\.com\/[^/]+\/([^/?]+)/.exec(input);
+      if (!match) {
         embed
           .setColor(Colors.Red)
-          .setDescription('❌ 無效的 SoundCloud 資源（無法串流）');
+          .setDescription('❌ 無效的 SoundCloud 連結格式');
 
         await edit();
         return;
       }
 
-      const resource = KamiResource.soundcloud(this, track).setMember(interaction.member);
-      player.addResource(resource, before);
+      const trackPath = match[0];
+      const resourceId = `${trackPath}@${Platform.SoundCloud}`;
+
+      const existingResource = await db.query.resource.findFirst({
+        where: eq(resourceTable.resourceId, resourceId),
+      });
+
+      let resource;
+      if (existingResource) {
+        resource = new KamiResource(this, {
+          type: Platform.SoundCloud,
+          id: existingResource.id,
+          title: existingResource.title,
+          length: existingResource.length,
+          url: existingResource.url,
+          thumbnail: existingResource.thumbnail,
+        }).setMember(interaction.member);
+      }
+      else {
+        const track = await sc.tracks.getTrack(input);
+
+        if (!track.streamable) {
+          embed
+            .setColor(Colors.Red)
+            .setDescription('❌ 無效的 SoundCloud 資源（無法串流）');
+
+          await edit();
+          return;
+        }
+
+        resource = KamiResource.soundcloud(this, track).setMember(interaction.member);
+      }
+
+      await player.addResource(resource, before);
 
       embed
         .setColor(Colors.Green)
         .setDescription(`✅ ${hyperlink(resource.title, resource.url)} 已加到播放佇列`)
-        .setThumbnail(track.artwork_url ?? '');
+        .setThumbnail(resource.thumbnail);
     }
     catch (error) {
       embed
