@@ -21,6 +21,7 @@
     - [ ] `/add spotify url`
     - [ ] `/add spotify search`
   - [ ] `/add file`
+  - [x] `/add playlist`
 - [x] `/clear`
 - [x] `/connect`
 - [x] `/current`
@@ -29,6 +30,14 @@
 - [x] `/lock`
 - [x] `/next`
 - [ ] `/player`
+- [x] `/playlist`
+  - [x] `/playlist add`
+  - [x] `/playlist clear`
+  - [x] `/playlist create`
+  - [x] `/playlist delete`
+  - [x] `/playlist list`
+  - [x] `/playlist remove`
+  - [x] `/playlist view`
 - [x] `/prev`
 - [x] `/queue`
 - [x] `/remove`
