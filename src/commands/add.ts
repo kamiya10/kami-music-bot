@@ -3,6 +3,7 @@ import { SlashCommandBuilder } from 'discord.js';
 import { KamiCommand } from '@/core/command';
 import { Platform } from '@/core/resource';
 
+import file from './add/file';
 import playlist from './add/playlist';
 import soundcloud from './add/soundcloud';
 import youtube from './add/youtube';
@@ -16,7 +17,7 @@ export default new KamiCommand({
     .setDescriptionLocalization('ja', 'キューにリソースを追加する')
     .setDescriptionLocalization('zh-TW', '新增資源到播放器的播放佇列'),
   groups: [youtube, soundcloud],
-  subcommands: [playlist],
+  subcommands: [file, playlist],
   execute(interaction) {
     const group = interaction.options.getSubcommandGroup();
     switch (group) {
@@ -29,6 +30,9 @@ export default new KamiCommand({
     }
     const subcommand = interaction.options.getSubcommand();
     switch (subcommand) {
+      case 'file':
+        file.execute.call(this, interaction);
+        return;
       case 'playlist':
         playlist.execute.call(this, interaction);
         return;

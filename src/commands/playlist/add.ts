@@ -1,12 +1,15 @@
 import { ActionRowBuilder, AutocompleteInteraction, ButtonBuilder, ButtonInteraction, ButtonStyle, Colors, ComponentType, EmbedBuilder, SlashCommandStringOption, SlashCommandSubcommandBuilder } from 'discord.js';
-import { type InferSelectModel, eq } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 
 import { KamiSubcommand } from '@/core/command';
+import { Platform } from '@/core/resource';
 import { db } from '@/database';
 import { deferEphemeral } from '@/utils/callback';
 import { playlist as playlistTable } from '@/database/schema/playlist';
+import { user } from '@/utils/embeds';
 
 import type { ChatInputCommandInteraction } from 'discord.js';
+import type { InferSelectModel } from 'drizzle-orm';
 import type { KamiResource } from '@/core/resource';
 
 const nameOption = new SlashCommandStringOption()
@@ -80,7 +83,7 @@ export default new KamiSubcommand({
   builder: new SlashCommandSubcommandBuilder()
     .setName('add')
     .setNameLocalization('zh-TW', '加入')
-    .setDescription('Add currently playing song to a playlist')
+    .setDescription('Add currently playing resource to a playlist')
     .setDescriptionLocalization('zh-TW', '將目前播放的歌曲加入播放清單')
     .addStringOption(nameOption),
   async onAutocomplete(interaction: AutocompleteInteraction<'cached'>) {
@@ -112,14 +115,20 @@ export default new KamiSubcommand({
     const player = this.players.get(interaction.guildId);
 
     if (!player?.currentResource) {
-      const embed = new EmbedBuilder()
-        .setColor(Colors.Red)
-        .setAuthor({
-          name: `播放清單 | ${interaction.guild.name}`,
-          iconURL: interaction.guild.iconURL() ?? undefined,
-        })
-        .setDescription('❌ 目前沒有正在播放的歌曲')
-        .setTimestamp();
+      const embed = user(interaction)
+        .error('❌ 目前沒有正在播放的歌曲')
+        .embed;
+
+      await interaction.editReply({
+        embeds: [embed],
+      });
+      return;
+    }
+
+    if (player.currentResource.metadata.type === Platform.File) {
+      const embed = user(interaction)
+        .error('❌ 無法將自定音檔加入至播放清單')
+        .embed;
 
       await interaction.editReply({
         embeds: [embed],
@@ -128,7 +137,6 @@ export default new KamiSubcommand({
     }
 
     try {
-      // Get the playlist
       const targetPlaylist = await db.query.playlist.findFirst({
         where: (playlist, { and }) => and(
           eq(playlist.name, name),
@@ -137,14 +145,9 @@ export default new KamiSubcommand({
       });
 
       if (!targetPlaylist) {
-        const embed = new EmbedBuilder()
-          .setColor(Colors.Red)
-          .setAuthor({
-            name: `播放清單 | ${interaction.guild.name}`,
-            iconURL: interaction.guild.iconURL() ?? undefined,
-          })
-          .setDescription(`❌ 找不到名為 "${name}" 的播放清單`)
-          .setTimestamp();
+        const embed = user(interaction)
+          .error(`❌ 找不到名為 "${name}" 的播放清單`)
+          .embed;
 
         await interaction.editReply({
           embeds: [embed],
@@ -152,8 +155,8 @@ export default new KamiSubcommand({
         return;
       }
 
-      // Add the current resource to the playlist if not already present
       const resourceId = `${player.currentResource.metadata.id}@${player.currentResource.metadata.type}`;
+
       if (!targetPlaylist.resources.includes(resourceId)) {
         await addToPlaylist(
           interaction,
@@ -168,10 +171,6 @@ export default new KamiSubcommand({
               .setCustomId('add_anyway')
               .setLabel('仍要加入')
               .setStyle(ButtonStyle.Primary),
-            new ButtonBuilder()
-              .setCustomId('cancel')
-              .setLabel('取消')
-              .setStyle(ButtonStyle.Secondary),
           );
 
         const embed = new EmbedBuilder()
@@ -203,9 +202,6 @@ export default new KamiSubcommand({
               player.currentResource.metadata,
             );
           }
-          else {
-            await interaction.deleteReply();
-          }
         }
         catch (error) {
           await interaction.deleteReply();
@@ -213,14 +209,9 @@ export default new KamiSubcommand({
       }
     }
     catch (error) {
-      const embed = new EmbedBuilder()
-        .setColor(Colors.Red)
-        .setAuthor({
-          name: `播放清單 | ${interaction.guild.name}`,
-          iconURL: interaction.guild.iconURL() ?? undefined,
-        })
-        .setDescription('❌ 加入播放清單失敗，請稍後再試')
-        .setTimestamp();
+      const embed = user(interaction)
+        .error('❌ 加入播放清單失敗，請稍後再試')
+        .embed;
 
       await interaction.editReply({
         embeds: [embed],

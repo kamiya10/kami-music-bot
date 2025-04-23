@@ -99,6 +99,11 @@ export class KamiResource {
     return this;
   }
 
+  setCache(cache: string) {
+    this.cache = cache;
+    return this;
+  }
+
   static youtube(client: KamiClient, video: Video): KamiResource {
     return new KamiResource(client, {
       type: Platform.YouTube,
@@ -145,4 +150,5 @@ export class KamiResource {
 export enum Platform {
   YouTube = 'youtube',
   SoundCloud = 'soundcloud',
+  File = 'file',
 }

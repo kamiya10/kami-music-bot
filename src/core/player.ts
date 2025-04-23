@@ -1,4 +1,4 @@
-import { createReadStream, existsSync, writeFileSync } from 'node:fs';
+import { createReadStream, existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { pipeline } from 'node:stream';
 
@@ -112,6 +112,7 @@ export class KamiMusicPlayer {
   subscription?: PlayerSubscription;
   player?: AudioPlayer;
   message: Message | null = null;
+  tempFolderPath: string;
 
   queue = [] as KamiResource[];
   currentIndex = 0;
@@ -161,6 +162,13 @@ export class KamiMusicPlayer {
     this.text = text;
     this.voice = voice;
     this.guild = voice.guild;
+
+    // Create temporary folder for this player instance
+    this.tempFolderPath = join(this.client.cacheFolderPath, 'temp', this.guild.id);
+    if (!existsSync(this.tempFolderPath)) {
+      mkdirSync(this.tempFolderPath, { recursive: true });
+    }
+
     this.connect();
 
     this.player = createAudioPlayer();
@@ -532,13 +540,17 @@ export class KamiMusicPlayer {
 
     this.queue.splice(index, 0, ...resource);
 
-    await db
-      .insert(resourceTable)
-      .values(resource.map((v) => ({ ...v.toJSON(), resourceId: `${v.id}@${v.type}` })))
-      .onConflictDoNothing({
-        target: [resourceTable.resourceId],
-      })
-      .catch(logError);
+    const nonFileResources = resource.filter((v) => v.type != Platform.File);
+
+    if (nonFileResources.length > 0) {
+      await db
+        .insert(resourceTable)
+        .values(nonFileResources.map((v) => ({ ...v.toJSON(), resourceId: `${v.id}@${v.type}` })))
+        .onConflictDoNothing({
+          target: [resourceTable.resourceId],
+        })
+        .catch(logError);
+    }
 
     if (this.isPlaying && this.currentResource) {
       this.currentIndex = this.queue.indexOf(current);
@@ -724,6 +736,11 @@ export class KamiMusicPlayer {
   destroy() {
     if (this.message) {
       void this.message.delete().catch(logError);
+    }
+
+    // Clean up temporary folder
+    if (existsSync(this.tempFolderPath)) {
+      rmSync(this.tempFolderPath, { recursive: true, force: true });
     }
 
     clearInterval(this._lyricsTimer);

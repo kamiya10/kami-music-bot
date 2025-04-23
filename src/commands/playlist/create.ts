@@ -1,7 +1,7 @@
-import { SlashCommandBooleanOption, SlashCommandStringOption, SlashCommandSubcommandBuilder, bold } from 'discord.js';
+import { MessageFlags, SlashCommandBooleanOption, SlashCommandStringOption, SlashCommandSubcommandBuilder, bold } from 'discord.js';
 import { nanoid } from 'nanoid';
 
-import { KamiResource } from '@/core/resource';
+import { KamiResource, Platform } from '@/core/resource';
 import { KamiSubcommand } from '@/core/command';
 import Logger from '@/utils/logger';
 import { db } from '@/database';
@@ -41,8 +41,22 @@ export default new KamiSubcommand({
     const resources: string[] = [];
     if (saveQueue && interaction.guildId) {
       const queue = getQueue(interaction.guildId);
+
       if (queue?.resources) {
-        resources.push(...queue.resources.map((resource: KamiResource) => resource.id));
+        const validResources = queue.resources.filter((resource: KamiResource) => resource.type !== Platform.File);
+
+        if (validResources.length < queue.resources.length) {
+          const warnEmbed = user(interaction)
+            .warn('自定音檔將不會被加入至播放清單')
+            .embed;
+
+          await interaction.followUp({
+            embeds: [warnEmbed],
+            flags: [MessageFlags.Ephemeral],
+          });
+        }
+
+        resources.push(...validResources.map((resource: KamiResource) => `${resource.id}@${resource.type}`));
       }
     }
 

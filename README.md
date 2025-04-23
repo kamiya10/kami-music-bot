@@ -20,7 +20,7 @@
   - [ ] spotify
     - [ ] `/add spotify url`
     - [ ] `/add spotify search`
-  - [ ] `/add file`
+  - [x] `/add file`
   - [x] `/add playlist`
 - [x] `/clear`
 - [x] `/connect`
