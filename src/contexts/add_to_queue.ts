@@ -85,7 +85,7 @@ export default new KamiContext({
       try {
         const resource = await resolver.resolve(url);
         if (resource) {
-          resources.push(resource);
+          resources.push(resource.setMember(interaction.member));
         }
       }
       catch (error) {
@@ -109,7 +109,7 @@ export default new KamiContext({
     if (resources.length === 1) {
       embed
         .setColor(Colors.Green)
-        .setDescription(`✅ 已加入播放佇列：${resources[0].title}`);
+        .setDescription(`✅ 已將「${hyperlink(resources[0].title, resources[0].url)}」加入播放佇列`);
     }
     else {
       const description: string[] = resources

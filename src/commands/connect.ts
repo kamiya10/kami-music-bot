@@ -6,8 +6,10 @@ import { KamiMusicPlayer } from '@/core/player';
 export default new KamiCommand({
   builder: new SlashCommandBuilder()
     .setName('connect')
+    .setNameLocalization('ja', '接続')
     .setNameLocalization('zh-TW', '加入語音')
     .setDescription('Connect to the voice channel you currently in.')
+    .setDescriptionLocalization('ja', '現在いるボイスチャンネルに接続する')
     .setDescriptionLocalization('zh-TW', '嘗試讓機器人加入語音頻道，當機器人突然離開語音頻道時可以用這個指令'),
   async execute(interaction) {
     await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });

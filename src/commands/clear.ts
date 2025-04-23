@@ -5,8 +5,10 @@ import { KamiCommand } from '@/core/command';
 export default new KamiCommand({
   builder: new SlashCommandBuilder()
     .setName('clear')
+    .setNameLocalization('ja', 'クリア')
     .setNameLocalization('zh-TW', '清除')
     .setDescription('Clears the player\'s queue')
+    .setDescriptionLocalization('ja', 'プレイヤーのキューをクリアする')
     .setDescriptionLocalization('zh-TW', '清除播放器的播放佇列'),
   async execute(interaction) {
     await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });

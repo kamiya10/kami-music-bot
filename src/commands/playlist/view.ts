@@ -1,5 +1,5 @@
 import { Colors, EmbedBuilder, SlashCommandStringOption, SlashCommandSubcommandBuilder, hyperlink } from 'discord.js';
-import { eq, inArray } from 'drizzle-orm';
+import { and, eq, inArray } from 'drizzle-orm';
 
 import { KamiSubcommand } from '@/core/command';
 import Logger from '@/utils/logger';
@@ -37,24 +37,15 @@ export default new KamiSubcommand({
 
     try {
       const playlistData = await db.query.playlist.findFirst({
-        where: eq(playlist.name, playlistName),
-        with: {
-          resources: true,
-        },
+        where: and(
+          eq(playlist.name, playlistName),
+          eq(playlist.ownerId, userId),
+        ),
       });
 
       if (!playlistData) {
         const embed = user(interaction)
           .error('找不到播放清單')
-          .embed;
-
-        await interaction.editReply({ embeds: [embed] });
-        return;
-      }
-
-      if (playlistData.ownerId !== userId) {
-        const embed = user(interaction)
-          .error('你沒有權限查看這個播放清單')
           .embed;
 
         await interaction.editReply({ embeds: [embed] });

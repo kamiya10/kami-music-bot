@@ -1,4 +1,4 @@
-import { ButtonInteraction, ChatInputCommandInteraction, MessageContextMenuCommandInteraction, StringSelectMenuInteraction, hyperlink } from 'discord.js';
+import { ButtonInteraction, ChatInputCommandInteraction, MessageContextMenuCommandInteraction, StringSelectMenuInteraction, bold, hyperlink } from 'discord.js';
 import { type InferSelectModel, eq } from 'drizzle-orm';
 
 import { db } from '@/database';
@@ -28,8 +28,8 @@ export const addToPlaylist = async (
     const embed = createPlaylistEmbed({
       user: interaction.member,
       description: resources.length === 1
-        ? `✅ 已將 "${hyperlink(resources[0].title, resources[0].url)}" 加入播放清單 "${playlist.name}"`
-        : `✅ 已將 ${resources.length} 個資源加入播放清單 "${playlist.name}"`,
+        ? `✅ 已將「${bold(hyperlink(resources[0].title, resources[0].url))}」加入播放清單「${bold(playlist.name)}」`
+        : `✅ 已將 ${resources.length} 個資源加入播放清單「${bold(playlist.name)}」`,
       thumbnail: resources[0].thumbnail,
     });
 

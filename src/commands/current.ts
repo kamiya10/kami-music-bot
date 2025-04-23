@@ -7,8 +7,10 @@ import { RepeatModeName } from '@/core/player';
 export default new KamiCommand({
   builder: new SlashCommandBuilder()
     .setName('current')
+    .setNameLocalization('ja', '再生中')
     .setNameLocalization('zh-TW', '目前播放')
     .setDescription('Display the current playing resource')
+    .setDescriptionLocalization('ja', '現在再生中の曲を表示する')
     .setDescriptionLocalization('zh-TW', '查看目前正在播放的資源'),
   async execute(interaction) {
     await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });

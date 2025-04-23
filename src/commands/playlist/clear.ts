@@ -10,15 +10,15 @@ import { user } from '@/utils/embeds';
 
 export default new KamiSubcommand({
   builder: new SlashCommandSubcommandBuilder()
-    .setName('delete')
-    .setNameLocalization('zh-TW', '刪除')
-    .setDescription('Delete a playlist')
-    .setDescriptionLocalization('zh-TW', '刪除播放清單')
+    .setName('clear')
+    .setNameLocalization('zh-TW', '清空')
+    .setDescription('Clear all songs from a playlist')
+    .setDescriptionLocalization('zh-TW', '清空播放清單中的所有歌曲')
     .addStringOption(new SlashCommandStringOption()
       .setName('name')
       .setNameLocalization('zh-TW', '名稱')
-      .setDescription('The name of the playlist to delete')
-      .setDescriptionLocalization('zh-TW', '要刪除的播放清單名稱')
+      .setDescription('The name of the playlist to clear')
+      .setDescriptionLocalization('zh-TW', '要清空的播放清單名稱')
       .setRequired(true)
       .setAutocomplete(true),
     ),
@@ -45,16 +45,18 @@ export default new KamiSubcommand({
       return;
     }
 
+    const songCount = playlistData.resources.length;
+
     const row = new ActionRowBuilder<ButtonBuilder>()
       .addComponents(
         new ButtonBuilder()
-          .setCustomId('confirm_delete')
-          .setLabel('確認刪除')
+          .setCustomId('confirm_clear')
+          .setLabel('確認清空')
           .setStyle(ButtonStyle.Danger),
       );
 
     const confirmEmbed = user(interaction)
-      .warn(`確定要刪除播放清單「${bold(playlistName)}」嗎？這個動作無法復原。`)
+      .warn(`確定要清空播放清單「${bold(playlistName)}」中的 ${bold(songCount.toString())} 首歌曲嗎？這個動作無法復原。`)
       .embed;
 
     const response = await interaction.editReply({
@@ -70,10 +72,12 @@ export default new KamiSubcommand({
       });
 
       try {
-        await db.delete(playlist).where(eq(playlist.id, playlistData.id));
+        await db.update(playlist)
+          .set({ resources: [], updatedAt: new Date() })
+          .where(eq(playlist.id, playlistData.id));
 
         const successEmbed = user(confirmation.member, '播放清單')
-          .success(`已刪除播放清單「${bold(playlistName)}」`)
+          .success(`已從播放清單「${bold(playlistName)}」中清除了 ${bold(songCount.toString())} 首歌曲`)
           .embed;
 
         await confirmation.update({
@@ -82,10 +86,10 @@ export default new KamiSubcommand({
         });
       }
       catch (error) {
-        Logger.error('Playlist delete failed', error);
+        Logger.error('Playlist clear failed', error);
 
         const errorEmbed = user(confirmation.member, '播放清單')
-          .error('刪除播放清單失敗，請稍後再試')
+          .error('清空播放清單失敗，請稍後再試')
           .embed;
 
         await confirmation.update({
@@ -95,10 +99,10 @@ export default new KamiSubcommand({
       }
     }
     catch {
-      Logger.error('Playlist delete timeout');
+      Logger.error('Playlist clear timeout');
 
       const timeoutEmbed = user(interaction)
-        .gray('操作逾時，已取消刪除播放清單')
+        .gray('操作逾時，已取消清空播放清單')
         .embed;
 
       await interaction.editReply({

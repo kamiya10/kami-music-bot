@@ -5,8 +5,10 @@ import { KamiCommand } from '@/core/command';
 export default new KamiCommand({
   builder: new SlashCommandBuilder()
     .setName('next')
+    .setNameLocalization('ja', '次へ')
     .setNameLocalization('zh-TW', '下一個')
     .setDescription('Play next resource')
+    .setDescriptionLocalization('ja', '次の曲を再生する')
     .setDescriptionLocalization('zh-TW', '播放下一個資源'),
   async execute(interaction) {
     await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });

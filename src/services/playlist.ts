@@ -1,4 +1,4 @@
-import { ButtonInteraction, Colors, ComponentType, InteractionResponse, Message, MessageContextMenuCommandInteraction, StringSelectMenuInteraction, hyperlink } from 'discord.js';
+import { ButtonInteraction, Colors, ComponentType, InteractionResponse, Message, MessageContextMenuCommandInteraction, StringSelectMenuInteraction, bold, hyperlink } from 'discord.js';
 import { type InferSelectModel } from 'drizzle-orm';
 import { eq } from 'drizzle-orm';
 
@@ -49,8 +49,8 @@ export class PlaylistService {
     const embed = createPlaylistEmbed({
       user: interaction.member,
       description: duplicateResources.length === 1
-        ? `⚠️ "${hyperlink(duplicateResources[0].title, duplicateResources[0].url)}" 已經在播放清單 "${playlist.name}" 中`
-        : `⚠️ ${duplicateResources.length} 個資源已經在播放清單 "${playlist.name}" 中\n${duplicateResources.map((r) => `• ${r.title}`).join('\n')}`,
+        ? `⚠️ 「${bold(hyperlink(duplicateResources[0].title, duplicateResources[0].url))}」已經在播放清單「${bold(playlist.name)}」中`
+        : `⚠️ ${duplicateResources.length} 個資源已經在播放清單「${bold(playlist.name)}」中\n${duplicateResources.map((r) => `• ${r.title}`).join('\n')}`,
       thumbnail: duplicateResources.length === 1 ? duplicateResources[0].thumbnail : undefined,
       color: Colors.Yellow,
     });
@@ -84,7 +84,7 @@ export class PlaylistService {
     const embed = createPlaylistEmbed({
       user: interaction.member,
       description: resourceArray.length === 1
-        ? `請選擇要將 "${hyperlink(resourceArray[0].title, resourceArray[0].url)}" 加入哪個播放清單`
+        ? `請選擇要將「${hyperlink(resourceArray[0].title, resourceArray[0].url)}」加入哪個播放清單`
         : `請選擇要將 ${resourceArray.length} 個資源加入哪個播放清單`,
       thumbnail: resourceArray.length === 1 ? resourceArray[0].thumbnail : undefined,
     });

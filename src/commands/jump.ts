@@ -4,15 +4,19 @@ import { KamiCommand } from '@/core/command';
 
 const indexOption = new SlashCommandIntegerOption()
   .setName('index')
+  .setNameLocalization('ja', '位置')
   .setDescription('The index of the resource in the queue to jump to')
+  .setDescriptionLocalization('ja', 'ジャンプする曲の位置')
   .setMinValue(1)
   .setRequired(true);
 
 export default new KamiCommand({
   builder: new SlashCommandBuilder()
     .setName('jump')
+    .setNameLocalization('ja', 'ジャンプ')
     .setNameLocalization('zh-TW', '跳至')
     .setDescription('Jump to specific index in the queue')
+    .setDescriptionLocalization('ja', 'キュー内の特定の位置にジャンプする')
     .setDescriptionLocalization('zh-TW', '跳至播放佇列中的指定位置')
     .addIntegerOption(indexOption),
   async execute(interaction) {

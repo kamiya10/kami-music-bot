@@ -4,15 +4,19 @@ import { KamiCommand } from '@/core/command';
 
 const stateOption = new SlashCommandBooleanOption()
   .setName('state')
+  .setNameLocalization('ja', '状態')
   .setNameLocalization('zh-TW', '狀態')
   .setDescription('The state of the lock.')
+  .setDescriptionLocalization('ja', 'プレイヤーのロック状態')
   .setDescriptionLocalization('zh-TW', '播放器的鎖定狀態');
 
 export default new KamiCommand({
   builder: new SlashCommandBuilder()
     .setName('lock')
+    .setNameLocalization('ja', 'ロック')
     .setNameLocalization('zh-TW', '鎖定')
     .setDescription('Toggle the lock state of the player.')
+    .setDescriptionLocalization('ja', 'プレイヤーのロック状態を切り替える')
     .setDescriptionLocalization('zh-TW', '切換播放器的鎖定狀態')
     .addBooleanOption(stateOption),
   async execute(interaction) {

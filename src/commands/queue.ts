@@ -8,8 +8,10 @@ import type { InteractionEditReplyOptions } from 'discord.js';
 export default new KamiCommand({
   builder: new SlashCommandBuilder()
     .setName('queue')
+    .setNameLocalization('ja', 'キュー')
     .setNameLocalization('zh-TW', '播放佇列')
     .setDescription('Display the current player\'s queue.')
+    .setDescriptionLocalization('ja', '現在のプレイヤーのキューを表示する')
     .setDescriptionLocalization('zh-TW', '查看播放器的播放佇列'),
 
   async execute(interaction) {
