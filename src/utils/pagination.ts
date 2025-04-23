@@ -1,6 +1,8 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, MessageComponentInteraction } from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, CommandInteraction, EmbedBuilder, MessageComponentInteraction } from 'discord.js';
 
-import type { InteractionReplyOptions, InteractionUpdateOptions } from 'discord.js';
+import Logger from '../utils/logger';
+
+import type { InteractionEditReplyOptions, InteractionReplyOptions, InteractionUpdateOptions } from 'discord.js';
 
 export interface PaginationOptions<T> {
   items: T[];
@@ -88,5 +90,35 @@ export class PaginationManager<T> {
 
     const reply = this.createReply();
     await interaction.update(reply as InteractionUpdateOptions);
+  }
+
+  public async handle(interaction: CommandInteraction): Promise<void> {
+    try {
+      const reply = this.createReply();
+      const message = await interaction.editReply(reply as InteractionEditReplyOptions);
+
+      // If there's only one page, no need to set up collectors
+      if (this.items.length <= this.itemsPerPage) return;
+
+      const collector = message.createMessageComponentCollector({
+        time: 5 * 60 * 1000, // 5 minutes
+      });
+
+      collector.on('collect', (i) => {
+        if (i.user.id !== interaction.user.id) return;
+
+        void this.handleInteraction(i).catch((error) => {
+          Logger.error('Failed to handle pagination interaction', error);
+        });
+      });
+
+      collector.on('end', () => {
+        const disabledReply = { ...reply, components: [] } as InteractionEditReplyOptions;
+        void interaction.editReply(disabledReply);
+      });
+    }
+    catch (error) {
+      Logger.error('Failed to setup pagination', error);
+    }
   }
 }

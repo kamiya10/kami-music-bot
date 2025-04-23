@@ -1,25 +1,26 @@
-import { Colors, EmbedBuilder, MessageFlags, SlashCommandSubcommandBuilder, hyperlink } from 'discord.js';
-import { eq } from 'drizzle-orm';
+import { Colors, EmbedBuilder, SlashCommandStringOption, SlashCommandSubcommandBuilder, hyperlink } from 'discord.js';
+import { eq, inArray } from 'drizzle-orm';
 
 import { KamiSubcommand } from '@/core/command';
+import Logger from '@/utils/logger';
 import { PaginationManager } from '@/utils/pagination';
 import { db } from '@/database';
 import { deferEphemeral } from '@/utils/callback';
 import { playlist } from '@/database/schema';
 import { resource } from '@/database/schema/resource';
+import { user } from '@/utils/embeds';
 
 import type { InferSelectModel } from 'drizzle-orm';
-import type { InteractionEditReplyOptions } from 'discord.js';
 
 type Resource = InferSelectModel<typeof resource>;
 
-const command = new KamiSubcommand({
+export default new KamiSubcommand({
   builder: new SlashCommandSubcommandBuilder()
     .setName('view')
     .setNameLocalization('zh-TW', '查看')
     .setDescription('View a playlist')
     .setDescriptionLocalization('zh-TW', '查看播放清單')
-    .addStringOption((option) => option
+    .addStringOption(new SlashCommandStringOption()
       .setName('name')
       .setNameLocalization('zh-TW', '名稱')
       .setDescription('The name of the playlist')
@@ -34,79 +35,68 @@ const command = new KamiSubcommand({
     const playlistName = interaction.options.getString('name', true);
     const userId = interaction.user.id;
 
-    // Get playlist
-    const playlistData = await db.query.playlist.findFirst({
-      where: eq(playlist.name, playlistName),
-      with: {
-        resources: true,
-      },
-    });
+    try {
+      const playlistData = await db.query.playlist.findFirst({
+        where: eq(playlist.name, playlistName),
+        with: {
+          resources: true,
+        },
+      });
 
-    if (!playlistData) {
-      const embed = new EmbedBuilder()
-        .setColor(Colors.Red)
-        .setDescription('❌ 找不到播放清單');
-      await interaction.editReply({ embeds: [embed] });
-      return;
-    }
+      if (!playlistData) {
+        const embed = user(interaction)
+          .error('找不到播放清單')
+          .embed;
 
-    if (playlistData.ownerId !== userId) {
-      const embed = new EmbedBuilder()
-        .setColor(Colors.Red)
-        .setDescription('❌ 你沒有權限查看這個播放清單');
-      await interaction.editReply({ embeds: [embed] });
-      return;
-    }
-
-    // Get resources for the playlist
-    const resources = await db.query.resource.findMany({
-      where: eq(resource.resourceId, playlistData.resources[0]),
-    });
-
-    const paginationManager = new PaginationManager<Resource>({
-      items: resources,
-      itemsPerPage: 10,
-      customId: `playlist_view_${playlistData.id}`,
-      embedBuilder: (items, currentPage, totalPages) => {
-        const embed = new EmbedBuilder()
-          .setColor(Colors.Blue)
-          .setTitle(`🎵 ${playlistData.name}`)
-          .setDescription(
-            items.length > 0
-              ? items.map((song, i) =>
-                `${(currentPage - 1) * 10 + i + 1}. ${hyperlink(song.title, song.url)}`,
-              ).join('\n')
-              : '這個播放清單沒有任何歌曲',
-          )
-          .setFooter({ text: `第 ${currentPage}/${totalPages} 頁 • ${resources.length} 首歌曲` });
-        return embed;
-      },
-    });
-
-    const reply = paginationManager.createReply();
-    const message = await interaction.editReply(reply as InteractionEditReplyOptions);
-
-    // Create collector for button interactions
-    const collector = message.createMessageComponentCollector({
-      time: 5 * 60 * 1000, // 5 minutes
-    });
-
-    collector.on('collect', (i) => {
-      if (i.user.id !== interaction.user.id) {
-        void i.reply({
-          content: '❌ 你不能使用這些按鈕',
-          flags: [MessageFlags.Ephemeral],
-        });
+        await interaction.editReply({ embeds: [embed] });
         return;
       }
 
-      void paginationManager.handleInteraction(i);
-    });
+      if (playlistData.ownerId !== userId) {
+        const embed = user(interaction)
+          .error('你沒有權限查看這個播放清單')
+          .embed;
 
-    collector.on('end', () => {
-      const disabledReply = { ...reply, components: [] } as InteractionEditReplyOptions;
-      void interaction.editReply(disabledReply);
-    });
+        await interaction.editReply({ embeds: [embed] });
+        return;
+      }
+
+      const resources = await db.query.resource.findMany({
+        where: inArray(resource.resourceId, playlistData.resources),
+      });
+
+      const paginationManager = new PaginationManager<Resource>({
+        items: resources,
+        itemsPerPage: 10,
+        customId: `playlist_view_${playlistData.id}`,
+        embedBuilder: (items, currentPage, totalPages) => {
+          const description = items.length > 0
+            ? items.map((song, i) =>
+              `${(currentPage - 1) * 10 + i + 1}. ${hyperlink(song.title, song.url)}`,
+            ).join('\n')
+            : '這個播放清單沒有任何歌曲';
+
+          const embed = new EmbedBuilder()
+            .setColor(Colors.Blue)
+            .setTitle(`🎵 ${playlistData.name}`)
+            .setDescription(description)
+            .setFooter({ text: `第 ${currentPage}/${totalPages} 頁 • ${resources.length} 首歌曲` });
+
+          return embed;
+        },
+      });
+
+      await paginationManager.handle(interaction);
+    }
+    catch (error) {
+      Logger.error('Failed to view playlist', error);
+
+      const embed = user(interaction)
+        .error('查看播放清單時發生錯誤，請稍後再試')
+        .embed;
+
+      await interaction.editReply({ embeds: [embed] });
+    }
   },
 
   async onAutocomplete(interaction) {
@@ -121,17 +111,15 @@ const command = new KamiSubcommand({
     });
 
     const filtered = userPlaylists
-      .map((p: { name: string }) => p.name)
-      .filter((name: string) => name.toLowerCase().includes(focusedValue.toLowerCase()))
+      .map((p) => p.name)
+      .filter((name) => name.toLowerCase().includes(focusedValue.toLowerCase()))
       .slice(0, 25);
 
     await interaction.respond(
-      filtered.map((name: string) => ({
+      filtered.map((name) => ({
         name,
         value: name,
       })),
     );
   },
 });
-
-export default command;

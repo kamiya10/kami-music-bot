@@ -194,3 +194,7 @@ export function formatLines(lyrics?: KamiLyric, bold = false, showRuby = true, s
 
   return lines.join('\n');
 }
+
+export function capitalize(str: string) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
