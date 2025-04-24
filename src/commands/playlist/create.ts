@@ -1,4 +1,4 @@
-import { EmbedBuilder, MessageFlags, SlashCommandBooleanOption, SlashCommandStringOption, SlashCommandSubcommandBuilder, bold } from 'discord.js';
+import { EmbedBuilder, SlashCommandBooleanOption, SlashCommandStringOption, SlashCommandSubcommandBuilder, bold } from 'discord.js';
 import { nanoid } from 'nanoid';
 
 import { KamiResource, Platform } from '@/core/resource';
