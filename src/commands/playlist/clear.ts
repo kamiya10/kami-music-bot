@@ -11,13 +11,17 @@ import { user } from '@/utils/embeds';
 export default new KamiSubcommand({
   builder: new SlashCommandSubcommandBuilder()
     .setName('clear')
+    .setNameLocalization('ja', 'クリア')
     .setNameLocalization('zh-TW', '清空')
     .setDescription('Clear all songs from a playlist')
+    .setDescriptionLocalization('ja', 'プレイリストの曲をすべて削除する')
     .setDescriptionLocalization('zh-TW', '清空播放清單中的所有歌曲')
     .addStringOption(new SlashCommandStringOption()
       .setName('name')
+      .setNameLocalization('ja', '名前')
       .setNameLocalization('zh-TW', '名稱')
       .setDescription('The name of the playlist to clear')
+      .setDescriptionLocalization('ja', 'クリアするプレイリストの名前')
       .setDescriptionLocalization('zh-TW', '要清空的播放清單名稱')
       .setRequired(true)
       .setAutocomplete(true),

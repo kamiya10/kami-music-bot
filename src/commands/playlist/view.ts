@@ -17,14 +17,18 @@ type Resource = InferSelectModel<typeof resource>;
 export default new KamiSubcommand({
   builder: new SlashCommandSubcommandBuilder()
     .setName('view')
-    .setNameLocalization('zh-TW', '查看')
-    .setDescription('View a playlist')
-    .setDescriptionLocalization('zh-TW', '查看播放清單')
+    .setNameLocalization('ja', '表示')
+    .setNameLocalization('zh-TW', '檢視')
+    .setDescription('View the contents of a playlist')
+    .setDescriptionLocalization('ja', 'プレイリストの内容を表示する')
+    .setDescriptionLocalization('zh-TW', '檢視播放清單的內容')
     .addStringOption(new SlashCommandStringOption()
       .setName('name')
+      .setNameLocalization('ja', '名前')
       .setNameLocalization('zh-TW', '名稱')
-      .setDescription('The name of the playlist')
-      .setDescriptionLocalization('zh-TW', '播放清單名稱')
+      .setDescription('The name of the playlist to view')
+      .setDescriptionLocalization('ja', '表示するプレイリストの名前')
+      .setDescriptionLocalization('zh-TW', '要檢視的播放清單名稱')
       .setRequired(true)
       .setAutocomplete(true),
     ),

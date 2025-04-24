@@ -12,23 +12,29 @@ await sc.connect();
 
 const inputOption = new SlashCommandStringOption()
   .setName('input')
+  .setNameLocalization('ja', '入力')
   .setNameLocalization('zh-TW', '連結')
-  .setDescription('The SoundCloud track URL of the resource')
-  .setDescriptionLocalization('zh-TW', '要新增至播放佇列的 SoundCloud 音軌連結')
+  .setDescription('The URL of the track to add')
+  .setDescriptionLocalization('ja', '追加するトラックのURL')
+  .setDescriptionLocalization('zh-TW', '要新增至播放佇列的音軌連結')
   .setRequired(true);
 
 const beforeOption = new SlashCommandIntegerOption()
   .setName('before')
+  .setNameLocalization('ja', '位置')
   .setNameLocalization('zh-TW', '位置')
   .setDescription('Put this resource before. (Insert at first: 1, leave empty to insert at last)')
+  .setDescriptionLocalization('ja', 'リソースを指定位置の前に追加する（最初: 1、空欄で最後に追加）')
   .setDescriptionLocalization('zh-TW', '資源加入的位置（最前端 = 1 ，留空來將資源加到播放佇列的最尾端）')
   .setMinValue(1);
 
 export default new KamiSubcommand({
   builder: new SlashCommandSubcommandBuilder()
     .setName('url')
+    .setNameLocalization('ja', 'url')
     .setNameLocalization('zh-TW', '連結')
     .setDescription('Add tracks from SoundCloud with url')
+    .setDescriptionLocalization('ja', 'SoundCloudのURLからトラックを追加する')
     .setDescriptionLocalization('zh-TW', '依 SoundCloud 連結新增資源到播放佇列')
     .addStringOption(inputOption)
     .addIntegerOption(beforeOption),

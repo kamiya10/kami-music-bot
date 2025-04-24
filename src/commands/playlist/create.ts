@@ -13,20 +13,26 @@ import { user } from '@/utils/embeds';
 export default new KamiSubcommand({
   builder: new SlashCommandSubcommandBuilder()
     .setName('create')
+    .setNameLocalization('ja', '作成')
     .setNameLocalization('zh-TW', '建立')
     .setDescription('Create a new playlist')
+    .setDescriptionLocalization('ja', '新しいプレイリストを作成する')
     .setDescriptionLocalization('zh-TW', '建立新的播放清單')
     .addStringOption(new SlashCommandStringOption()
       .setName('name')
+      .setNameLocalization('ja', '名前')
       .setNameLocalization('zh-TW', '名稱')
       .setDescription('Name of the playlist')
+      .setDescriptionLocalization('ja', 'プレイリストの名前')
       .setDescriptionLocalization('zh-TW', '播放清單名稱')
       .setRequired(true),
     )
     .addBooleanOption(new SlashCommandBooleanOption()
       .setName('save_queue')
+      .setNameLocalization('ja', 'キューを保存')
       .setNameLocalization('zh-TW', '保存佇列')
       .setDescription('Save current queue to the playlist')
+      .setDescriptionLocalization('ja', '現在のキューをプレイリストに保存する')
       .setDescriptionLocalization('zh-TW', '保存目前佇列到播放清單')
       .setRequired(false),
     ),

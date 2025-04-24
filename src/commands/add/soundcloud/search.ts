@@ -8,17 +8,21 @@ import { logError } from '@/utils/callback';
 
 const inputOption = new SlashCommandStringOption()
   .setName('track')
-  .setNameLocalization('zh-TW', '關鍵字')
+  .setNameLocalization('ja', 'トラック')
+  .setNameLocalization('zh-TW', '音軌')
   .setDescription('Search and select a track to add to the queue')
-  .setDescriptionLocalization('zh-TW', '搜尋並選擇音軌來新增到播放佇列中')
+  .setDescriptionLocalization('ja', 'トラックを検索して再生キューに追加する')
+  .setDescriptionLocalization('zh-TW', '搜尋並選擇音軌來新增資源到播放佇列中')
   .setMinLength(4)
   .setAutocomplete(true)
   .setRequired(true);
 
 const beforeOption = new SlashCommandIntegerOption()
   .setName('before')
+  .setNameLocalization('ja', '位置')
   .setNameLocalization('zh-TW', '位置')
   .setDescription('Put this resource before. (Insert at first: 1, leave empty to insert at last)')
+  .setDescriptionLocalization('ja', 'リソースを指定位置の前に追加する（最初: 1、空欄で最後に追加）')
   .setDescriptionLocalization('zh-TW', '資源加入的位置（最前端 = 1 ，留空來將資源加到播放佇列的最尾端）')
   .setMinValue(1);
 
@@ -27,8 +31,10 @@ const cache = new Collection<string, NodeJS.Timeout>();
 export default new KamiSubcommand({
   builder: new SlashCommandSubcommandBuilder()
     .setName('search')
+    .setNameLocalization('ja', '検索')
     .setNameLocalization('zh-TW', '搜尋')
     .setDescription('Add tracks from SoundCloud by search')
+    .setDescriptionLocalization('ja', 'SoundCloud検索でトラックを追加する')
     .setDescriptionLocalization('zh-TW', '依 SoundCloud 搜尋結果新增音軌到播放佇列')
     .addStringOption(inputOption)
     .addIntegerOption(beforeOption),
@@ -108,7 +114,7 @@ export default new KamiSubcommand({
       }
 
       const resource = KamiResource.soundcloud(this, track).setMember(interaction.member);
-      player.addResource(resource, before);
+      await player.addResource(resource, before);
 
       embed
         .setColor(Colors.Green)

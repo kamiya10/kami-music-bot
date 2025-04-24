@@ -10,23 +10,29 @@ import { resource as resourceTable } from '@/database/schema';
 
 const inputOption = new SlashCommandStringOption()
   .setName('input')
+  .setNameLocalization('ja', '入力')
   .setNameLocalization('zh-TW', '連結')
   .setDescription('The Watch URL/Video ID/Playlist URL/Playlist ID of the resource')
+  .setDescriptionLocalization('ja', '動画URL/動画ID/プレイリストURL/プレイリストIDを入力')
   .setDescriptionLocalization('zh-TW', '要新增至播放佇列的 影片連結 / 影片ID / 播放清單連結 / 播放清單ID')
   .setRequired(true);
 
 const beforeOption = new SlashCommandIntegerOption()
   .setName('before')
+  .setNameLocalization('ja', '位置')
   .setNameLocalization('zh-TW', '位置')
   .setDescription('Put this resource before. (Insert at first: 1, leave empty to insert at last)')
+  .setDescriptionLocalization('ja', 'リソースを指定位置の前に追加する（最初: 1、空欄で最後に追加）')
   .setDescriptionLocalization('zh-TW', '資源加入的位置（最前端 = 1 ，留空來將資源加到播放佇列的最尾端）')
   .setMinValue(1);
 
 export default new KamiSubcommand({
   builder: new SlashCommandSubcommandBuilder()
     .setName('url')
+    .setNameLocalization('ja', 'url')
     .setNameLocalization('zh-TW', '連結')
     .setDescription('Add videos from YouTube with url')
+    .setDescriptionLocalization('ja', 'YouTubeのURLから動画を追加する')
     .setDescriptionLocalization('zh-TW', '依 YouTube 連結新增資源到播放佇列')
     .addStringOption(inputOption)
     .addIntegerOption(beforeOption),

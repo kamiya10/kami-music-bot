@@ -14,8 +14,10 @@ import type { KamiResource } from '@/core/resource';
 
 const nameOption = new SlashCommandStringOption()
   .setName('name')
+  .setNameLocalization('ja', '名前')
   .setNameLocalization('zh-TW', '名稱')
   .setDescription('Name of the playlist to add to')
+  .setDescriptionLocalization('ja', '追加先のプレイリスト名')
   .setDescriptionLocalization('zh-TW', '要加入的播放清單名稱')
   .setRequired(true)
   .setAutocomplete(true);
@@ -82,9 +84,11 @@ const addToPlaylist = async (
 export default new KamiSubcommand({
   builder: new SlashCommandSubcommandBuilder()
     .setName('add')
+    .setNameLocalization('ja', '追加')
     .setNameLocalization('zh-TW', '加入')
-    .setDescription('Add currently playing resource to a playlist')
-    .setDescriptionLocalization('zh-TW', '將目前播放的歌曲加入播放清單')
+    .setDescription('Add current playing song to a playlist')
+    .setDescriptionLocalization('ja', '現在再生中の曲をプレイリストに追加する')
+    .setDescriptionLocalization('zh-TW', '將目前播放中的歌曲加入到播放清單')
     .addStringOption(nameOption),
   async onAutocomplete(interaction: AutocompleteInteraction<'cached'>) {
     const focusedValue = interaction.options.getFocused().toString();

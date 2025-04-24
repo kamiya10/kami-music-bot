@@ -11,16 +11,20 @@ import { user } from '@/utils/embeds';
 
 const nameOption = new SlashCommandStringOption()
   .setName('name')
+  .setNameLocalization('ja', '名前')
   .setNameLocalization('zh-TW', '名稱')
   .setDescription('Name of the playlist to remove from')
+  .setDescriptionLocalization('ja', '削除するプレイリストの名前')
   .setDescriptionLocalization('zh-TW', '要移除項目的播放清單名稱')
   .setRequired(true)
   .setAutocomplete(true);
 
 const indexOption = new SlashCommandIntegerOption()
   .setName('index')
+  .setNameLocalization('ja', '番号')
   .setNameLocalization('zh-TW', '編號')
   .setDescription('The index of the song to remove (starting from 1)')
+  .setDescriptionLocalization('ja', '削除する曲の番号（1から開始）')
   .setDescriptionLocalization('zh-TW', '要移除的項目編號（從1開始）')
   .setRequired(true)
   .setMinValue(1);
@@ -28,9 +32,11 @@ const indexOption = new SlashCommandIntegerOption()
 export default new KamiSubcommand({
   builder: new SlashCommandSubcommandBuilder()
     .setName('remove')
+    .setNameLocalization('ja', '曲を削除')
     .setNameLocalization('zh-TW', '移除')
-    .setDescription('Remove a song from your playlist')
-    .setDescriptionLocalization('zh-TW', '從播放清單中移除項目')
+    .setDescription('Remove a song from a playlist')
+    .setDescriptionLocalization('ja', 'プレイリストから曲を削除する')
+    .setDescriptionLocalization('zh-TW', '從播放清單中移除歌曲')
     .addStringOption(nameOption)
     .addIntegerOption(indexOption),
 

@@ -12,9 +12,11 @@ import { user } from '@/utils/embeds';
 export default new KamiSubcommand({
   builder: new SlashCommandSubcommandBuilder()
     .setName('list')
+    .setNameLocalization('ja', '一覧')
     .setNameLocalization('zh-TW', '列表')
-    .setDescription('List your playlists')
-    .setDescriptionLocalization('zh-TW', '列出你的播放清單'),
+    .setDescription('List all your playlists')
+    .setDescriptionLocalization('ja', 'プレイリストの一覧を表示する')
+    .setDescriptionLocalization('zh-TW', '列出所有播放清單'),
 
   async execute(interaction) {
     await deferEphemeral(interaction);

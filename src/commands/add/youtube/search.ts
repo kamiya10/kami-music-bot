@@ -8,8 +8,10 @@ import { logError } from '@/utils/callback';
 
 const inputOption = new SlashCommandStringOption()
   .setName('video')
+  .setNameLocalization('ja', '動画')
   .setNameLocalization('zh-TW', '影片')
   .setDescription('Search and select a video to add to the queue')
+  .setDescriptionLocalization('ja', '動画を検索して再生キューに追加する')
   .setDescriptionLocalization('zh-TW', '搜尋並選擇影片來新增資源到播放佇列中')
   .setMinLength(4)
   .setAutocomplete(true)
@@ -17,8 +19,10 @@ const inputOption = new SlashCommandStringOption()
 
 const beforeOption = new SlashCommandIntegerOption()
   .setName('before')
+  .setNameLocalization('ja', '位置')
   .setNameLocalization('zh-TW', '位置')
   .setDescription('Put this resource before. (Insert at first: 1, leave empty to insert at last)')
+  .setDescriptionLocalization('ja', 'リソースを指定位置の前に追加する（最初: 1、空欄で最後に追加）')
   .setDescriptionLocalization('zh-TW', '資源加入的位置（最前端 = 1 ，留空來將資源加到播放佇列的最尾端）')
   .setMinValue(1);
 
@@ -27,8 +31,10 @@ const cache = new Collection<string, NodeJS.Timeout>();
 export default new KamiSubcommand({
   builder: new SlashCommandSubcommandBuilder()
     .setName('search')
+    .setNameLocalization('ja', '検索')
     .setNameLocalization('zh-TW', '搜尋')
     .setDescription('Add videos from YouTube by search')
+    .setDescriptionLocalization('ja', 'YouTube検索で動画を追加する')
     .setDescriptionLocalization('zh-TW', '依 YouTube 搜尋結果新增資源到播放佇列')
     .addStringOption(inputOption)
     .addIntegerOption(beforeOption),
@@ -99,7 +105,7 @@ export default new KamiSubcommand({
       }
 
       const resource = KamiResource.youtube(this, video).setMember(interaction.member);
-      player.addResource(resource, before);
+      await player.addResource(resource, before);
 
       embed
         .setColor(Colors.Green)

@@ -8,6 +8,7 @@ export default new KamiSubcommandGroup({
   nameLocalizations: {},
   description: 'Add tracks from SoundCloud',
   descriptionLocalizations: {
+    'ja': 'SoundCloudから音楽を追加する',
     'zh-TW': '從 SoundCloud 新增音軌',
   },
   subcommands: [

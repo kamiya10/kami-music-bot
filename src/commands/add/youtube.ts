@@ -8,6 +8,7 @@ export default new KamiSubcommandGroup({
   nameLocalizations: {},
   description: 'Add videos from YouTube',
   descriptionLocalizations: {
+    'ja': 'YouTubeから動画を追加する',
     'zh-TW': '從 YouTube 新增資源',
   },
   subcommands: [url, search],

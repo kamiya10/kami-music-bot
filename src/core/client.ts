@@ -5,13 +5,13 @@ import { createHash } from 'node:crypto';
 import { Client, Collection, GatewayIntentBits } from 'discord.js';
 
 import Logger from '@/utils/logger';
+import { ResourceResolver } from '@/services/resource';
 import commands from '&';
 import contextMenus from '$';
 import { env } from '@/env';
 import events from '#';
 import pkg from '~/package.json';
 import { safeWriteFileSync } from '@/utils/fs';
-import { ResourceResolver } from '@/services/resource';
 
 import type { ClientOptions } from 'discord.js';
 import type { KamiCommand } from '@/core/command';
@@ -41,12 +41,14 @@ export class KamiClient extends Client {
     for (const command of commands) {
       this.commands.set(command.builder.name, command);
     }
-    Logger.debug(`Loaded ${this.commands.size} commands`);
+    Logger.info(`Loaded ${this.commands.size} commands`);
+    Logger.debug(this.commands.map((c) => `/${c.builder.name}`).join(', '));
 
     for (const contextMenu of contextMenus) {
       this.contextMenus.set(contextMenu.builder.name, contextMenu);
     }
-    Logger.debug(`Loaded ${this.contextMenus.size} context menus`);
+    Logger.info(`Loaded ${this.contextMenus.size} context menus`);
+    Logger.debug(this.contextMenus.map((c) => `/${c.builder.name}`).join(', '));
 
     for (const event of events) {
       const on = event.on;
@@ -58,7 +60,7 @@ export class KamiClient extends Client {
         this.once(event.event, (...args) => void once.apply(this, args));
       }
     }
-    Logger.debug(`Loaded ${events.length} event handlers`);
+    Logger.info(`Loaded ${events.length} event handlers`);
   }
 
   async resolveResource(url: string) {
@@ -94,6 +96,8 @@ export class KamiClient extends Client {
           );
           await guild.commands.set(data);
         }
+
+        await this.application.commands.set([]);
         return;
       }
 
