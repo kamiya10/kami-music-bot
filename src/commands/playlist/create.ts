@@ -1,4 +1,4 @@
-import { MessageFlags, SlashCommandBooleanOption, SlashCommandStringOption, SlashCommandSubcommandBuilder, bold } from 'discord.js';
+import { EmbedBuilder, MessageFlags, SlashCommandBooleanOption, SlashCommandStringOption, SlashCommandSubcommandBuilder, bold } from 'discord.js';
 import { nanoid } from 'nanoid';
 
 import { KamiResource, Platform } from '@/core/resource';
@@ -25,6 +25,7 @@ export default new KamiSubcommand({
       .setDescription('Name of the playlist')
       .setDescriptionLocalization('ja', 'プレイリストの名前')
       .setDescriptionLocalization('zh-TW', '播放清單名稱')
+      .setMaxLength(100)
       .setRequired(true),
     )
     .addBooleanOption(new SlashCommandBooleanOption()
@@ -43,8 +44,9 @@ export default new KamiSubcommand({
     const name = interaction.options.getString('name', true);
     const saveQueue = interaction.options.getBoolean('save_queue') ?? false;
 
-    // Get current queue resources if requested
     const resources: string[] = [];
+    const embeds: EmbedBuilder[] = [];
+
     if (saveQueue && interaction.guildId) {
       const queue = getQueue(interaction.guildId);
 
@@ -56,10 +58,7 @@ export default new KamiSubcommand({
             .warn('自定音檔將不會被加入至播放清單')
             .embed;
 
-          await interaction.followUp({
-            embeds: [warnEmbed],
-            flags: [MessageFlags.Ephemeral],
-          });
+          embeds.push(warnEmbed);
         }
 
         resources.push(...validResources.map((resource: KamiResource) => `${resource.id}@${resource.type}`));
@@ -83,9 +82,9 @@ export default new KamiSubcommand({
         )
         .embed;
 
-      await interaction.editReply({
-        embeds: [successEmbed],
-      });
+      embeds.push(successEmbed);
+
+      await interaction.editReply({ embeds });
     }
     catch (error) {
       Logger.error('Playlist creation failed', error);
