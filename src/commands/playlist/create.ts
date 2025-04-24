@@ -44,6 +44,22 @@ export default new KamiSubcommand({
     const name = interaction.options.getString('name', true);
     const saveQueue = interaction.options.getBoolean('save_queue') ?? false;
 
+    const existingPlaylist = await db.query.playlist.findFirst({
+      where: (playlist, { and, eq }) => and(
+        eq(playlist.name, name),
+        eq(playlist.ownerId, interaction.user.id),
+      ),
+    });
+
+    if (existingPlaylist) {
+      const errorEmbed = user(interaction)
+        .error(`播放清單的名稱不能重複`)
+        .embed;
+
+      await interaction.editReply({ embeds: [errorEmbed] });
+      return;
+    }
+
     const resources: string[] = [];
     const embeds: EmbedBuilder[] = [];
 
