@@ -1,0 +1,384 @@
+{
+  "$schema": "../../../../$schema/metadata.json",
+  "title": "跳楼机",
+  "album": "跳楼机",
+  "cover": "SBLOkCu",
+  "artist": [
+    "LBI利比"
+  ],
+  "producer": [
+    "LBI利比"
+  ],
+  "vocals": [
+    "LBI利比"
+  ],
+  "composer": [
+    "LBI利比"
+  ],
+  "arranger": [
+    "LBI利比"
+  ],
+  "lyricist": [
+    "LBI利比"
+  ],
+  "diskNo": 1,
+  "trackNo": 1,
+  "year": 2025,
+  "script": "zh",
+  "source": "Sony Music",
+  "tags": [
+    "jumping",
+    "machine",
+    "lbi"
+  ],
+  "lyrics": [
+    {
+      "from": 18800,
+      "to": 23340,
+      "line": "風走了 只留下一條街的葉落",
+      "translation": ""
+    },
+    {
+      "from": 23340,
+      "to": 26960,
+      "line": "你走了 只留下我雙眼的紅",
+      "translation": ""
+    },
+    {
+      "from": 26960,
+      "to": 28840,
+      "line": "逼著自己 早點睡",
+      "translation": ""
+    },
+    {
+      "from": 28840,
+      "to": 33920,
+      "line": "能不能再做一個 有你的美夢",
+      "translation": ""
+    },
+    {
+      "from": 33920,
+      "to": 36880,
+      "line": "我好像一束極光",
+      "translation": ""
+    },
+    {
+      "from": 36880,
+      "to": 40720,
+      "line": "守在遙遠的世界盡頭",
+      "translation": ""
+    },
+    {
+      "from": 40720,
+      "to": 42760,
+      "line": "看過了你的眼眸",
+      "translation": ""
+    },
+    {
+      "from": 42760,
+      "to": 47720,
+      "line": "才知道 孤獨很難忍受",
+      "translation": ""
+    },
+    {
+      "from": 47720,
+      "to": 49360,
+      "line": "可笑嗎 ?",
+      "translation": ""
+    },
+    {
+      "from": 49360,
+      "to": 52220,
+      "line": "我刪訪問記錄的時候 有多慌張",
+      "translation": ""
+    },
+    {
+      "from": 52220,
+      "to": 53570,
+      "line": "他會看見嗎 ?",
+      "translation": ""
+    },
+    {
+      "from": 53570,
+      "to": 55880,
+      "line": "曾經 只有我能 看的模樣",
+      "translation": ""
+    },
+    {
+      "from": 55880,
+      "to": 57350,
+      "line": "從夜深人靜",
+      "translation": ""
+    },
+    {
+      "from": 57350,
+      "to": 58790,
+      "line": "一直難過到天亮",
+      "translation": ""
+    },
+    {
+      "from": 58790,
+      "to": 61100,
+      "line": "你反正 不會再擔心",
+      "translation": ""
+    },
+    {
+      "from": 61100,
+      "to": 63440,
+      "line": "我隱隱作痛的心臟",
+      "translation": ""
+    },
+    {
+      "from": 63440,
+      "to": 66250,
+      "line": "好像遇到我 你才對自由嚮往",
+      "translation": ""
+    },
+    {
+      "from": 66250,
+      "to": 69110,
+      "line": "怎麼為他 失去一切 也無妨",
+      "translation": ""
+    },
+    {
+      "from": 69110,
+      "to": 70500,
+      "line": "可能是我 賤吧",
+      "translation": ""
+    },
+    {
+      "from": 70500,
+      "to": 72360,
+      "line": "不愛我的 非要上",
+      "translation": ""
+    },
+    {
+      "from": 72360,
+      "to": 74700,
+      "line": "那麼硬的南牆 非要撞",
+      "translation": ""
+    },
+    {
+      "from": 74700,
+      "to": 76320,
+      "line": "是不是內心 希望",
+      "translation": ""
+    },
+    {
+      "from": 76320,
+      "to": 79370,
+      "line": " 頭破血流 就會讓妳想起",
+      "translation": ""
+    },
+    {
+      "from": 79370,
+      "to": 81730,
+      "line": "最愛我的時光",
+      "translation": ""
+    },
+    {
+      "from": 81730,
+      "to": 85500,
+      "line": "Baby 我們的感情 好像跳樓機",
+      "translation": ""
+    },
+    {
+      "from": 85500,
+      "to": 89270,
+      "line": "讓我突然地升空 又急速落地",
+      "translation": ""
+    },
+    {
+      "from": 89270,
+      "to": 91130,
+      "line": "你帶給我一場瘋狂",
+      "translation": ""
+    },
+    {
+      "from": 91130,
+      "to": 93010,
+      "line": "劫後餘生 好難呼吸",
+      "translation": ""
+    },
+    {
+      "from": 93010,
+      "to": 95340,
+      "line": "那天的天氣 難得放晴",
+      "translation": ""
+    },
+    {
+      "from": 95340,
+      "to": 98160,
+      "line": "你說的話 卻把我困在雨季",
+      "translation": ""
+    },
+    {
+      "from": 98160,
+      "to": 100010,
+      "line": "其實你不是不愛了吧",
+      "translation": ""
+    },
+    {
+      "from": 100010,
+      "to": 101840,
+      "line": "只是有些摩擦 沒處理",
+      "translation": ""
+    },
+    {
+      "from": 101840,
+      "to": 104210,
+      "line": "怎麼你閉口不語",
+      "translation": ""
+    },
+    {
+      "from": 104210,
+      "to": 107510,
+      "line": "是不是我正好 說中你的心",
+      "translation": ""
+    },
+    {
+      "from": 107510,
+      "to": 110560,
+      "line": "就承認 還是在意吧",
+      "translation": ""
+    },
+    {
+      "from": 110560,
+      "to": 115040,
+      "line": "就騙騙我 也可以",
+      "translation": ""
+    },
+    {
+      "from": 115040,
+      "to": 130210,
+      "line": "(間奏)",
+      "translation": ""
+    },
+    {
+      "from": 130210,
+      "to": 131910,
+      "line": "可笑嗎 ?",
+      "translation": ""
+    },
+    {
+      "from": 131910,
+      "to": 134680,
+      "line": "你的出現 是我不能規避的傷",
+      "translation": ""
+    },
+    {
+      "from": 134680,
+      "to": 136590,
+      "line": "怎麼能 接受這荒唐",
+      "translation": ""
+    },
+    {
+      "from": 136590,
+      "to": 137990,
+      "line": "可能是我 賤吧",
+      "translation": ""
+    },
+    {
+      "from": 137990,
+      "to": 139880,
+      "line": "不愛我的 非要上",
+      "translation": ""
+    },
+    {
+      "from": 139880,
+      "to": 142150,
+      "line": "那麼硬的南牆 非要撞",
+      "translation": ""
+    },
+    {
+      "from": 142150,
+      "to": 143830,
+      "line": "是不是內心 希望",
+      "translation": ""
+    },
+    {
+      "from": 143830,
+      "to": 146840,
+      "line": "頭破血流 就會讓妳想起",
+      "translation": ""
+    },
+    {
+      "from": 146840,
+      "to": 149230,
+      "line": "最愛我的時光",
+      "translation": ""
+    },
+    {
+      "from": 149230,
+      "to": 153000,
+      "line": "Baby 我們的感情 好像跳樓機",
+      "translation": ""
+    },
+    {
+      "from": 153000,
+      "to": 156770,
+      "line": "讓我突然地升空 又急速落地",
+      "translation": ""
+    },
+    {
+      "from": 156770,
+      "to": 158600,
+      "line": "你帶給我一場瘋狂",
+      "translation": ""
+    },
+    {
+      "from": 158600,
+      "to": 160500,
+      "line": "劫後餘生 好難呼吸",
+      "translation": ""
+    },
+    {
+      "from": 160500,
+      "to": 162840,
+      "line": "那天的天氣 難得放晴",
+      "translation": ""
+    },
+    {
+      "from": 162840,
+      "to": 165640,
+      "line": "你說的話 卻把我困在雨季",
+      "translation": ""
+    },
+    {
+      "from": 165640,
+      "to": 167520,
+      "line": "其實你不是不愛了吧",
+      "translation": ""
+    },
+    {
+      "from": 167520,
+      "to": 169350,
+      "line": "只是有些摩擦沒處理",
+      "translation": ""
+    },
+    {
+      "from": 169350,
+      "to": 171690,
+      "line": "怎麼你閉口不語",
+      "translation": ""
+    },
+    {
+      "from": 171690,
+      "to": 175000,
+      "line": "是不是我正好 說中你的心",
+      "translation": ""
+    },
+    {
+      "from": 175000,
+      "to": 178040,
+      "line": "就承認 還是在意吧",
+      "translation": ""
+    },
+    {
+      "from": 178040,
+      "to": 202200,
+      "line": "哪怕騙騙我 也可以",
+      "translation": ""
+    }
+  ]
+}
