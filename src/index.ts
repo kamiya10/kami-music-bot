@@ -9,6 +9,9 @@ import { setConsoleTitle } from '@/utils/console';
 
 Logger.debug(generateDependencyReport());
 
+if (process.env['NODE_ENV'] == 'development')
+  console.log(generateDependencyReport());
+
 const client = new KamiClient();
 
 void client.login(
