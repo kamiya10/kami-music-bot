@@ -1,0 +1,39 @@
+name: Deploy Discord Bot
+
+on:
+  workflow_run:
+    workflows: ["Build and Test"]
+    branches: [main]
+    types:
+      - completed
+
+jobs:
+  deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+          run_id: ${{ github.event.workflow_run.id }}
+
+      - name: SSH and deploy bot
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /home/user/kami-music-bot
+
+            # Stop the current container
+            docker compose down discord-bot
+
+            # Pull the latest changes
+            git pull
+
+            # Rebuild and start the container
+            docker compose up -d --build discord-bot
