@@ -3,6 +3,7 @@ import { SoundCloud as sc } from 'scdl-core';
 import { fetchVideo, parseUrl } from '@/api/youtube';
 import { KamiResource } from '@/core/resource';
 import Logger from '@/utils/logger';
+import { tryCatch } from '@/utils/tryCatch';
 
 import type { KamiClient } from '@/core/client';
 
@@ -40,7 +41,13 @@ class SoundCloudResolver implements BaseResourceResolver {
   constructor(private client: KamiClient) {}
 
   canHandle(url: string): boolean {
-    return url.includes('soundcloud.com/');
+    const [error, result] = tryCatch.sync(() => new URL(url));
+    if (error) return false;
+
+    return [
+      'soundcloud.com',
+      'www.soundcloud.com',
+    ].includes(result.hostname);
   }
 
   async resolve(url: string): Promise<KamiResource | null> {
