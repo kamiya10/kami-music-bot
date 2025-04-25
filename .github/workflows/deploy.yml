@@ -13,13 +13,6 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     steps:
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: dist
-          path: dist
-          run_id: ${{ github.event.workflow_run.id }}
-
       - name: SSH and deploy bot
         uses: appleboy/ssh-action@v1.0.0
         with:
